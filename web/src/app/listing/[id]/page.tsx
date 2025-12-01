@@ -1,0 +1,266 @@
+import { notFound, redirect } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import type { Metadata } from "next";
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Clock, 
+  Eye, 
+  Heart, 
+  Share2, 
+  MessageCircle,
+  User
+} from "lucide-react";
+
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { formatRelativeTimeFromNow } from "@/lib/formatters";
+import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/schema";
+import { MessageButton } from "@/components/listing-message-button";
+
+interface ListingPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: ListingPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createSupabaseServerClient();
+  
+  const { data: listing } = await supabase
+    .from("listings")
+    .select(`
+      title,
+      description,
+      price,
+      thumbnail_url,
+      images,
+      city:cities(name),
+      region:regions(name),
+      category:product_categories(name)
+    `)
+    .eq("id", id)
+    .single();
+
+  if (!listing) {
+    return {
+      title: "Listing Not Found",
+    };
+  }
+
+  const listingData = listing as any;
+  const imageUrl = listingData.thumbnail_url || listingData.images?.[0];
+  const priceText = listingData.price === "0" || listingData.price === "0.00" ? "Free" : `£${listingData.price}`;
+  const location = listingData.city?.name || "UK";
+
+  return {
+    title: `${listingData.title} - ${priceText} in ${location}`,
+    description: listingData.description.substring(0, 160),
+    keywords: [
+      listingData.title,
+      location,
+      listingData.category?.name || "Items",
+      priceText === "Free" ? "free stuff" : "for sale",
+      "UK",
+      "reuse",
+      "circular economy",
+    ],
+    alternates: {
+      canonical: `https://reloopcycle.vercel.app/listing/${id}`,
+    },
+    openGraph: {
+      title: listingData.title,
+      description: listingData.description.substring(0, 160),
+      images: imageUrl ? [imageUrl] : [],
+      type: "website",
+      url: `https://reloopcycle.vercel.app/listing/${id}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: listingData.title,
+      description: listingData.description.substring(0, 160),
+      images: imageUrl ? [imageUrl] : [],
+    },
+  };
+}
+
+export default async function ListingPage({ params }: ListingPageProps) {
+  // Next.js 15: params is now a Promise
+  const { id } = await params;
+  
+  const supabase = await createSupabaseServerClient();
+  
+  // Kullanıcı bilgisini al
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  
+  // Listing detaylarını çek
+  const { data: listing, error } = await supabase
+    .from("listings")
+    .select(`
+      *,
+      seller:profiles(id, username, display_name, avatar_url, reputation, joined_at),
+      country:countries(name, code, flag_emoji),
+      region:regions(name, code),
+      city:cities(name, is_major),
+      category:product_categories(name, slug)
+    `)
+    .eq("id", id)
+    .single();
+
+  if (error || !listing) {
+    notFound();
+  }
+
+  const listingData = listing as any;
+
+  // Kullanıcının kendi ilanı mı kontrol et
+  const isOwner = user?.id === listingData.seller_id;
+
+  // View count'u artır (sadece kendi ilanı değilse)
+  if (!isOwner) {
+    await (supabase
+      .from("listings") as any)
+      .update({ view_count: (listingData.view_count || 0) + 1 })
+      .eq("id", id);
+  }
+
+  const relativeTime = formatRelativeTimeFromNow(listingData.created_at);
+
+  // Generate schemas
+  const productSchema = await generateProductSchema(id);
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", url: "https://reloopcycle.vercel.app" },
+    { name: listingData.category?.name || "Items", url: "https://reloopcycle.vercel.app" },
+    { name: listingData.title, url: `https://reloopcycle.vercel.app/listing/${id}` },
+  ]);
+
+  return (
+    <>
+      {/* JSON-LD Schema */}
+      {productSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        />
+      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      
+      <div className="min-h-screen bg-zinc-50">
+      {/* Header */}
+      <div className="sticky top-0 z-10 border-b border-zinc-200 bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto max-w-4xl px-4 py-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Geri Dön
+          </Link>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        {/* Görsel */}
+        <div className="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm">
+          {listingData.images && listingData.images.length > 0 ? (
+            <div className="relative aspect-[4/3]">
+              <Image
+                src={listingData.thumbnail_url || listingData.images[0]}
+                alt={listingData.title}
+                fill
+                className="object-cover"
+                priority
+              />
+              {/* Favorile - Sağ Üst */}
+              <button className="absolute right-3 top-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-rose-300 hover:bg-rose-50">
+                <Heart className="h-5 w-5 text-zinc-600" />
+              </button>
+              {/* Paylaş - Sağ Alt */}
+              <button className="absolute bottom-3 right-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-zinc-300 hover:bg-zinc-50">
+                <Share2 className="h-5 w-5 text-zinc-600" />
+              </button>
+            </div>
+          ) : (
+            <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-100 via-emerald-50 to-white">
+              {/* Favorile - Sağ Üst */}
+              <button className="absolute right-3 top-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-rose-300 hover:bg-rose-50">
+                <Heart className="h-5 w-5 text-zinc-600" />
+              </button>
+              {/* Paylaş - Sağ Alt */}
+              <button className="absolute bottom-3 right-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-zinc-300 hover:bg-zinc-50">
+                <Share2 className="h-5 w-5 text-zinc-600" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Kullanıcı Bilgisi */}
+        {listingData.seller && (
+          <div className="mb-6 flex items-center gap-3">
+            {listingData.seller.avatar_url ? (
+              <img
+                src={listingData.seller.avatar_url}
+                alt={listingData.seller.display_name || listingData.seller.username}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
+                <User className="h-6 w-6 text-white" />
+              </div>
+            )}
+            <div>
+              <p className="font-semibold text-zinc-900">
+                {listingData.seller.display_name || listingData.seller.username}
+              </p>
+              <p className="text-sm text-zinc-500">@{listingData.seller.username}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Açıklama */}
+        <div className="mb-6">
+          <h1 className="mb-3 text-2xl font-bold text-zinc-900">{listingData.title}</h1>
+          <p className="whitespace-pre-line text-zinc-700">{listingData.description}</p>
+        </div>
+
+        {/* Lokasyon, Tarih ve İstatistikler - Tek Satır */}
+        <div className="mb-6 flex items-center gap-3 overflow-x-auto text-xs text-zinc-600 md:gap-4 md:text-sm">
+          <span className="inline-flex shrink-0 items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            {listingData.city?.name}
+            {listingData.region && ` • ${listingData.region.name}`}
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1">
+            <Clock className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            {new Date(listingData.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1">
+            <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            {listingData.view_count || 0}
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1">
+            <Heart className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            {listingData.favorite_count || 0}
+          </span>
+        </div>
+
+        {/* Mesaj veya Düzenle Butonu */}
+        <MessageButton
+          listingId={id}
+          sellerId={listingData.seller_id}
+          currentUserId={user?.id || null}
+          isOwner={isOwner}
+        />
+      </div>
+    </div>
+    </>
+  );
+}
+
