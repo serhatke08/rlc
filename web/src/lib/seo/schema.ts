@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/env";
 
 export function generateOrganizationSchema() {
+  const siteUrl = getSiteUrl();
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "ReloopCycle",
-    url: "https://reloopcycle.vercel.app",
-    logo: "https://reloopcycle.vercel.app/logo.png",
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
     description: "UK's leading circular economy marketplace for giving, swapping, and reusing items",
     sameAs: [
       // Add social media links when available
@@ -24,16 +26,17 @@ export function generateOrganizationSchema() {
 }
 
 export function generateWebsiteSchema() {
+  const siteUrl = getSiteUrl();
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "ReloopCycle",
-    url: "https://reloopcycle.vercel.app",
+    url: siteUrl,
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://reloopcycle.vercel.app/?search={search_term_string}"
+        urlTemplate: `${siteUrl}/?search={search_term_string}`
       },
       "query-input": "required name=search_term_string"
     }
@@ -42,6 +45,7 @@ export function generateWebsiteSchema() {
 
 export async function generateProductSchema(listingId: string) {
   const supabase = await createSupabaseServerClient();
+  const siteUrl = getSiteUrl();
   
   const { data: listing } = await supabase
     .from("listings")
@@ -80,7 +84,7 @@ export async function generateProductSchema(listingId: string) {
       price: isFree ? "0" : price.toString(),
       priceCurrency: "GBP",
       availability: "https://schema.org/InStock",
-      url: `https://reloopcycle.vercel.app/listing/${listingData.id}`
+      url: `${siteUrl}/listing/${listingData.id}`
     },
     condition: `https://schema.org/${listingData.condition === "new" ? "NewCondition" : "UsedCondition"}`,
     category: "Second Hand Items",

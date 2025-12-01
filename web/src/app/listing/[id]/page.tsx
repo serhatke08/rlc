@@ -17,6 +17,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatRelativeTimeFromNow } from "@/lib/formatters";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/schema";
 import { MessageButton } from "@/components/listing-message-button";
+import { getSiteUrl } from "@/lib/env";
 
 interface ListingPageProps {
   params: Promise<{
@@ -54,6 +55,7 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
   const imageUrl = listingData.thumbnail_url || listingData.images?.[0];
   const priceText = listingData.price === "0" || listingData.price === "0.00" ? "Free" : `£${listingData.price}`;
   const location = listingData.city?.name || "UK";
+  const siteUrl = getSiteUrl();
 
   return {
     title: `${listingData.title} - ${priceText} in ${location}`,
@@ -68,14 +70,14 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
       "circular economy",
     ],
     alternates: {
-      canonical: `https://reloopcycle.vercel.app/listing/${id}`,
+      canonical: `${siteUrl}/listing/${id}`,
     },
     openGraph: {
       title: listingData.title,
       description: listingData.description.substring(0, 160),
       images: imageUrl ? [imageUrl] : [],
       type: "website",
-      url: `https://reloopcycle.vercel.app/listing/${id}`,
+      url: `${siteUrl}/listing/${id}`,
     },
     twitter: {
       card: "summary_large_image",
@@ -131,11 +133,12 @@ export default async function ListingPage({ params }: ListingPageProps) {
   const relativeTime = formatRelativeTimeFromNow(listingData.created_at);
 
   // Generate schemas
+  const siteUrl = getSiteUrl();
   const productSchema = await generateProductSchema(id);
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: "Home", url: "https://reloopcycle.vercel.app" },
-    { name: listingData.category?.name || "Items", url: "https://reloopcycle.vercel.app" },
-    { name: listingData.title, url: `https://reloopcycle.vercel.app/listing/${id}` },
+    { name: "Home", url: siteUrl },
+    { name: listingData.category?.name || "Items", url: siteUrl },
+    { name: listingData.title, url: `${siteUrl}/listing/${id}` },
   ]);
 
   return (
