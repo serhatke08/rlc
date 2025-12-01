@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
+import { getSiteUrl } from '@/lib/env'
  
 export default function robots(): MetadataRoute.Robots {
+  const siteUrl = getSiteUrl();
   return {
     rules: [
       {
@@ -9,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/auth/', '/account', '/messages', '/admin/'],
       },
     ],
-    sitemap: 'https://reloopcycle.vercel.app/sitemap.xml',
+    sitemap: `${siteUrl}/sitemap.xml`,
   }
 }
 

@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteSidebar } from "@/components/layout/site-sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo/schema";
+import { getSiteUrl } from "@/lib/env";
 
 import "./globals.css";
 
@@ -20,8 +21,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://reloopcycle.vercel.app"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "ReloopCycle | Give, Swap, Reuse - UK Circular Economy Marketplace",
     template: "%s | ReloopCycle",
@@ -41,7 +44,7 @@ export const metadata: Metadata = {
     title: "ReloopCycle | Give, Swap, Reuse",
     description:
       "UK's leading circular economy marketplace. Connect with neighbors to give, swap, and reuse items locally.",
-    url: "https://reloopcycle.vercel.app",
+    url: siteUrl,
     siteName: "ReloopCycle",
     locale: "en_GB",
     type: "website",

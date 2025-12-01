@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getSiteUrl } from '@/lib/env'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://reloopcycle.vercel.app'
+  const baseUrl = getSiteUrl()
   
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
