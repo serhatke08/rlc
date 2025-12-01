@@ -58,6 +58,8 @@ export async function getFeaturedListings(): Promise<FeaturedListing[]> {
         listing_type,
         category_id,
         subcategory_id,
+        currency,
+        is_featured,
         country:countries(name, code, flag_emoji),
         region:regions(name, code),
         city:cities(name, is_major),
@@ -68,7 +70,7 @@ export async function getFeaturedListings(): Promise<FeaturedListing[]> {
     .eq("status", "active")
     .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(100);
 
   if (error || !data || !data.length) {
     console.error("Supabase listings sorgusu başarısız", error);
