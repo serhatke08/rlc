@@ -29,24 +29,30 @@ export function hasSupabaseCredentials() {
 
 /**
  * Vercel'de otomatik olarak sağlanan URL'i veya custom domain'i döndürür
- * Production'da NEXT_PUBLIC_SITE_URL kullanılmalı, yoksa VERCEL_URL kullanılır
+ * Production'da mutlaka reloopcycle.com kullanılır, preview'da VERCEL_URL kullanılabilir
  */
 export function getSiteUrl(): string {
-  // Önce custom domain'i kontrol et
+  // Production'da her zaman custom domain kullan
+  const isProduction = process.env.VERCEL_ENV === 'production' || 
+                       (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL);
+  
+  if (isProduction) {
+    return 'https://reloopcycle.com';
+  }
+
+  // Önce custom domain environment variable'ını kontrol et
   const customDomain = process.env.NEXT_PUBLIC_SITE_URL;
   if (customDomain) {
     return customDomain.startsWith('http') ? customDomain : `https://${customDomain}`;
   }
 
-  // Vercel'de otomatik sağlanan URL
+  // Preview deployment'larda Vercel URL'i kullan
   const vercelUrl = process.env.VERCEL_URL;
   if (vercelUrl) {
     return `https://${vercelUrl}`;
   }
 
   // Development için fallback
-  return process.env.NODE_ENV === 'production' 
-    ? 'https://reloopcycle.com' 
-    : 'http://localhost:3000';
+  return 'http://localhost:3000';
 }
 
