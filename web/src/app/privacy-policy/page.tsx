@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
           <h2>7. Contact Us</h2>
           <p>
             If you have any questions about this privacy policy, please contact us at: 
-            privacy@reloopcycle.com
+            privacy@reloopcycle.co.uk
           </p>
         </article>
       </div>

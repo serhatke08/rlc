@@ -29,7 +29,7 @@ export default function ContactPage() {
                 <Mail className="h-6 w-6 text-emerald-600" />
               </div>
               <h3 className="mb-2 font-semibold text-zinc-900">Email</h3>
-              <p className="text-sm text-zinc-600">support@reloopcycle.com</p>
+              <p className="text-sm text-zinc-600">support@reloopcycle.co.uk</p>
             </div>
 
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 text-center">

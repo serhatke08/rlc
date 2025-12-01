@@ -29,15 +29,15 @@ export function hasSupabaseCredentials() {
 
 /**
  * Vercel'de otomatik olarak sağlanan URL'i veya custom domain'i döndürür
- * Production'da mutlaka reloopcycle.com kullanılır, preview'da VERCEL_URL kullanılabilir
+ * Production'da mutlaka reloopcycle.co.uk kullanılır, preview'da VERCEL_URL kullanılabilir
  */
 export function getSiteUrl(): string {
-  // Production'da her zaman custom domain kullan
+  // Production'da her zaman ana domain kullan
   const isProduction = process.env.VERCEL_ENV === 'production' || 
                        (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL);
   
   if (isProduction) {
-    return 'https://reloopcycle.com';
+    return 'https://reloopcycle.co.uk';
   }
 
   // Önce custom domain environment variable'ını kontrol et

@@ -18,7 +18,7 @@ export function generateOrganizationSchema() {
       "@type": "ContactPoint",
       telephone: "+44-XXX-XXX-XXXX",
       contactType: "Customer Service",
-      email: "support@reloopcycle.com",
+      email: "support@reloopcycle.co.uk",
       areaServed: "GB",
       availableLanguage: "en"
     }

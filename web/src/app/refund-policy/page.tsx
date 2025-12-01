@@ -62,7 +62,7 @@ export default function RefundPolicyPage() {
           <h2>6. Refund Process</h2>
           <p>To request a refund:</p>
           <ol>
-            <li>Contact our support team at support@reloopcycle.com</li>
+            <li>Contact our support team at support@reloopcycle.co.uk</li>
             <li>Provide your account details and transaction ID</li>
             <li>Explain the reason for your refund request</li>
             <li>Allow 5-10 business days for processing</li>
@@ -96,7 +96,7 @@ export default function RefundPolicyPage() {
           <h2>11. Contact Us</h2>
           <p>
             For refund requests or questions about this policy, please contact us at: 
-            refunds@reloopcycle.com
+            refunds@reloopcycle.co.uk
           </p>
         </article>
       </div>

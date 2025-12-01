@@ -88,7 +88,7 @@ export default function TermsConditionsPage() {
 
           <h2>11. Contact</h2>
           <p>
-            For questions about these terms, contact us at: legal@reloopcycle.com
+            For questions about these terms, contact us at: legal@reloopcycle.co.uk
           </p>
         </article>
       </div>
