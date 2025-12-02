@@ -1,5 +1,4 @@
-import { notFound, redirect } from "next/navigation";
-import Image from "next/image";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { 
@@ -8,8 +7,6 @@ import {
   Clock, 
   Eye, 
   Heart, 
-  Share2, 
-  MessageCircle,
   User
 } from "lucide-react";
 
@@ -17,6 +14,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatRelativeTimeFromNow } from "@/lib/formatters";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/schema";
 import { MessageButton } from "@/components/listing-message-button";
+import { ListingImageGallery } from "@/components/listing-image-gallery";
 import { getSiteUrl } from "@/lib/env";
 
 interface ListingPageProps {
@@ -164,45 +162,18 @@ export default async function ListingPage({ params }: ListingPageProps) {
             className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
           >
             <ArrowLeft className="h-4 w-4" />
-            Geri Dön
+            Back
           </Link>
         </div>
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-6">
-        {/* Görsel */}
-        <div className="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm">
-          {listingData.images && listingData.images.length > 0 ? (
-            <div className="relative aspect-[4/3]">
-              <Image
-                src={listingData.thumbnail_url || listingData.images[0]}
-                alt={listingData.title}
-                fill
-                className="object-cover"
-                priority
-              />
-              {/* Favorile - Sağ Üst */}
-              <button className="absolute right-3 top-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-rose-300 hover:bg-rose-50">
-                <Heart className="h-5 w-5 text-zinc-600" />
-              </button>
-              {/* Paylaş - Sağ Alt */}
-              <button className="absolute bottom-3 right-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-zinc-300 hover:bg-zinc-50">
-                <Share2 className="h-5 w-5 text-zinc-600" />
-              </button>
-            </div>
-          ) : (
-            <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-100 via-emerald-50 to-white">
-              {/* Favorile - Sağ Üst */}
-              <button className="absolute right-3 top-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-rose-300 hover:bg-rose-50">
-                <Heart className="h-5 w-5 text-zinc-600" />
-              </button>
-              {/* Paylaş - Sağ Alt */}
-              <button className="absolute bottom-3 right-3 rounded-full border border-zinc-200 bg-white/90 p-2.5 shadow-md backdrop-blur-sm transition hover:border-zinc-300 hover:bg-zinc-50">
-                <Share2 className="h-5 w-5 text-zinc-600" />
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Görsel Galeri */}
+        <ListingImageGallery
+          images={listingData.images || []}
+          thumbnailUrl={listingData.thumbnail_url}
+          title={listingData.title}
+        />
 
         {/* Kullanıcı Bilgisi */}
         {listingData.seller && (

@@ -35,31 +35,49 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
       const loadRegionData = async () => {
         const supabase = createSupabaseBrowserClient();
         
-        // Kullanıcının ülkesini al
+        // Kullanıcı giriş yapmışsa ülkesini al, yoksa UK'yi varsayılan olarak kullan
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user?.id) return;
+        let countryId: string | null = null;
+        let country: { name?: string; flag_emoji?: string } | null = null;
         
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("country_id")
-          .eq("id", user.id)
-          .single();
+        if (user?.id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("country_id")
+            .eq("id", user.id)
+            .single();
+          
+          const profile = profileData as { country_id?: string } | null;
+          if (profile?.country_id) {
+            countryId = profile.country_id;
+            
+            // Ülke bilgisini al
+            const { data: countryData } = await supabase
+              .from("countries")
+              .select("name, flag_emoji")
+              .eq("id", countryId)
+              .single();
+            
+            country = countryData as { name?: string; flag_emoji?: string } | null;
+          }
+        }
         
-        const profile = profileData as { country_id?: string } | null;
-        if (!profile?.country_id) return;
-        
-        const countryId = profile.country_id;
+        // Eğer kullanıcı giriş yapmamışsa veya ülkesi yoksa, UK'yi bul
+        if (!countryId) {
+          const { data: ukCountry } = await supabase
+            .from("countries")
+            .select("id, name, flag_emoji")
+            .eq("code", "GB")
+            .single();
+          
+          const ukCountryData = ukCountry as { id?: string; name?: string; flag_emoji?: string } | null;
+          if (ukCountryData?.id) {
+            countryId = ukCountryData.id;
+            country = { name: ukCountryData.name, flag_emoji: ukCountryData.flag_emoji };
+          }
+        }
         
         if (!countryId) return;
-        
-        // Ülke bilgisini al
-        const { data: countryData } = await supabase
-          .from("countries")
-          .select("name, flag_emoji")
-          .eq("id", countryId)
-          .single();
-        
-        const country = countryData as { name?: string; flag_emoji?: string } | null;
         
         // Regionları yükle
         const { data: regionsData } = await supabase
@@ -73,7 +91,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
           // En başa "All Regions" seçeneğini ekle
           const allRegionsOption = {
             id: "all",
-            name: country?.name || "England",
+            name: country?.name || "United Kingdom",
             code: null,
             country_id: countryId,
             is_all_regions: true,
@@ -142,65 +160,85 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
     
-    // 1. Kullanıcının ülke ID'sini al (profiles.country_id)
+    // Kullanıcı giriş yapmışsa ülkesini al, yoksa UK'yi varsayılan olarak kullan
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.id) {
-      console.error("Kullanıcı bulunamadı");
+    let countryId: string | null = null;
+    let country: { name?: string; flag_emoji?: string } | null = null;
+    
+    if (user?.id) {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("country_id")
+        .eq("id", user.id)
+        .single();
+      
+      const profile = profileData as any;
+      if (profile?.country_id) {
+        countryId = profile.country_id;
+        
+        // Ülke bilgisini al
+        if (countryId) {
+          const { data: countryData } = await supabase
+            .from("countries")
+            .select("name, flag_emoji")
+            .eq("id", countryId)
+            .single();
+          
+          country = countryData as { name?: string; flag_emoji?: string } | null;
+        }
+      }
+    }
+    
+    // Eğer kullanıcı giriş yapmamışsa veya ülkesi yoksa, UK'yi bul
+    if (!countryId) {
+      const { data: ukCountry } = await supabase
+        .from("countries")
+        .select("id, name, flag_emoji")
+        .eq("code", "GB")
+        .single();
+      
+      const ukCountryData = ukCountry as { id?: string; name?: string; flag_emoji?: string } | null;
+      if (ukCountryData?.id) {
+        countryId = ukCountryData.id;
+        country = { name: ukCountryData.name, flag_emoji: ukCountryData.flag_emoji };
+      }
+    }
+    
+    if (!countryId) {
+      console.error("Country not found");
       setLoading(false);
       return;
     }
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("country_id")
-      .eq("id", user.id)
-      .single();
     
-    const profile = profileData as any;
-    if (!profile?.country_id) {
-      console.error("Kullanıcı ülkesi bulunamadı");
-      setLoading(false);
-      return;
-    }
-    
-    // Ülke bilgisini al
-    const { data: countryData } = await supabase
-      .from("countries")
-      .select("name, flag_emoji")
-      .eq("id", profile.country_id)
-      .single();
-    
-    const country = countryData as { name?: string; flag_emoji?: string } | null;
-    
-    // 2. regions.country_id = profiles.country_id ile eşleşen regionları çek
+    // regions.country_id ile eşleşen regionları çek
     const { data, error } = await supabase
       .from("regions")
       .select("*")
-      .eq("country_id", profile.country_id)
-      .order("code") // Kod sırasına göre (E12001, E12002, vs.)
+      .eq("country_id", countryId)
+      .order("code")
       .order("name");
     
     if (error) {
-      console.error("Regions yüklenemedi:", error);
+      console.error("Failed to load regions:", error);
       setLoading(false);
       return;
     }
     
     if (data) {
-      // En başa "England" (tüm bölgeler) seçeneğini ekle
+      // En başa "All Regions" seçeneğini ekle
       const allRegionsOption = {
         id: "all",
-        name: country?.name || "England",
+        name: country?.name || "United Kingdom",
         code: null,
-        country_id: profile.country_id,
-        is_all_regions: true, // Özel flag
+        country_id: countryId,
+        is_all_regions: true,
       };
       
-      // Önce "all" seçeneği, sonra diğer regionlar
       setRegions([allRegionsOption, ...data]);
       setView("regions");
     }
     
-    // URL'den filtreleri temizle (tüm ülke gösterilecek)
+    // URL'den filtreleri temizle
     router.push("/");
     router.refresh();
     
@@ -255,13 +293,12 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
       .order("name");
     
     if (error) {
-      console.error("Şehirler yüklenemedi:", error);
+      console.error("Failed to load cities:", error);
       setLoading(false);
       return;
     }
     
     if (data) {
-      console.log(`${region.name} şehirleri yüklendi:`, data.length, "adet");
       setCities(data);
     }
     
@@ -310,12 +347,12 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
               className="flex items-center gap-1 text-xs font-medium text-zinc-500 transition hover:text-zinc-900 md:text-sm"
             >
               <ChevronLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              Geri
+              Back
             </button>
           )}
           <p className="text-xs font-semibold text-zinc-500 md:text-sm">
-            {view === "country" && "Ülkem"}
-            {view === "regions" && `Bölgeler (${regions.length})`}
+            {view === "country" && "My Country"}
+            {view === "regions" && `Regions (${regions.length})`}
           </p>
         </div>
         
@@ -355,7 +392,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
               onClick={handleClearFilter}
               className="text-[10px] font-medium text-emerald-600 transition hover:text-emerald-700 md:text-xs"
             >
-              Filtreyi Temizle
+              Clear Filter
             </button>
           )}
         </div>
@@ -363,7 +400,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
 
       {/* Loading */}
       {loading && (
-        <p className="text-xs text-zinc-500">Yükleniyor...</p>
+        <p className="text-xs text-zinc-500">Loading...</p>
       )}
 
       {/* Scroll Container - Regionlar */}
@@ -401,7 +438,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
             disabled={loading}
             className="shrink-0 rounded-xl border border-[#9c6cfe] bg-gradient-to-r from-[#f5ecff] to-[#e3fbff] px-4 py-2 text-xs font-semibold text-[#5a2bbf] transition hover:scale-105 disabled:opacity-50 md:rounded-2xl md:px-6 md:py-3 md:text-sm"
           >
-            {userCountry ? `${userCountry.name} ${userCountry.flag_emoji}` : "İngiltere 🇬🇧"}
+            {userCountry ? `${userCountry.name} ${userCountry.flag_emoji}` : "United Kingdom 🇬🇧"}
           </button>
         </div>
         )}
@@ -410,7 +447,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
       {selectedRegion && selectedRegion.id !== "all" && !selectedRegion.is_all_regions && cities.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-zinc-500 md:text-sm">
-            {selectedRegion.name} - Şehirler ({cities.length})
+            {selectedRegion.name} - Cities ({cities.length})
           </p>
           <div className="flex gap-2 overflow-x-auto pb-2 md:gap-3">
             {cities.map((city) => {
@@ -436,12 +473,12 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
 
       {/* Bölge bulunamadı */}
       {view === "regions" && regions.length === 0 && !loading && (
-        <p className="text-sm text-zinc-500">Bölge bulunamadı.</p>
+        <p className="text-sm text-zinc-500">No regions found.</p>
       )}
 
         {/* Şehir bulunamadı */}
       {selectedRegion && cities.length === 0 && !loading && (
-          <p className="text-sm text-zinc-500">Bu bölgede şehir bulunamadı.</p>
+          <p className="text-sm text-zinc-500">No cities found in this region.</p>
         )}
     </div>
   );

@@ -66,16 +66,16 @@ export function HomeListings({ listings }: HomeListingsProps) {
 
       <section className="mt-8">
         <h2 className="mb-4 text-xl font-semibold text-zinc-900">
-          Son İlanlar
+          Latest Listings
           {(activeFilter !== "all" || selectedCategory) && (
             <span className="ml-2 text-base font-normal text-zinc-500">
-              ({filteredListings.length} sonuç)
+              ({filteredListings.length} results)
             </span>
           )}
         </h2>
         {filteredListings.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-12 text-center">
-            <p className="text-sm text-zinc-600">Bu filtreler için ilan bulunamadı.</p>
+            <p className="text-sm text-zinc-600">No listings found for these filters.</p>
           </div>
         ) : viewMode === 'gallery' ? (
           // Gallery View - Sadece görseller

@@ -44,8 +44,8 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
       );
 
       if (convError || !conversationId) {
-        console.error("Konuşma oluşturma hatası:", convError);
-        alert("Mesaj gönderilemedi. Lütfen tekrar deneyin.");
+        console.error("Failed to create conversation:", convError);
+        alert("Failed to send message. Please try again.");
         setLoading(false);
         return;
       }
@@ -53,8 +53,8 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
       // Mesajlar sayfasına yönlendir
       router.push(`/messages/${conversationId}`);
     } catch (error) {
-      console.error("Hata:", error);
-      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
+      console.error("Error:", error);
+      alert("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
         className="w-full rounded-full border-2 border-emerald-600 bg-white px-6 py-3 font-semibold text-emerald-600 shadow-md transition hover:bg-emerald-50 hover:scale-[1.02] disabled:opacity-50"
       >
         <Edit className="mr-2 inline-block h-5 w-5" />
-        {loading ? "Yönlendiriliyor..." : "Düzenle"}
+        {loading ? "Redirecting..." : "Edit"}
       </button>
     );
   }
@@ -76,11 +76,11 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
   return (
     <button
       onClick={handleMessage}
-      disabled={loading || !currentUserId}
+      disabled={loading}
       className="w-full rounded-full bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg hover:scale-[1.02] disabled:opacity-50"
     >
       <MessageCircle className="mr-2 inline-block h-5 w-5" />
-      {loading ? "Yönlendiriliyor..." : "Mesaj"}
+      {loading ? "Redirecting..." : currentUserId ? "Message" : "Sign in"}
     </button>
   );
 }
