@@ -15,6 +15,8 @@ import { formatRelativeTimeFromNow } from "@/lib/formatters";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/schema";
 import { MessageButton } from "@/components/listing-message-button";
 import { ListingImageGallery } from "@/components/listing-image-gallery";
+import { ListingReportButton } from "@/components/listing-report-button";
+import { ListingBlockButton } from "@/components/listing-block-button";
 import { getSiteUrl } from "@/lib/env";
 
 interface ListingPageProps {
@@ -177,23 +179,34 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
         {/* Kullanıcı Bilgisi */}
         {listingData.seller && (
-          <div className="mb-6 flex items-center gap-3">
-            {listingData.seller.avatar_url ? (
-              <img
-                src={listingData.seller.avatar_url}
-                alt={listingData.seller.display_name || listingData.seller.username}
-                className="h-12 w-12 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                <User className="h-6 w-6 text-white" />
+          <div className="mb-6">
+            <div className="mb-3 flex items-center gap-3">
+              {listingData.seller.avatar_url ? (
+                <img
+                  src={listingData.seller.avatar_url}
+                  alt={listingData.seller.display_name || listingData.seller.username}
+                  className="h-12 w-12 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
+                  <User className="h-6 w-6 text-white" />
+                </div>
+              )}
+              <div className="flex-1">
+                <p className="font-semibold text-zinc-900">
+                  {listingData.seller.display_name || listingData.seller.username}
+                </p>
+                <p className="text-sm text-zinc-500">@{listingData.seller.username}</p>
               </div>
-            )}
-            <div>
-              <p className="font-semibold text-zinc-900">
-                {listingData.seller.display_name || listingData.seller.username}
-              </p>
-              <p className="text-sm text-zinc-500">@{listingData.seller.username}</p>
+              {!isOwner && (
+                <div className="flex gap-2">
+                  <ListingBlockButton
+                    sellerId={listingData.seller_id}
+                    currentUserId={user?.id || null}
+                    isOwner={isOwner}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -226,12 +239,26 @@ export default async function ListingPage({ params }: ListingPageProps) {
         </div>
 
         {/* Mesaj veya Düzenle Butonu */}
-        <MessageButton
-          listingId={id}
-          sellerId={listingData.seller_id}
-          currentUserId={user?.id || null}
-          isOwner={isOwner}
-        />
+        <div className="mb-4">
+          <MessageButton
+            listingId={id}
+            sellerId={listingData.seller_id}
+            currentUserId={user?.id || null}
+            isOwner={isOwner}
+          />
+        </div>
+
+        {/* Report Butonu */}
+        {!isOwner && (
+          <div className="flex justify-center">
+            <ListingReportButton
+              listingId={id}
+              sellerId={listingData.seller_id}
+              currentUserId={user?.id || null}
+              isOwner={isOwner}
+            />
+          </div>
+        )}
       </div>
     </div>
     </>
