@@ -45,10 +45,10 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
           .eq("id", user.id)
           .single();
         
-        if (!profileData || !(profileData as any)?.country_id) return;
+        const profile = profileData as { country_id?: string } | null;
+        if (!profile?.country_id) return;
         
-        const profile = profileData as any;
-        const countryId = profile?.country_id;
+        const countryId = profile.country_id;
         
         if (!countryId) return;
         
