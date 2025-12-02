@@ -45,20 +45,27 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
           .eq("id", user.id)
           .single();
         
-        if (!profileData?.country_id) return;
+        if (!profileData || !(profileData as any)?.country_id) return;
+        
+        const profile = profileData as any;
+        const countryId = profile?.country_id;
+        
+        if (!countryId) return;
         
         // Ülke bilgisini al
         const { data: countryData } = await supabase
           .from("countries")
           .select("name, flag_emoji")
-          .eq("id", profileData.country_id)
+          .eq("id", countryId)
           .single();
+        
+        const country = countryData as { name?: string; flag_emoji?: string } | null;
         
         // Regionları yükle
         const { data: regionsData } = await supabase
           .from("regions")
           .select("*")
-          .eq("country_id", profileData.country_id)
+          .eq("country_id", countryId)
           .order("code")
           .order("name");
         
@@ -66,9 +73,9 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
           // En başa "All Regions" seçeneğini ekle
           const allRegionsOption = {
             id: "all",
-            name: countryData?.name || "England",
+            name: country?.name || "England",
             code: null,
-            country_id: profileData.country_id,
+            country_id: countryId,
             is_all_regions: true,
           };
           
@@ -162,6 +169,8 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
       .eq("id", profile.country_id)
       .single();
     
+    const country = countryData as { name?: string; flag_emoji?: string } | null;
+    
     // 2. regions.country_id = profiles.country_id ile eşleşen regionları çek
     const { data, error } = await supabase
       .from("regions")
@@ -180,7 +189,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
       // En başa "England" (tüm bölgeler) seçeneğini ekle
       const allRegionsOption = {
         id: "all",
-        name: countryData?.name || "England",
+        name: country?.name || "England",
         code: null,
         country_id: profile.country_id,
         is_all_regions: true, // Özel flag

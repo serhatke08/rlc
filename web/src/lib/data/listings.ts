@@ -50,8 +50,9 @@ export async function getFeaturedListings(options?: {
         .eq("id", user.id)
         .single();
       
-      if (profile?.country_id) {
-        userCountryId = profile.country_id;
+      const profileData = profile as { country_id?: string } | null;
+      if (profileData?.country_id) {
+        userCountryId = profileData.country_id;
       }
     }
   } catch (error) {
