@@ -275,6 +275,7 @@ export default function CreateListingPage() {
           subcategory_id: subcategoryId || null,
           listing_type: listingType,
           condition: condition,
+          country_id: userCountryId || null, // Kullanıcının ülkesi otomatik eklenir
           region_id: regionId || null,
           city_id: cityId || null,
           city_name: selectedCity?.name || '',

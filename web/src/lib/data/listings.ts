@@ -33,10 +33,34 @@ type RawListing = {
   subcategory: { id: string; name: string; slug: string } | null;
 };
 
-export async function getFeaturedListings(): Promise<FeaturedListing[]> {
+export async function getFeaturedListings(options?: {
+  regionId?: string | null;
+  cityId?: string | null;
+}): Promise<FeaturedListing[]> {
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase
+  // Kullanıcının ülkesini al
+  let userCountryId: string | null = null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("country_id")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.country_id) {
+        userCountryId = profile.country_id;
+      }
+    }
+  } catch (error) {
+    // Kullanıcı giriş yapmamışsa veya profil yoksa devam et
+    console.log("Kullanıcı ülkesi alınamadı, tüm ülkeler gösterilecek");
+  }
+
+  // Sorgu oluştur
+  let query = supabase
     .from("listings")
     .select(
       `
@@ -60,6 +84,9 @@ export async function getFeaturedListings(): Promise<FeaturedListing[]> {
         subcategory_id,
         currency,
         is_featured,
+        country_id,
+        region_id,
+        city_id,
         country:countries(name, code, flag_emoji),
         region:regions(name, code),
         city:cities(name, is_major),
@@ -67,13 +94,34 @@ export async function getFeaturedListings(): Promise<FeaturedListing[]> {
         subcategory:product_subcategories(id, name, slug)
       `
     )
-    .eq("status", "active")
+    .eq("status", "active");
+
+  // Şehir filtresi (en öncelikli)
+  if (options?.cityId && options.cityId.trim() !== '' && options.cityId !== 'null' && options.cityId !== 'undefined') {
+    query = query.eq("city_id", options.cityId);
+  }
+  // Region filtresi (şehir yoksa)
+  // "all" regionId = tüm ülke göster
+  else if (options?.regionId && options.regionId.trim() !== '' && options.regionId !== 'null' && options.regionId !== 'undefined' && options.regionId !== 'all') {
+    query = query.eq("region_id", options.regionId);
+  }
+  // Kullanıcının ülkesine göre filtrele (region "all" veya region/şehir yoksa)
+  else if (userCountryId) {
+    query = query.eq("country_id", userCountryId);
+  }
+
+  const { data, error } = await query
     .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (error || !data || !data.length) {
+  if (error) {
     console.error("Supabase listings sorgusu başarısız", error);
+    return [];
+  }
+
+  if (!data || !data.length) {
+    // Hata yok ama veri yok, bu normal olabilir
     return [];
   }
 

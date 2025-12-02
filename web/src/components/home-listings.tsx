@@ -16,10 +16,9 @@ interface HomeListingsProps {
 export function HomeListings({ listings }: HomeListingsProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('gallery');
 
-  // Filtrelenmiş listeler
+  // Filtrelenmiş listeler (sadece tip ve kategori - region/şehir server-side yapılıyor)
   const filteredListings = useMemo(() => {
     return listings.filter((listing) => {
       // Tip filtresi (listing_type metadata'dan gelir)
@@ -42,14 +41,9 @@ export function HomeListings({ listings }: HomeListingsProps) {
         return false;
       }
 
-      // Şehir filtresi
-      if (selectedCity && listing.city !== selectedCity) {
-        return false;
-      }
-
       return true;
     });
-  }, [listings, activeFilter, selectedCategory, selectedCity]);
+  }, [listings, activeFilter, selectedCategory]);
 
   return (
     <div className="py-12">
@@ -63,8 +57,8 @@ export function HomeListings({ listings }: HomeListingsProps) {
           onCategoryChange={setSelectedCategory}
         />
         <RegionScroller 
-          activeRegion={selectedCity}
-          onRegionChange={setSelectedCity}
+          activeRegion={null}
+          onRegionChange={() => {}}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
@@ -73,7 +67,7 @@ export function HomeListings({ listings }: HomeListingsProps) {
       <section className="mt-8">
         <h2 className="mb-4 text-xl font-semibold text-zinc-900">
           Son İlanlar
-          {(activeFilter !== "all" || selectedCategory || selectedCity) && (
+          {(activeFilter !== "all" || selectedCategory) && (
             <span className="ml-2 text-base font-normal text-zinc-500">
               ({filteredListings.length} sonuç)
             </span>
