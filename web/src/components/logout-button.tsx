@@ -11,24 +11,60 @@ export function LogoutButton() {
 
   const handleLogout = async () => {
     setLoading(true);
+    
     try {
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error("Logout error:", error);
-        // Even if there's an error, try to redirect
+      // Call server-side logout API to clear server cookies
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (e) {
+      console.error("Server logout failed:", e);
+    }
+    
+    // Also try client-side logout
+    const supabase = createSupabaseBrowserClient();
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (e) {
+      try {
+        await supabase.auth.signOut();
+      } catch (e2) {
+        console.error("Client signOut failed:", e2);
+      }
+    }
+    
+    // Clear all client-side storage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (e) {
+        // Clear individual keys
+        [...Object.keys(localStorage), ...Object.keys(sessionStorage)].forEach(key => {
+          try {
+            localStorage.removeItem(key);
+            sessionStorage.removeItem(key);
+          } catch (e) {}
+        });
       }
       
-      // Force hard redirect to ensure auth state is cleared
-      window.location.href = "/auth/login";
-    } catch (error) {
-      console.error("Logout failed:", error);
-      // Force redirect anyway
-      window.location.href = "/auth/login";
-    } finally {
-      setLoading(false);
+      // Clear all cookies
+      document.cookie.split(";").forEach((c) => {
+        const cookieName = c.split("=")[0].trim();
+        if (cookieName) {
+          document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+          document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=${window.location.hostname};`;
+          document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=.${window.location.hostname};`;
+        }
+      });
     }
+    
+    // Wait a bit longer
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Force hard redirect
+    window.location.href = "/auth/login";
   };
 
   return (
