@@ -19,8 +19,11 @@ DROP VIEW IF EXISTS public.comments CASCADE;
 DROP VIEW IF EXISTS public.cities_full_info CASCADE;
 DROP VIEW IF EXISTS public.regions_full_info CASCADE;
 
--- Recreate comments view
-CREATE VIEW public.comments AS
+-- Recreate comments view as SECURITY INVOKER (PostgreSQL 15+)
+-- If your PostgreSQL version doesn't support security_invoker, remove the WITH clause
+CREATE VIEW public.comments 
+WITH (security_invoker = true)
+AS
 SELECT 
     lc.id,
     lc.listing_id,
@@ -32,8 +35,10 @@ SELECT
     lc.updated_at
 FROM listing_comments lc;
 
--- Recreate cities_full_info view
-CREATE VIEW public.cities_full_info AS
+-- Recreate cities_full_info view as SECURITY INVOKER
+CREATE VIEW public.cities_full_info 
+WITH (security_invoker = true)
+AS
 SELECT 
     c.id as city_id,
     c.name as city_name,
@@ -49,8 +54,10 @@ FROM cities c
 JOIN regions r ON c.region_id = r.id
 JOIN countries co ON c.country_id = co.id;
 
--- Recreate regions_full_info view
-CREATE VIEW public.regions_full_info AS
+-- Recreate regions_full_info view as SECURITY INVOKER
+CREATE VIEW public.regions_full_info 
+WITH (security_invoker = true)
+AS
 SELECT 
     r.id as region_id,
     r.name as region_name,
@@ -65,7 +72,7 @@ JOIN countries co ON r.country_id = co.id
 LEFT JOIN cities c ON c.region_id = r.id
 GROUP BY r.id, r.name, r.code, co.id, co.name, co.code, co.flag_emoji;
 
--- Change ownership to postgres (this removes any SECURITY DEFINER context)
+-- Change ownership to postgres role
 ALTER VIEW public.comments OWNER TO postgres;
 ALTER VIEW public.cities_full_info OWNER TO postgres;
 ALTER VIEW public.regions_full_info OWNER TO postgres;
