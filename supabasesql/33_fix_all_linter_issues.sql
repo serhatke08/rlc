@@ -121,7 +121,11 @@ CREATE POLICY "Users can delete their own blocks" ON public.blocks
 -- 4. FIX FUNCTION SEARCH_PATH
 -- ============================================
 
--- Drop existing functions first (to allow parameter name changes)
+-- Drop existing triggers first (they depend on functions)
+DROP TRIGGER IF EXISTS trigger_update_follower_counts_on_insert ON public.user_follows;
+DROP TRIGGER IF EXISTS trigger_update_follower_counts_on_delete ON public.user_follows;
+
+-- Drop existing functions (to allow parameter name changes)
 DROP FUNCTION IF EXISTS public.follow_user(UUID, UUID);
 DROP FUNCTION IF EXISTS public.unfollow_user(UUID, UUID);
 DROP FUNCTION IF EXISTS public.update_follower_counts_on_insert();
@@ -231,6 +235,17 @@ BEGIN
     RETURN OLD;
 END;
 $$;
+
+-- Recreate triggers with fixed functions
+CREATE TRIGGER trigger_update_follower_counts_on_insert
+AFTER INSERT ON public.user_follows
+FOR EACH ROW
+EXECUTE FUNCTION public.update_follower_counts_on_insert();
+
+CREATE TRIGGER trigger_update_follower_counts_on_delete
+AFTER DELETE ON public.user_follows
+FOR EACH ROW
+EXECUTE FUNCTION public.update_follower_counts_on_delete();
 
 -- ============================================
 -- COMMENTS
