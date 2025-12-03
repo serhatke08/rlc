@@ -19,38 +19,47 @@ const gradientButton =
 
 export function SiteHeader() {
   const { openMobileSidebar } = useUI();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(undefined); // undefined = loading, null = not logged in
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     
     // Kullanıcıyı kontrol et
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user || null);
+      setLoading(false);
       
       if (user) {
         // Profil bilgilerini çek
-        supabase
+        const { data } = await supabase
           .from("profiles")
           .select("username, avatar_url")
           .eq("id", user.id)
-          .single()
-          .then(({ data }) => setProfile(data));
+          .single();
+        setProfile(data);
+      } else {
+        setProfile(null);
       }
-    });
+    };
+    
+    checkUser();
 
     // Auth değişikliklerini dinle
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      setLoading(false);
       
-      if (session?.user) {
-        supabase
+      if (currentUser) {
+        const { data } = await supabase
           .from("profiles")
           .select("username, avatar_url")
-          .eq("id", session.user.id)
-          .single()
-          .then(({ data }) => setProfile(data));
+          .eq("id", currentUser.id)
+          .single();
+        setProfile(data);
       } else {
         setProfile(null);
       }
@@ -66,7 +75,9 @@ export function SiteHeader() {
         <div className="flex items-center justify-between">
           <Logo size="lg" />
           <div className="flex items-center gap-3 text-sm font-semibold">
-            {user ? (
+            {loading ? (
+              <div className="h-10 w-20 animate-pulse rounded-2xl bg-zinc-200" />
+            ) : user ? (
               <Link
                 href="/account"
                 className="flex items-center gap-2 rounded-2xl border border-zinc-200 px-4 py-2 transition hover:border-emerald-200"
@@ -126,7 +137,9 @@ export function SiteHeader() {
         <Logo />
         <div className="flex items-center gap-2">
           <AddProductButton compact />
-          {user ? (
+          {loading ? (
+            <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />
+          ) : user ? (
             <Link
               href="/account"
               className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200"
