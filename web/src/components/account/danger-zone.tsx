@@ -12,10 +12,23 @@ export function AccountDangerZone() {
 
   const handleSignOut = async () => {
     setLoading(true);
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    router.push("/auth/login");
-    router.refresh();
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Logout error:", error);
+      }
+      
+      // Force hard redirect to ensure auth state is cleared
+      window.location.href = "/auth/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Force redirect anyway
+      window.location.href = "/auth/login";
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
