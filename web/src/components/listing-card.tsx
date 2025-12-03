@@ -1,9 +1,12 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Clock3, Eye, MapPin, MessageSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowUpRight, Eye, MapPin, Heart, User } from "lucide-react";
 
-import { formatRelativeTimeFromNow } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { FeaturedListing } from "@/types/listing";
 
 interface ListingCardProps {
@@ -30,11 +33,35 @@ const TYPE_META: Record<
 };
 
 export function ListingCard({ listing }: ListingCardProps) {
-  const relativeTime = formatRelativeTimeFromNow(listing.createdAt);
+  const router = useRouter();
   const cover = listing.coverImage;
+  const seller = listing.seller;
+
+  const handleCardClick = async (e: React.MouseEvent) => {
+    // View count'u artır
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Sadece kendi ilanı değilse view count'u artır
+      // Seller bilgisi yoksa veya kullanıcı seller değilse artır
+      if (!seller || user?.id !== seller.id) {
+        await (supabase
+          .from("listings") as any)
+          .update({ view_count: (listing.views || 0) + 1 })
+          .eq("id", listing.id);
+      }
+    } catch (error) {
+      // Hata olsa bile sayfaya git
+      console.error("Failed to increment view count:", error);
+    }
+    
+    // Sayfaya git
+    router.push(`/listing/${listing.id}`);
+  };
 
   return (
-    <Link href={`/listing/${listing.id}`}>
+    <div onClick={handleCardClick}>
       <article className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-100 ring-1 ring-transparent transition hover:-translate-y-1 hover:shadow-lg hover:ring-emerald-300/60 cursor-pointer">
         <div className="relative overflow-hidden rounded-xl">
           {cover ? (
@@ -62,6 +89,26 @@ export function ListingCard({ listing }: ListingCardProps) {
         </div>
 
         <div className="flex flex-1 flex-col gap-2 pt-3">
+          {/* Seller Info - Fotoğrafın hemen altında */}
+          {seller && (
+            <div className="flex items-center gap-2">
+              {seller.avatar_url ? (
+                <img
+                  src={seller.avatar_url}
+                  alt={seller.display_name || seller.username}
+                  className="h-6 w-6 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
+                  <User className="h-3 w-3 text-white" />
+                </div>
+              )}
+              <span className="text-xs font-medium text-zinc-700">
+                {seller.display_name || seller.username}
+              </span>
+            </div>
+          )}
+
           <div className="flex flex-col gap-1">
             <p className="text-[10px] font-medium uppercase tracking-wide text-emerald-700">
               {listing.category}
@@ -69,7 +116,6 @@ export function ListingCard({ listing }: ListingCardProps) {
             <h3 className="text-sm font-semibold leading-tight text-zinc-900 line-clamp-2">
               {listing.title}
             </h3>
-            <p className="line-clamp-2 text-xs text-zinc-600">{listing.description}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
@@ -77,13 +123,10 @@ export function ListingCard({ listing }: ListingCardProps) {
               <MapPin className="h-3 w-3" />
               <span className="truncate">{listing.city}</span>
             </span>
-            {relativeTime && (
-              <span className="inline-flex items-center gap-1">
-                <Clock3 className="h-3 w-3" />
-                {relativeTime}
-              </span>
-            )}
           </div>
+
+          {/* Description - En altta */}
+          <p className="line-clamp-2 text-xs text-zinc-600">{listing.description}</p>
 
           {listing.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
@@ -105,15 +148,15 @@ export function ListingCard({ listing }: ListingCardProps) {
                 {listing.views}
               </span>
               <span className="inline-flex items-center gap-1">
-                <MessageSquare className="h-3 w-3" />
-                {listing.comments}
+                <Heart className="h-3 w-3" />
+                {listing.favorites}
               </span>
             </div>
             <ArrowUpRight className="h-4 w-4 text-zinc-400 transition group-hover:text-emerald-600" />
           </div>
         </div>
       </article>
-    </Link>
+    </div>
   );
 }
 

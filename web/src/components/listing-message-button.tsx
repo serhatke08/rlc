@@ -24,8 +24,8 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
     }
 
     if (isOwner) {
-      // Kendi ilanıysa düzenle sayfasına git (henüz oluşturulmadı, account sayfasına yönlendir)
-      router.push("/account");
+      // Kendi ilanıysa düzenle sayfasına git
+      router.push(`/edit-listing/${listingId}`);
       return;
     }
 

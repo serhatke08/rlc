@@ -22,6 +22,13 @@ export interface FeaturedListing {
   createdAt: string;
   views: number;
   comments: number;
+  favorites: number;
   metadata?: Record<string, unknown>;
+  seller?: {
+    id: string;
+    username: string;
+    display_name?: string | null;
+    avatar_url?: string | null;
+  } | null;
 }
 

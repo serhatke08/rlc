@@ -10,7 +10,7 @@ interface ListingFilterPillsProps {
 
 export function ListingFilterPills({ activeFilter, onFilterChange }: ListingFilterPillsProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto rounded-2xl bg-white/80 p-2 shadow-sm shadow-zinc-100 md:flex-wrap md:gap-3 md:rounded-3xl md:p-3">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide rounded-2xl bg-white/80 p-2 shadow-sm shadow-zinc-100 md:flex-wrap md:gap-3 md:rounded-3xl md:p-3">
       {LISTING_FILTERS.map((filter) => {
         const Icon = filter.icon;
         const isActive = activeFilter === filter.key;

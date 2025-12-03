@@ -4,6 +4,7 @@ import { MapPin, Package, Star } from "lucide-react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { DeleteListingButton } from "@/components/delete-listing-button";
+import { EditListingButton } from "@/components/edit-listing-button";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { LogoutButton } from "@/components/logout-button";
 
@@ -137,7 +138,7 @@ export default async function AccountPage() {
 
         {/* Ürün Listesi */}
         {listingsData && listingsData.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
             {listingsData.map((listing: any) => (
               <div
                 key={listing.id}
@@ -181,8 +182,9 @@ export default async function AccountPage() {
                   </div>
                 </Link>
                 
-                {/* Silme Butonu - Sağ Üst Köşe */}
-                <div className="absolute right-2 top-2 z-10">
+                {/* Butonlar - Sağ Üst Köşe */}
+                <div className="absolute right-2 top-2 z-10 flex gap-2">
+                  <EditListingButton listingId={listing.id} />
                   <DeleteListingButton listingId={listing.id} />
                 </div>
               </div>

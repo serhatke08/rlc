@@ -23,6 +23,7 @@ type RawListing = {
   slug: string | null;
   view_count: number | null;
   comment_count: number | null;
+  favorite_count: number | null;
   listing_type: string | null;
   category_id: string | null;
   subcategory_id: string | null;
@@ -31,6 +32,7 @@ type RawListing = {
   city: { name: string; is_major: boolean } | null;
   category: { id: string; name: string; slug: string; icon: string | null } | null;
   subcategory: { id: string; name: string; slug: string } | null;
+  seller: { id: string; username: string; display_name: string | null; avatar_url: string | null } | null;
 };
 
 export async function getFeaturedListings(options?: {
@@ -79,6 +81,7 @@ export async function getFeaturedListings(options?: {
         slug,
         view_count,
         comment_count,
+        favorite_count,
         price,
         listing_type,
         category_id,
@@ -92,7 +95,8 @@ export async function getFeaturedListings(options?: {
         region:regions(name, code),
         city:cities(name, is_major),
         category:product_categories(id, name, slug, icon),
-        subcategory:product_subcategories(id, name, slug)
+        subcategory:product_subcategories(id, name, slug),
+        seller:profiles(id, username, display_name, avatar_url)
       `
     )
     .eq("status", "active");
@@ -198,7 +202,14 @@ export async function getFeaturedListings(options?: {
       createdAt: listing.created_at ?? new Date().toISOString(),
       views: listing.view_count ?? 0,
       comments: listing.comment_count ?? 0,
+      favorites: listing.favorite_count ?? 0,
       metadata: listing.metadata ?? undefined,
+      seller: listing.seller ? {
+        id: listing.seller.id,
+        username: listing.seller.username,
+        display_name: listing.seller.display_name,
+        avatar_url: listing.seller.avatar_url,
+      } : null,
     };
   });
 }

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 type Category = {
   id: string;
@@ -42,9 +43,12 @@ const CONDITIONS = [
   { value: 'for_parts', label: 'For Parts' },
 ];
 
-export default function CreateListingPage() {
+export default function EditListingPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const params = useParams();
+  const listingId = params.id as string;
+  
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
   // Form state
@@ -56,6 +60,7 @@ export default function CreateListingPage() {
   const [condition, setCondition] = useState<string>('used');
   const [regionId, setRegionId] = useState<string>('');
   const [cityId, setCityId] = useState<string>('');
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   
@@ -66,10 +71,10 @@ export default function CreateListingPage() {
   const [cities, setCities] = useState<City[]>([]);
   const [userCountryId, setUserCountryId] = useState<string | null>(null);
 
-  // Load initial data
+  // Load listing data
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    loadListingData();
+  }, [listingId]);
 
   // Load subcategories when category changes
   useEffect(() => {
@@ -91,7 +96,7 @@ export default function CreateListingPage() {
     }
   }, [regionId]);
 
-  const loadInitialData = async () => {
+  const loadListingData = async () => {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
 
@@ -102,6 +107,37 @@ export default function CreateListingPage() {
         router.push('/auth/login');
         return;
       }
+
+      // Load listing
+      const { data: listing, error: listingError } = await (supabase
+        .from('listings') as any)
+        .select('*')
+        .eq('id', listingId)
+        .single();
+
+      if (listingError || !listing) {
+        alert('Listing not found');
+        router.push('/account');
+        return;
+      }
+
+      // Check if user owns the listing
+      if (listing.seller_id !== user.id) {
+        alert('You do not have permission to edit this listing');
+        router.push('/account');
+        return;
+      }
+
+      // Set form values
+      setTitle(listing.title || '');
+      setDescription(listing.description || '');
+      setCategoryId(listing.category_id || '');
+      setSubcategoryId(listing.subcategory_id || '');
+      setListingType(listing.listing_type || '');
+      setCondition(listing.condition || 'used');
+      setRegionId(listing.region_id || '');
+      setCityId(listing.city_id || '');
+      setExistingImages(listing.images || []);
 
       // Load user's country
       const { data: profile } = await supabase
@@ -117,17 +153,27 @@ export default function CreateListingPage() {
       }
 
       // Load categories
-      const { data: categoriesData, error: categoriesError } = await supabase
+      const { data: categoriesData } = await supabase
         .from('product_categories')
         .select('id, name, slug')
         .eq('is_active', true)
         .order('order_index', { ascending: true, nullsFirst: false })
         .order('name', { ascending: true });
 
-      if (categoriesError) throw categoriesError;
       if (categoriesData) setCategories(categoriesData);
+
+      // Load subcategories if category exists
+      if (listing.category_id) {
+        await loadSubcategories(listing.category_id);
+      }
+
+      // Load cities if region exists
+      if (listing.region_id) {
+        await loadCities(listing.region_id);
+      }
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      console.error('Error loading listing data:', error);
+      alert('Error loading listing. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -183,7 +229,7 @@ export default function CreateListingPage() {
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (photos.length + files.length > 10) {
+    if (existingImages.length + photos.length + files.length > 10) {
       alert('Maximum 10 photos allowed');
       return;
     }
@@ -196,6 +242,11 @@ export default function CreateListingPage() {
     setPhotoPreviews([...photoPreviews, ...newPreviews]);
   };
 
+  const removeExistingImage = (index: number) => {
+    const newImages = existingImages.filter((_, i) => i !== index);
+    setExistingImages(newImages);
+  };
+
   const removePhoto = (index: number) => {
     const newPhotos = photos.filter((_, i) => i !== index);
     const newPreviews = photoPreviews.filter((_, i) => i !== index);
@@ -203,33 +254,10 @@ export default function CreateListingPage() {
     setPhotoPreviews(newPreviews);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
-    
-    if (dragIndex === dropIndex) return;
-
-    const newPhotos = [...photos];
-    const newPreviews = [...photoPreviews];
-    
-    const [draggedPhoto] = newPhotos.splice(dragIndex, 1);
-    const [draggedPreview] = newPreviews.splice(dragIndex, 1);
-    
-    newPhotos.splice(dropIndex, 0, draggedPhoto);
-    newPreviews.splice(dropIndex, 0, draggedPreview);
-    
-    setPhotos(newPhotos);
-    setPhotoPreviews(newPreviews);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (photos.length === 0) {
+    if (existingImages.length + photos.length === 0) {
       alert('Please add at least one photo');
       return;
     }
@@ -244,7 +272,7 @@ export default function CreateListingPage() {
         return;
       }
 
-      // Upload photos to Supabase Storage
+      // Upload new photos to Supabase Storage
       const uploadedUrls: string[] = [];
       for (const photo of photos) {
         const fileExt = photo.name.split('.').pop();
@@ -263,41 +291,41 @@ export default function CreateListingPage() {
         uploadedUrls.push(publicUrl);
       }
 
+      // Combine existing and new images
+      const allImages = [...existingImages, ...uploadedUrls];
+      const thumbnailUrl = allImages[0];
+
       // Get region and city names
       const selectedRegion = regions.find(r => r.id === regionId);
       const selectedCity = cities.find(c => c.id === cityId);
 
-      // Create listing
-      const { data: listing, error: listingError } = await (supabase
+      // Update listing
+      const { error: updateError } = await (supabase
         .from('listings') as any)
-        .insert({
+        .update({
           title: title.trim(),
           description: description.trim(),
-          seller_id: user.id,
           category_id: categoryId || null,
           subcategory_id: subcategoryId || null,
           listing_type: listingType,
           condition: condition,
-          country_id: userCountryId || null, // Kullanıcının ülkesi otomatik eklenir
           region_id: regionId || null,
           city_id: cityId || null,
           city_name: selectedCity?.name || '',
           district_name: selectedRegion?.name || null,
-          images: uploadedUrls,
-          thumbnail_url: uploadedUrls[0],
-          price: listingType === 'free' || listingType === 'exchange' || listingType === 'need' || listingType === 'ownership' ? 0 : 0, // Will be updated based on listing type
-          currency: 'GBP',
-          status: 'active',
+          images: allImages,
+          thumbnail_url: thumbnailUrl,
+          updated_at: new Date().toISOString(),
         })
-        .select()
-        .single();
+        .eq('id', listingId)
+        .eq('seller_id', user.id);
 
-      if (listingError) throw listingError;
+      if (updateError) throw updateError;
 
-      router.push(`/listing/${listing.id}`);
+      router.push(`/listing/${listingId}`);
     } catch (error) {
-      console.error('Error creating listing:', error);
-      alert('Error creating listing. Please try again.');
+      console.error('Error updating listing:', error);
+      alert('Error updating listing. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -312,8 +340,16 @@ export default function CreateListingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="mb-8 text-3xl font-bold text-zinc-900">Add Product</h1>
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <Link
+        href="/account"
+        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Account
+      </Link>
+
+      <h1 className="mb-8 text-3xl font-bold text-zinc-900">Edit Listing</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Category */}
@@ -476,80 +512,78 @@ export default function CreateListingPage() {
             Photos * (Minimum 1, maximum 10)
           </label>
           <div className="space-y-4">
-            {/* Photo Preview Grid */}
-            {photoPreviews.length > 0 && (
-              <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
-                {photoPreviews.map((preview, index) => (
-                  <div
-                    key={index}
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData('text/plain', index.toString())}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, index)}
-                    className="relative aspect-square cursor-move"
-                  >
-                    <img
-                      src={preview}
-                      alt={`Preview ${index + 1}`}
-                      className="h-full w-full rounded-xl object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(index)}
-                      className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition hover:bg-red-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    {index === 0 && (
-                      <div className="absolute left-2 top-2 rounded bg-emerald-500 px-2 py-1 text-xs font-semibold text-white">
-                        Main
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {/* Existing Images */}
+            {existingImages.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs text-zinc-500">Existing Photos</p>
+                <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
+                  {existingImages.map((imageUrl, index) => (
+                    <div key={index} className="relative aspect-square">
+                      <img
+                        src={imageUrl}
+                        alt={`Existing ${index + 1}`}
+                        className="h-full w-full rounded-xl object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeExistingImage(index)}
+                        className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition hover:bg-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                      {index === 0 && existingImages.length > 0 && (
+                        <div className="absolute left-2 top-2 rounded bg-emerald-500 px-2 py-1 text-xs font-semibold text-white">
+                          Main
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Upload Button with Drag & Drop */}
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.currentTarget.classList.add('border-emerald-400', 'bg-emerald-50');
-              }}
-              onDragLeave={(e) => {
-                e.currentTarget.classList.remove('border-emerald-400', 'bg-emerald-50');
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.currentTarget.classList.remove('border-emerald-400', 'bg-emerald-50');
-                const files = Array.from(e.dataTransfer.files);
-                if (files.length > 0 && files[0].type.startsWith('image/')) {
-                  if (photos.length + files.length > 10) {
-                    alert('Maximum 10 photos allowed');
-                    return;
-                  }
-                  const newPhotos = [...photos, ...files];
-                  setPhotos(newPhotos);
-                  const newPreviews = files.map(file => URL.createObjectURL(file));
-                  setPhotoPreviews([...photoPreviews, ...newPreviews]);
-                }
-              }}
-            >
+            {/* New Photo Preview Grid */}
+            {photoPreviews.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs text-zinc-500">New Photos</p>
+                <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
+                  {photoPreviews.map((preview, index) => (
+                    <div key={index} className="relative aspect-square">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="h-full w-full rounded-xl object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(index)}
+                        className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition hover:bg-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Upload Button */}
+            <div>
               <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 px-6 py-8 text-sm font-semibold text-zinc-700 transition hover:border-emerald-400 hover:bg-emerald-50">
                 <Upload className="h-5 w-5" />
-                Add Photo
+                Add More Photos
                 <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handlePhotoChange}
                   className="hidden"
-                  disabled={photos.length >= 10}
+                  disabled={existingImages.length + photos.length >= 10}
                 />
               </label>
             </div>
             <p className="text-xs text-zinc-500">
-              The first photo will be used as the main photo. You can drag and drop to reorder photos.
+              The first photo will be used as the main photo.
             </p>
           </div>
         </div>
@@ -558,7 +592,7 @@ export default function CreateListingPage() {
         <div className="flex gap-4 pt-4">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => router.push('/account')}
             className="flex-1 rounded-xl border border-zinc-200 bg-white px-6 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
           >
             Cancel
@@ -571,10 +605,10 @@ export default function CreateListingPage() {
             {submitting ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Publishing...
+                Updating...
               </span>
             ) : (
-              'Publish Listing'
+              'Update Listing'
             )}
           </button>
         </div>

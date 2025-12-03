@@ -25,6 +25,8 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
   const [cities, setCities] = useState<any[]>([]);
   const [selectedRegion, setSelectedRegion] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [regionListingCounts, setRegionListingCounts] = useState<Record<string, number>>({});
+  const [cityListingCounts, setCityListingCounts] = useState<Record<string, number>>({});
 
   // URL'den regionId ve cityId'yi oku, sayfa yüklendiğinde regionları ve şehirleri yükle
   useEffect(() => {
@@ -88,6 +90,21 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
           .order("name");
         
         if (regionsData) {
+          // Her region için listing count'u al
+          const counts: Record<string, number> = {};
+          for (const region of regionsData) {
+            const regionData = region as { id?: string };
+            if (regionData?.id) {
+              const { count } = await supabase
+                .from("listings")
+                .select("*", { count: "exact", head: true })
+                .eq("region_id", regionData.id)
+                .eq("status", "active");
+              counts[regionData.id] = count || 0;
+            }
+          }
+          setRegionListingCounts(counts);
+          
           // En başa "All Regions" seçeneğini ekle
           const allRegionsOption = {
             id: "all",
@@ -120,6 +137,20 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
               .order("name");
             
             if (citiesData) {
+              // Her şehir için listing count'u al
+              const counts: Record<string, number> = {};
+              for (const city of citiesData) {
+                const cityData = city as { id?: string };
+                if (cityData?.id) {
+                  const { count } = await supabase
+                    .from("listings")
+                    .select("*", { count: "exact", head: true })
+                    .eq("city_id", cityData.id)
+                    .eq("status", "active");
+                  counts[cityData.id] = count || 0;
+                }
+              }
+              setCityListingCounts(counts);
               setCities(citiesData);
             }
           }
@@ -225,6 +256,21 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
     }
     
     if (data) {
+      // Her region için listing count'u al
+      const counts: Record<string, number> = {};
+      for (const region of data) {
+        const regionData = region as { id?: string };
+        if (regionData?.id) {
+          const { count } = await supabase
+            .from("listings")
+            .select("*", { count: "exact", head: true })
+            .eq("region_id", regionData.id)
+            .eq("status", "active");
+          counts[regionData.id] = count || 0;
+        }
+      }
+      setRegionListingCounts(counts);
+      
       // En başa "All Regions" seçeneğini ekle
       const allRegionsOption = {
         id: "all",
@@ -299,6 +345,20 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
     }
     
     if (data) {
+      // Her şehir için listing count'u al
+      const counts: Record<string, number> = {};
+      for (const city of data) {
+        const cityData = city as { id?: string };
+        if (cityData?.id) {
+          const { count } = await supabase
+            .from("listings")
+            .select("*", { count: "exact", head: true })
+            .eq("city_id", cityData.id)
+            .eq("status", "active");
+          counts[cityData.id] = count || 0;
+        }
+      }
+      setCityListingCounts(counts);
       setCities(data);
     }
     
@@ -352,7 +412,10 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
           )}
           <p className="text-xs font-semibold text-zinc-500 md:text-sm">
             {view === "country" && "My Country"}
-            {view === "regions" && `Regions (${regions.length})`}
+            {view === "regions" && (() => {
+              const totalListings = Object.values(regionListingCounts).reduce((sum, count) => sum + count, 0);
+              return `${totalListings} listings`;
+            })()}
           </p>
         </div>
         
@@ -405,7 +468,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
 
       {/* Scroll Container - Regionlar */}
       {view === "regions" && regions.length > 0 && (
-      <div className="flex gap-2 overflow-x-auto pb-2 md:gap-3">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 md:gap-3">
           {regions.map((region) => {
             const isSelected = selectedRegion?.id === region.id;
             const isAllRegions = region.id === "all" || region.is_all_regions;
@@ -424,6 +487,11 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
                 )}
               >
                 {region.name}
+                {!isAllRegions && regionListingCounts[region.id] !== undefined && (
+                  <span className="ml-1.5 text-[10px] font-normal opacity-70">
+                    ({regionListingCounts[region.id]})
+                  </span>
+                )}
               </button>
             );
           })}
@@ -432,7 +500,7 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
 
         {/* Ülke görünümü */}
         {view === "country" && (
-        <div className="flex gap-2 overflow-x-auto pb-2 md:gap-3">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 md:gap-3">
           <button
             onClick={handleCountryClick}
             disabled={loading}
@@ -447,9 +515,12 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
       {selectedRegion && selectedRegion.id !== "all" && !selectedRegion.is_all_regions && cities.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-zinc-500 md:text-sm">
-            {selectedRegion.name} - Cities ({cities.length})
+            {selectedRegion.name} - {(() => {
+              const totalListings = Object.values(cityListingCounts).reduce((sum, count) => sum + count, 0);
+              return `${totalListings} listings`;
+            })()}
           </p>
-          <div className="flex gap-2 overflow-x-auto pb-2 md:gap-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 md:gap-3">
             {cities.map((city) => {
             const isActive = searchParams.get("cityId") === city.id;
             return (
@@ -464,6 +535,11 @@ export function RegionScroller({ activeRegion, onRegionChange, viewMode = 'galle
                 )}
               >
                 {city.name}
+                {cityListingCounts[city.id] !== undefined && (
+                  <span className="ml-1.5 text-[10px] font-normal opacity-70">
+                    ({cityListingCounts[city.id]})
+                  </span>
+                )}
               </button>
             );
           })}

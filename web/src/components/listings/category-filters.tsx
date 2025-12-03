@@ -43,7 +43,7 @@ export function CategoryFilters({ activeCategory, onCategoryChange }: CategoryFi
 
   if (loading) {
     return (
-      <div className="flex gap-2 overflow-x-auto rounded-2xl bg-white/80 p-2 shadow-sm shadow-zinc-100 md:flex-wrap md:gap-3 md:rounded-3xl md:p-3">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide rounded-2xl bg-white/80 p-2 shadow-sm shadow-zinc-100 md:flex-wrap md:gap-3 md:rounded-3xl md:p-3">
         <div className="h-10 w-20 animate-pulse rounded-xl bg-zinc-200" />
         <div className="h-10 w-20 animate-pulse rounded-xl bg-zinc-200" />
         <div className="h-10 w-20 animate-pulse rounded-xl bg-zinc-200" />
@@ -52,7 +52,7 @@ export function CategoryFilters({ activeCategory, onCategoryChange }: CategoryFi
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto rounded-2xl bg-white/80 p-2 shadow-sm shadow-zinc-100 md:flex-wrap md:gap-3 md:rounded-3xl md:p-3">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide rounded-2xl bg-white/80 p-2 shadow-sm shadow-zinc-100 md:flex-wrap md:gap-3 md:rounded-3xl md:p-3">
       {/* All Categories Button */}
       <button
         onClick={() => onCategoryChange(null)}
