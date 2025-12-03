@@ -6,10 +6,10 @@ import { MessageCircle, Heart, Home, PlusCircle, User } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Home", href: "/", icon: Home },
-  { label: "Mesajlar", href: "/messages", icon: MessageCircle },
+  { label: "Messages", href: "/messages", icon: MessageCircle },
   { label: "Add", href: "/create-listing", icon: PlusCircle, highlight: true },
-  { label: "Kayıtlı", href: "/favorites", icon: Heart },
-  { label: "Profil", href: "/account", icon: User },
+  { label: "Favorites", href: "/favorites", icon: Heart },
+  { label: "Profile", href: "/account", icon: User },
 ];
 
 export function MobileBottomNav() {

@@ -14,23 +14,23 @@ import { cn } from "@/lib/utils";
 import { useUI } from "@/components/providers/ui-provider";
 
 const MAIN_LINKS = [
-  { label: "Ana sayfa", href: "/", icon: Home },
+  { label: "Home", href: "/", icon: Home },
   {
-    label: "Mesajlar",
+    label: "Messages",
     href: "/messages",
     icon: MessageSquare,
   },
   {
-    label: "Favoriler",
+    label: "Favorites",
     href: "/favorites",
     icon: Heart,
   },
 ];
 
 const BOTTOM_LINKS = [
-  { label: "Hesabım", href: "/account", icon: User },
-  { label: "Hakkımızda", href: "/about", icon: Info },
-  { label: "İletişim", href: "/contact", icon: Phone },
+  { label: "My Account", href: "/account", icon: User },
+  { label: "About", href: "/about", icon: Info },
+  { label: "Contact", href: "/contact", icon: Phone },
 ];
 
 export function SiteSidebar() {
@@ -48,7 +48,7 @@ export function SiteSidebar() {
         <button
           onClick={toggleSidebarCollapse}
           className="absolute -right-3 top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm lg:flex"
-          aria-label="Menüyü daralt"
+          aria-label="Collapse menu"
         >
           <ChevronLeft className={cn("h-4 w-4 transition", sidebarCollapsed && "rotate-180")} />
         </button>
