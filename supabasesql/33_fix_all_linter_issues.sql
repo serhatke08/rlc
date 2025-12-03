@@ -10,18 +10,17 @@
 -- ============================================
 -- 1. FIX VIEWS - Remove SECURITY DEFINER
 -- ============================================
--- Note: Views don't have SECURITY DEFINER directly, but if created by a SECURITY DEFINER function,
--- they inherit that property. We need to recreate them as the current user (postgres/anonymous).
+-- Note: In PostgreSQL, views don't have SECURITY DEFINER directly.
+-- The linter error suggests the views were created with SECURITY DEFINER context.
+-- We'll drop and recreate them, then change ownership to postgres role.
 
 -- Drop views with CASCADE to remove all dependencies
 DROP VIEW IF EXISTS public.comments CASCADE;
 DROP VIEW IF EXISTS public.cities_full_info CASCADE;
 DROP VIEW IF EXISTS public.regions_full_info CASCADE;
 
--- Recreate comments view (no SECURITY DEFINER)
-CREATE VIEW public.comments
-WITH (security_invoker = true)
-AS
+-- Recreate comments view
+CREATE VIEW public.comments AS
 SELECT 
     lc.id,
     lc.listing_id,
@@ -33,10 +32,8 @@ SELECT
     lc.updated_at
 FROM listing_comments lc;
 
--- Recreate cities_full_info view (no SECURITY DEFINER)
-CREATE VIEW public.cities_full_info
-WITH (security_invoker = true)
-AS
+-- Recreate cities_full_info view
+CREATE VIEW public.cities_full_info AS
 SELECT 
     c.id as city_id,
     c.name as city_name,
@@ -52,10 +49,8 @@ FROM cities c
 JOIN regions r ON c.region_id = r.id
 JOIN countries co ON c.country_id = co.id;
 
--- Recreate regions_full_info view (no SECURITY DEFINER)
-CREATE VIEW public.regions_full_info
-WITH (security_invoker = true)
-AS
+-- Recreate regions_full_info view
+CREATE VIEW public.regions_full_info AS
 SELECT 
     r.id as region_id,
     r.name as region_name,
@@ -69,6 +64,11 @@ FROM regions r
 JOIN countries co ON r.country_id = co.id
 LEFT JOIN cities c ON c.region_id = r.id
 GROUP BY r.id, r.name, r.code, co.id, co.name, co.code, co.flag_emoji;
+
+-- Change ownership to postgres (this removes any SECURITY DEFINER context)
+ALTER VIEW public.comments OWNER TO postgres;
+ALTER VIEW public.cities_full_info OWNER TO postgres;
+ALTER VIEW public.regions_full_info OWNER TO postgres;
 
 -- Grant permissions on views
 GRANT SELECT ON public.comments TO anon, authenticated;
