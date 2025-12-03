@@ -66,18 +66,53 @@ export default function RegisterPage() {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    
+    // Username için özel kontrol - boşluk yerine _ kullan
+    if (name === "username") {
+      // Boşlukları _ ile değiştir
+      const sanitizedValue = value.replace(/\s+/g, "_");
+      setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    // Validation
+    if (!form.username || form.username.trim() === "") {
+      setError("Username is required.");
+      return;
+    }
+    
+    if (form.username.includes(" ")) {
+      setError("Username cannot contain spaces. Use underscore (_) instead.");
+      return;
+    }
+    
+    if (!form.displayName || form.displayName.trim() === "") {
+      setError("Name is required.");
+      return;
+    }
+    
+    if (!form.email || form.email.trim() === "") {
+      setError("Email is required.");
+      return;
+    }
+    
+    if (!form.password || form.password.trim() === "") {
+      setError("Password is required.");
+      return;
+    }
+    
     if (form.password !== form.confirmPassword) {
-      setError("Şifreler eşleşmiyor.");
+      setError("Passwords do not match.");
       return;
     }
 
     if (!form.countryId) {
-      setError("Lütfen bir ülke seçin.");
+      setError("Please select a country.");
       return;
     }
 
@@ -127,38 +162,43 @@ export default function RegisterPage() {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Topluluğa katıl</h1>
-        <p className="text-sm text-zinc-500">Ücretsiz paylaşım ve takas için hesabını oluştur.</p>
+        <h1 className="text-2xl font-semibold text-zinc-900">Join the Community</h1>
+        <p className="text-sm text-zinc-500">Create your account for free sharing and swapping.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Kullanıcı adı
+          Username *
           <input
             name="username"
             value={form.username}
             onChange={handleChange}
+            required
+            placeholder="username_no_spaces"
+            pattern="[a-zA-Z0-9_]+"
+            title="Username can only contain letters, numbers, and underscores. No spaces allowed."
+            className="rounded-2xl border border-zinc-200 px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+          />
+          <p className="text-xs text-zinc-500">Only letters, numbers, and underscore (_). Spaces will be replaced with _.</p>
+        </label>
+
+        <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+          Name *
+          <input
+            name="displayName"
+            value={form.displayName}
+            onChange={handleChange}
+            placeholder="Your full name"
             required
             className="rounded-2xl border border-zinc-200 px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
           />
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          İsim (opsiyonel)
-          <input
-            name="displayName"
-            value={form.displayName}
-            onChange={handleChange}
-            placeholder="Gerçek adınız"
-            className="rounded-2xl border border-zinc-200 px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
-          />
-        </label>
-
-        <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Ülke
+          Country *
           {loadingCountries ? (
             <div className="rounded-2xl border border-zinc-200 px-4 py-3 text-base text-zinc-500">
-              Yükleniyor...
+              Loading...
             </div>
           ) : (
           <select
@@ -168,7 +208,7 @@ export default function RegisterPage() {
             required
             className="rounded-2xl border border-zinc-200 px-4 py-3 text-base text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
           >
-              <option value="">Ülke seçin</option>
+              <option value="">Select a country</option>
               {countries.map((country) => (
                 <option key={country.id} value={country.id}>
                   {country.name} {country.flag_emoji || ""}
@@ -179,7 +219,7 @@ export default function RegisterPage() {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Email
+          Email *
           <input
             type="email"
             name="email"
@@ -191,7 +231,7 @@ export default function RegisterPage() {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Şifre
+          Password *
           <input
             type="password"
             name="password"
@@ -203,7 +243,7 @@ export default function RegisterPage() {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Şifre (tekrar)
+          Confirm Password *
           <input
             type="password"
             name="confirmPassword"
@@ -222,14 +262,14 @@ export default function RegisterPage() {
           disabled={loading}
           className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd] px-4 py-3 text-base font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {loading ? "Kaydediliyor..." : "Hesap oluştur"}
+          {loading ? "Creating account..." : "Create Account"}
         </button>
       </form>
 
       <p className="text-center text-sm text-zinc-500">
-        Hesabın var mı?{" "}
+        Already have an account?{" "}
         <Link href="/auth/login" className="font-semibold text-emerald-700 hover:text-emerald-500">
-          Giriş yap
+          Sign in
         </Link>
       </p>
     </div>
