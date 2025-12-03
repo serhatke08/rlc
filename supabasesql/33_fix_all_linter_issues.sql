@@ -19,13 +19,11 @@ SELECT
     lc.listing_id,
     lc.user_id,
     lc.content,
+    lc.parent_id,
+    lc.is_approved,
     lc.created_at,
-    lc.updated_at,
-    p.username,
-    p.display_name,
-    p.avatar_url
-FROM listing_comments lc
-LEFT JOIN profiles p ON lc.user_id = p.id;
+    lc.updated_at
+FROM listing_comments lc;
 
 -- Fix cities_full_info view
 DROP VIEW IF EXISTS public.cities_full_info;
@@ -124,30 +122,63 @@ CREATE POLICY "Users can delete their own blocks" ON public.blocks
 -- ============================================
 
 -- Fix follow_user function
-CREATE OR REPLACE FUNCTION public.follow_user(follower_id UUID, following_id UUID)
+CREATE OR REPLACE FUNCTION public.follow_user(
+  p_follower_id UUID,
+  p_following_id UUID
+)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 BEGIN
-    INSERT INTO user_follows (follower_id, following_id)
-    VALUES (follower_id, following_id)
-    ON CONFLICT (follower_id, following_id) DO NOTHING;
+  -- Kendi kendini takip etmeyi engelle
+  IF p_follower_id = p_following_id THEN
+    RAISE EXCEPTION 'Cannot follow yourself';
+  END IF;
+
+  -- Takip ilişkisini oluştur
+  INSERT INTO user_follows (follower_id, following_id)
+  VALUES (p_follower_id, p_following_id)
+  ON CONFLICT (follower_id, following_id) DO NOTHING;
+
+  -- Takip edilen kullanıcının takipçi sayısını artır
+  UPDATE profiles
+  SET follower_count = COALESCE(follower_count, 0) + 1
+  WHERE id = p_following_id;
+
+  -- Takip eden kullanıcının takip sayısını artır
+  UPDATE profiles
+  SET following_count = COALESCE(following_count, 0) + 1
+  WHERE id = p_follower_id;
 END;
 $$;
 
 -- Fix unfollow_user function
-CREATE OR REPLACE FUNCTION public.unfollow_user(follower_id UUID, following_id UUID)
+CREATE OR REPLACE FUNCTION public.unfollow_user(
+  p_follower_id UUID,
+  p_following_id UUID
+)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 BEGIN
-    DELETE FROM user_follows
-    WHERE follower_id = follower_id
-    AND following_id = following_id;
+  -- Takip ilişkisini sil
+  DELETE FROM user_follows
+  WHERE follower_id = p_follower_id
+  AND following_id = p_following_id;
+
+  -- Takip edilen kullanıcının takipçi sayısını azalt
+  UPDATE profiles
+  SET follower_count = GREATEST(COALESCE(follower_count, 0) - 1, 0)
+  WHERE id = p_following_id;
+
+  -- Takip eden kullanıcının takip sayısını azalt
+  UPDATE profiles
+  SET following_count = GREATEST(COALESCE(following_count, 0) - 1, 0)
+  WHERE id = p_follower_id;
 END;
 $$;
 
