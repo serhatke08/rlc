@@ -121,6 +121,12 @@ CREATE POLICY "Users can delete their own blocks" ON public.blocks
 -- 4. FIX FUNCTION SEARCH_PATH
 -- ============================================
 
+-- Drop existing functions first (to allow parameter name changes)
+DROP FUNCTION IF EXISTS public.follow_user(UUID, UUID);
+DROP FUNCTION IF EXISTS public.unfollow_user(UUID, UUID);
+DROP FUNCTION IF EXISTS public.update_follower_counts_on_insert();
+DROP FUNCTION IF EXISTS public.update_follower_counts_on_delete();
+
 -- Fix follow_user function
 CREATE OR REPLACE FUNCTION public.follow_user(
   p_follower_id UUID,
