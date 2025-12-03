@@ -10,10 +10,18 @@
 -- ============================================
 -- 1. FIX VIEWS - Remove SECURITY DEFINER
 -- ============================================
+-- Note: Views don't have SECURITY DEFINER directly, but if created by a SECURITY DEFINER function,
+-- they inherit that property. We need to recreate them as the current user (postgres/anonymous).
 
--- Fix comments view
-DROP VIEW IF EXISTS public.comments;
-CREATE VIEW public.comments AS
+-- Drop views with CASCADE to remove all dependencies
+DROP VIEW IF EXISTS public.comments CASCADE;
+DROP VIEW IF EXISTS public.cities_full_info CASCADE;
+DROP VIEW IF EXISTS public.regions_full_info CASCADE;
+
+-- Recreate comments view (no SECURITY DEFINER)
+CREATE VIEW public.comments
+WITH (security_invoker = true)
+AS
 SELECT 
     lc.id,
     lc.listing_id,
@@ -25,9 +33,10 @@ SELECT
     lc.updated_at
 FROM listing_comments lc;
 
--- Fix cities_full_info view
-DROP VIEW IF EXISTS public.cities_full_info;
-CREATE VIEW public.cities_full_info AS
+-- Recreate cities_full_info view (no SECURITY DEFINER)
+CREATE VIEW public.cities_full_info
+WITH (security_invoker = true)
+AS
 SELECT 
     c.id as city_id,
     c.name as city_name,
@@ -43,9 +52,10 @@ FROM cities c
 JOIN regions r ON c.region_id = r.id
 JOIN countries co ON c.country_id = co.id;
 
--- Fix regions_full_info view
-DROP VIEW IF EXISTS public.regions_full_info;
-CREATE VIEW public.regions_full_info AS
+-- Recreate regions_full_info view (no SECURITY DEFINER)
+CREATE VIEW public.regions_full_info
+WITH (security_invoker = true)
+AS
 SELECT 
     r.id as region_id,
     r.name as region_name,
