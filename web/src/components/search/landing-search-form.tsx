@@ -39,20 +39,20 @@ export function LandingSearchForm() {
     <div className="rounded-[32px] border border-zinc-200 bg-white p-6 shadow-xl shadow-emerald-500/5">
       <form onSubmit={onSubmit} className="grid gap-4 md:grid-cols-[2fr,1.2fr,1.2fr,auto] md:items-end">
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-600">
-          Anahtar kelime
+          Keywords
           <div className="relative flex items-center">
             <Search className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-400" />
             <input
               value={keywords}
               onChange={(event) => setKeywords(event.target.value)}
-              placeholder="örn. 'mid-century sofa'"
+              placeholder="e.g. 'mid-century sofa'"
               className="w-full rounded-2xl border border-zinc-200 bg-white py-3 pl-11 pr-4 text-base text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
             />
           </div>
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-600">
-          Kategori
+          Category
           <div className="relative flex items-center">
             <ListFilter className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-400" />
             <select
@@ -60,7 +60,7 @@ export function LandingSearchForm() {
               onChange={(event) => setCategory(event.target.value)}
               className="w-full appearance-none rounded-2xl border border-zinc-200 bg-white py-3 pl-11 pr-10 text-base text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
             >
-              <option value="">Tümü</option>
+              <option value="">All</option>
               {FEATURED_CATEGORIES.map((item) => (
                 <option key={item.slug} value={item.slug}>
                   {item.title}
@@ -71,14 +71,14 @@ export function LandingSearchForm() {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-600">
-          Konum
+          Location
           <div className="relative flex items-center">
             <MapPin className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-400" />
             <input
               value={location}
               onChange={(event) => setLocation(event.target.value)}
               list="landing-locations"
-              placeholder="örn. London"
+              placeholder="e.g. London"
               className="w-full rounded-2xl border border-zinc-200 bg-white py-3 pl-11 pr-4 text-base text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
             />
             <datalist id="landing-locations">
@@ -93,12 +93,12 @@ export function LandingSearchForm() {
           type="submit"
           className="h-[56px] rounded-2xl bg-emerald-600 px-6 text-base font-semibold text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/40"
         >
-          İlan ara
+          Search Listings
         </button>
       </form>
 
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-        <span className="text-zinc-500">Popüler aramalar:</span>
+        <span className="text-zinc-500">Popular searches:</span>
         <div className="flex flex-wrap gap-2">
           {suggestions.slice(0, 5).map((item) => (
             <button

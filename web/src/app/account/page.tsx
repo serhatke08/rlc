@@ -47,7 +47,7 @@ export default async function AccountPage() {
   const country = profileData?.country;
   const countryName = country 
     ? `${country.name} ${country.flag_emoji || ''}`.trim()
-    : "Ülke seçilmemiş";
+    : "Country not selected";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
@@ -72,7 +72,7 @@ export default async function AccountPage() {
           <div className="mt-20 space-y-3">
             <div>
               <h1 className="text-2xl font-bold text-zinc-900">
-                {profileData?.display_name || profileData?.username || "Kullanıcı"}
+                {profileData?.display_name || profileData?.username || "User"}
               </h1>
               <p className="text-base text-zinc-500">@{profileData?.username}</p>
             </div>
@@ -84,7 +84,7 @@ export default async function AccountPage() {
                 <span className="font-semibold text-zinc-900">
                   {profileData?.follower_count || 0}
                 </span>
-                <span className="text-zinc-500">Takipçi</span>
+                <span className="text-zinc-500">Followers</span>
               </div>
 
               {/* Takip */}
@@ -92,7 +92,7 @@ export default async function AccountPage() {
                 <span className="font-semibold text-zinc-900">
                   {profileData?.following_count || 0}
                 </span>
-                <span className="text-zinc-500">Takip</span>
+                <span className="text-zinc-500">Following</span>
               </div>
 
               {/* Güvenilirlik Puanı */}
@@ -101,7 +101,7 @@ export default async function AccountPage() {
                 <span className="font-semibold text-zinc-900">
                   {profileData?.reputation || 0}
                 </span>
-                <span className="text-zinc-500">Puan</span>
+                <span className="text-zinc-500">Points</span>
               </div>
             </div>
 
@@ -129,7 +129,7 @@ export default async function AccountPage() {
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-zinc-700" />
           <h2 className="text-xl font-semibold text-zinc-900">
-            Paylaştığım Ürünler
+            My Listings
             <span className="ml-2 text-base font-normal text-zinc-500">
               ({listingsData?.length || 0})
             </span>
@@ -194,7 +194,7 @@ export default async function AccountPage() {
           <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-12 text-center">
             <Package className="mx-auto h-12 w-12 text-zinc-400" />
             <p className="mt-4 text-sm text-zinc-600">
-              Henüz hiç ürün paylaşmadınız
+              You haven't shared any items yet
             </p>
           </div>
         )}

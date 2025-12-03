@@ -13,7 +13,7 @@ export function AccountSecurityPanel({ email }: { email: string }) {
   const handlePasswordChange = async (event: React.FormEvent) => {
     event.preventDefault();
     if (password !== confirm) {
-      setError("Şifreler eşleşmiyor.");
+      setError("Passwords do not match.");
       setStatus("error");
       return;
     }
@@ -32,11 +32,11 @@ export function AccountSecurityPanel({ email }: { email: string }) {
 
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-zinc-900">Güvenlik</h2>
-      <p className="text-sm text-zinc-500">Şifreni güncelle, hesabını güvende tut.</p>
+      <h2 className="text-lg font-semibold text-zinc-900">Security</h2>
+      <p className="text-sm text-zinc-500">Update your password to keep your account secure.</p>
 
       <div className="mt-4 rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-        Giriş emaili: <span className="font-semibold text-zinc-900">{email}</span>
+        Login email: <span className="font-semibold text-zinc-900">{email}</span>
       </div>
 
       <form onSubmit={handlePasswordChange} className="mt-6 space-y-4">
@@ -52,7 +52,7 @@ export function AccountSecurityPanel({ email }: { email: string }) {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Yeni şifre (tekrar)
+          New password (confirm)
           <input
             type="password"
             value={confirm}
@@ -63,7 +63,7 @@ export function AccountSecurityPanel({ email }: { email: string }) {
         </label>
 
         {status === "success" ? (
-          <p className="text-sm text-emerald-600">Şifren güncellendi.</p>
+          <p className="text-sm text-emerald-600">Password updated.</p>
         ) : null}
         {status === "error" && error ? <p className="text-sm text-rose-500">{error}</p> : null}
 
@@ -71,7 +71,7 @@ export function AccountSecurityPanel({ email }: { email: string }) {
           type="submit"
           className="rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:border-emerald-300 hover:text-emerald-700"
         >
-          Şifreyi güncelle
+          Update Password
         </button>
       </form>
     </section>

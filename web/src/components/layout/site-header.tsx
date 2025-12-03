@@ -82,14 +82,14 @@ export function SiteHeader() {
                     <User className="h-3 w-3 text-white" />
                   </div>
                 )}
-                <span className="text-zinc-700">@{profile?.username || "Profil"}</span>
+                <span className="text-zinc-700">@{profile?.username || "Profile"}</span>
               </Link>
             ) : (
               <Link
                 href="/auth/login"
                 className="rounded-2xl border border-zinc-200 px-4 py-2 text-zinc-700 transition hover:border-emerald-200 hover:text-emerald-700"
               >
-                Giriş Yap
+                Sign In
               </Link>
             )}
             <AddProductButton />
@@ -102,13 +102,13 @@ export function SiteHeader() {
               href="/listings"
               className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
             >
-              İlanlar
+              Listings
             </Link>
             <Link
               href="/categories"
               className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
             >
-              Kategoriler
+              Categories
             </Link>
           </div>
         </div>
@@ -119,7 +119,7 @@ export function SiteHeader() {
         <button
           onClick={openMobileSidebar}
           className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-200 bg-white shadow-sm"
-          aria-label="Menüyü aç"
+          aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -146,7 +146,7 @@ export function SiteHeader() {
               href="/auth/login"
               className="inline-flex h-10 items-center rounded-2xl border border-zinc-200 px-3 text-xs font-semibold text-zinc-700"
             >
-              Giriş
+              Sign In
             </Link>
           )}
         </div>
@@ -176,7 +176,7 @@ function SearchBar() {
       <Search className="h-5 w-5 text-zinc-400" />
       <input
         type="text"
-        placeholder="Ürün, kategori veya şehir ara..."
+        placeholder="Search products, categories or cities..."
         className="ml-3 flex-1 border-none bg-transparent text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
       />
     </div>

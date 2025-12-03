@@ -255,7 +255,7 @@ export default function RegisterPage() {
         </label>
 
         {error ? <p className="text-sm text-rose-500">{error}</p> : null}
-        {success ? <p className="text-sm text-emerald-600">Hesap oluşturuldu. Yönlendiriliyorsun...</p> : null}
+        {success ? <p className="text-sm text-emerald-600">Account created. Redirecting...</p> : null}
 
         <button
           type="submit"

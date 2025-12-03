@@ -38,8 +38,8 @@ export default function LoginPage() {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Hesabına giriş yap</h1>
-        <p className="text-sm text-zinc-500">Ücretsiz paylaşım topluluğuna devam et.</p>
+        <h1 className="text-2xl font-semibold text-zinc-900">Sign in to your account</h1>
+        <p className="text-sm text-zinc-500">Continue to the free sharing community.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,18 +72,18 @@ export default function LoginPage() {
           disabled={loading}
           className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+          {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
 
       <div className="flex flex-col gap-2 text-sm text-zinc-500">
         <Link href="/auth/forgot-password" className="text-emerald-700 hover:text-emerald-500">
-          Şifreni mi unuttun?
+          Forgot your password?
         </Link>
         <p>
-          Hesabın yok mu?{" "}
+          Don't have an account?{" "}
           <Link href="/auth/register" className="font-semibold text-emerald-700 hover:text-emerald-500">
-            Hemen kaydol
+            Sign up now
           </Link>
         </p>
       </div>

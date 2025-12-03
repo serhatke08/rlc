@@ -181,7 +181,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
             })
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-zinc-500">Henüz mesaj yok. İlk mesajı sen gönder!</p>
+              <p className="text-sm text-zinc-500">No messages yet. Send the first message!</p>
             </div>
           )}
         </div>

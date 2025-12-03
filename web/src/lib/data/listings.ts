@@ -59,7 +59,7 @@ export async function getFeaturedListings(options?: {
     }
   } catch (error) {
     // Kullanıcı giriş yapmamışsa veya profil yoksa devam et
-    console.log("Kullanıcı ülkesi alınamadı, tüm ülkeler gösterilecek");
+    console.log("User country not found, showing all countries");
   }
 
   // Sorgu oluştur

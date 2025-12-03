@@ -50,12 +50,12 @@ export function AccountProfileForm({ profile }: ProfileFormProps) {
 
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-zinc-900">Profil Bilgileri</h2>
-      <p className="text-sm text-zinc-500">Toplulukta görünecek isim ve bilgi kartın.</p>
+      <h2 className="text-lg font-semibold text-zinc-900">Profile Information</h2>
+      <p className="text-sm text-zinc-500">Your name and information card visible in the community.</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Kullanıcı adı
+          Username
           <input
             name="username"
             value={form.username}
@@ -65,7 +65,7 @@ export function AccountProfileForm({ profile }: ProfileFormProps) {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Görünen ad
+          Display name
           <input
             name="display_name"
             value={form.display_name}
@@ -75,7 +75,7 @@ export function AccountProfileForm({ profile }: ProfileFormProps) {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Web sitesi
+          Website
           <input
             name="website"
             value={form.website}
@@ -85,7 +85,7 @@ export function AccountProfileForm({ profile }: ProfileFormProps) {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Biyografi
+          Biography
           <textarea
             name="bio"
             value={form.bio}
@@ -96,7 +96,7 @@ export function AccountProfileForm({ profile }: ProfileFormProps) {
         </label>
 
         {status === "success" ? (
-          <p className="text-sm text-emerald-600">Profil güncellendi.</p>
+          <p className="text-sm text-emerald-600">Profile updated.</p>
         ) : null}
         {status === "error" && error ? (
           <p className="text-sm text-rose-500">{error}</p>
@@ -106,7 +106,7 @@ export function AccountProfileForm({ profile }: ProfileFormProps) {
           type="submit"
           className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
         >
-          Bilgileri kaydet
+          Save Information
         </button>
       </form>
     </section>

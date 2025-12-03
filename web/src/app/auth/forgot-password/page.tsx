@@ -28,9 +28,9 @@ export default function ForgotPasswordPage() {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Şifreni sıfırla</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Reset your password</h1>
         <p className="text-sm text-zinc-500">
-          Email adresine şifre yenileme bağlantısı gönderelim.
+          We'll send a password reset link to your email address.
         </p>
       </div>
 
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
         {error ? <p className="text-sm text-rose-500">{error}</p> : null}
         {status === "sent" ? (
           <p className="text-sm text-emerald-600">
-            Bağlantı gönderildi. Gelen kutunu ve spam klasörünü kontrol et.
+            Link sent. Check your inbox and spam folder.
           </p>
         ) : null}
 
@@ -57,14 +57,14 @@ export default function ForgotPasswordPage() {
           type="submit"
           className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition hover:bg-emerald-500"
         >
-          Bağlantıyı gönder
+          Send Link
         </button>
       </form>
 
       <p className="text-center text-sm text-zinc-500">
-        Giriş ekranına dön{" "}
+        Back to login{" "}
         <Link href="/auth/login" className="font-semibold text-emerald-700 hover:text-emerald-500">
-          Giriş yap
+          Sign in
         </Link>
       </p>
     </div>

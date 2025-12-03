@@ -60,9 +60,9 @@ export default async function MessagesPage() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-zinc-900">Mesajlar</h1>
+          <h1 className="text-3xl font-bold text-zinc-900">Messages</h1>
           <p className="mt-1 text-sm text-zinc-600">
-            Tüm konuşmalarınız burada
+            All your conversations are here
           </p>
         </div>
 
@@ -71,10 +71,10 @@ export default async function MessagesPage() {
           <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-12 text-center">
             <MessageCircle className="mx-auto h-12 w-12 text-zinc-400" />
             <p className="mt-4 text-sm text-zinc-600">
-              Henüz hiç mesajınız yok
+              You don't have any messages yet
             </p>
             <p className="mt-1 text-xs text-zinc-500">
-              Bir ürüne tıklayıp satıcıyla iletişime geçin
+              Click on a product to contact the seller
             </p>
           </div>
         ) : (
@@ -127,7 +127,7 @@ export default async function MessagesPage() {
                             ? "font-semibold text-zinc-900"
                             : "text-zinc-600"
                         }`}>
-                          {conversation.lastMessage.sender_id === user.id && "Siz: "}
+                          {conversation.lastMessage.sender_id === user.id && "You: "}
                           {conversation.lastMessage.content}
                         </p>
                         

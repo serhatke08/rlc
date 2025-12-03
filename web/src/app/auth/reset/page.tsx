@@ -14,7 +14,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (password !== confirmPassword) {
-      setError("Şifreler eşleşmiyor.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -32,15 +32,15 @@ export default function ResetPasswordPage() {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Yeni şifreni oluştur</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Create your new password</h1>
         <p className="text-sm text-zinc-500">
-          Emailine gelen bağlantı sayesinde buradasın. Yeni şifreni belirle.
+          You're here thanks to the link in your email. Set your new password.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Yeni şifre
+          New password
           <input
             type="password"
             value={password}
@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
         </label>
 
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-          Yeni şifre (tekrar)
+          New password (confirm)
           <input
             type="password"
             value={confirmPassword}
@@ -63,20 +63,20 @@ export default function ResetPasswordPage() {
 
         {error ? <p className="text-sm text-rose-500">{error}</p> : null}
         {status === "success" ? (
-          <p className="text-sm text-emerald-600">Şifren güncellendi. Giriş yapabilirsin.</p>
+          <p className="text-sm text-emerald-600">Password updated. You can sign in now.</p>
         ) : null}
 
         <button
           type="submit"
           className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition hover:bg-emerald-500"
         >
-          Şifreyi güncelle
+          Update Password
         </button>
       </form>
 
       <p className="text-center text-sm text-zinc-500">
         <Link href="/auth/login" className="font-semibold text-emerald-700 hover:text-emerald-500">
-          Giriş sayfasına dön
+          Back to login
         </Link>
       </p>
     </div>

@@ -20,7 +20,7 @@ export function AccountDangerZone() {
 
   const handleDeleteAccount = async () => {
     const confirmDelete = window.confirm(
-      "Hesabını ve tüm ilanlarını silmek istediğine emin misin? Bu işlem geri alınamaz.",
+      "Are you sure you want to delete your account and all your listings? This action cannot be undone.",
     );
     if (!confirmDelete) return;
 
@@ -39,8 +39,8 @@ export function AccountDangerZone() {
 
   return (
     <section className="rounded-3xl border border-rose-100 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-rose-600">Hesap işlemleri</h2>
-      <p className="text-sm text-rose-400">Çıkış yapabilir veya hesabını tamamen silebilirsin.</p>
+      <h2 className="text-lg font-semibold text-rose-600">Account Actions</h2>
+      <p className="text-sm text-rose-400">You can sign out or completely delete your account.</p>
 
       {message ? <p className="mt-4 text-sm text-rose-500">{message}</p> : null}
 
@@ -50,14 +50,14 @@ export function AccountDangerZone() {
           disabled={loading}
           className="rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-700 transition hover:border-emerald-300 hover:text-emerald-700 disabled:opacity-70"
         >
-          Çıkış yap
+          Sign Out
         </button>
         <button
           onClick={handleDeleteAccount}
           disabled={loading}
           className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-70"
         >
-          Hesabı Sil
+          Delete Account
         </button>
       </div>
     </section>
