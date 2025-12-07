@@ -8,6 +8,7 @@ import { SiteSidebar } from "@/components/layout/site-sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo/schema";
 import { getSiteUrl } from "@/lib/env";
+import { getDomainIcon, getDomainFavicon, getHostnameFromSiteUrl } from "@/lib/domain-icons";
 
 import "./globals.css";
 
@@ -22,6 +23,38 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = getSiteUrl();
+
+// Domain bazlı icon belirleme
+function getIconsForDomain() {
+  try {
+    const hostname = getHostnameFromSiteUrl(siteUrl);
+    const iconPath = getDomainIcon(hostname);
+    const faviconPath = getDomainFavicon(hostname);
+    
+    return {
+      icon: [
+        { url: iconPath, sizes: "32x32", type: "image/png" },
+        { url: iconPath, sizes: "192x192", type: "image/png" },
+      ],
+      apple: [
+        { url: iconPath, sizes: "180x180", type: "image/png" },
+      ],
+      shortcut: faviconPath,
+    };
+  } catch {
+    // Fallback
+    return {
+      icon: [
+        { url: "/icon.png", sizes: "32x32", type: "image/png" },
+        { url: "/icon.png", sizes: "192x192", type: "image/png" },
+      ],
+      apple: [
+        { url: "/icon.png", sizes: "180x180", type: "image/png" },
+      ],
+      shortcut: "/favicon.ico",
+    };
+  }
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -54,10 +87,7 @@ export const metadata: Metadata = {
     title: "ReloopCycle | Give, Swap, Reuse",
     description: "UK's circular economy marketplace powered by Next.js and Supabase.",
   },
-  icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
-  },
+  icons: getIconsForDomain(),
 };
 
 export default function RootLayout({
@@ -68,9 +98,22 @@ export default function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   const websiteSchema = generateWebsiteSchema();
 
+  // Domain bazlı favicon path'i
+  const hostname = getHostnameFromSiteUrl(siteUrl);
+  const faviconPath = getDomainFavicon(hostname);
+  const iconPath = getDomainIcon(hostname);
+
   return (
     <html lang="en">
       <head>
+        {/* Favicon links for all domains - Google search results */}
+        {/* Google'ın favicon'u görmesi için gerekli link tag'leri */}
+        <link rel="icon" type="image/png" href={faviconPath} />
+        <link rel="icon" type="image/png" sizes="32x32" href={iconPath} />
+        <link rel="icon" type="image/png" sizes="192x192" href={iconPath} />
+        <link rel="apple-touch-icon" sizes="180x180" href={iconPath} />
+        <link rel="shortcut icon" type="image/png" href={faviconPath} />
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}

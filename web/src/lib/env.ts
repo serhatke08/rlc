@@ -32,18 +32,29 @@ export function hasSupabaseCredentials() {
  * Production'da mutlaka reloopcycle.co.uk kullanılır, preview'da VERCEL_URL kullanılabilir
  */
 export function getSiteUrl(): string {
-  // Production'da her zaman ana domain kullan
+  // Production'da Vercel'in otomatik algıladığı domain'i kullan
+  // Veya environment variable'dan al
   const isProduction = process.env.VERCEL_ENV === 'production' || 
                        (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL);
   
-  if (isProduction) {
-    return 'https://reloopcycle.co.uk';
-  }
-
   // Önce custom domain environment variable'ını kontrol et
   const customDomain = process.env.NEXT_PUBLIC_SITE_URL;
   if (customDomain) {
     return customDomain.startsWith('http') ? customDomain : `https://${customDomain}`;
+  }
+
+  // Production'da Vercel'in otomatik algıladığı domain'i kullan
+  // Bu sayede reloopcycle.co.uk, reloopcycle.com, reloopcycle.net, reloopcycle.org
+  // hepsi kendi domain'lerini kullanır
+  if (isProduction) {
+    // Vercel otomatik olarak doğru domain'i sağlar
+    const vercelUrl = process.env.VERCEL_URL;
+    if (vercelUrl && !vercelUrl.includes('vercel.app')) {
+      // Custom domain kullanılıyor
+      return `https://${vercelUrl}`;
+    }
+    // Fallback: Ana domain
+    return 'https://reloopcycle.co.uk';
   }
 
   // Preview deployment'larda Vercel URL'i kullan
