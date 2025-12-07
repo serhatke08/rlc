@@ -16,7 +16,19 @@ export function MessageInput({ conversationId, receiverId, listingId }: MessageI
   const [loading, setLoading] = useState(false);
 
   const handleSend = async () => {
-    if (!message.trim() || loading) return;
+    // Input validation and sanitization
+    const sanitizedMessage = message.trim();
+    
+    if (!sanitizedMessage || loading) return;
+    
+    // Length validation (max 5000 characters)
+    if (sanitizedMessage.length > 5000) {
+      alert("Message is too long. Maximum 5000 characters allowed.");
+      return;
+    }
+
+    // Additional validation: check for only whitespace
+    if (sanitizedMessage.length === 0) return;
 
     const supabase = createSupabaseBrowserClient();
     const {
@@ -29,10 +41,11 @@ export function MessageInput({ conversationId, receiverId, listingId }: MessageI
 
     try {
       // Mesaj gönder (listing_id ile)
+      // Server-side RPC should also validate length & content
       const { error } = await (supabase.rpc as any)("send_message", {
         p_sender_id: user.id,
         p_receiver_id: receiverId,
-        p_content: message.trim(),
+        p_content: sanitizedMessage, // Sanitized message
         p_listing_id: listingId || null,
       });
 

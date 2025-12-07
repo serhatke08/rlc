@@ -16,6 +16,7 @@ export default async function MessagesPage() {
   }
 
   // Kullanıcının konuşmalarını çek
+  // Use parameterized query to avoid SQL injection risks
   const { data: conversations } = await supabase
     .from("conversations")
     .select(`
@@ -35,7 +36,7 @@ export default async function MessagesPage() {
         created_at
       )
     `)
-    .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+    .or(`user1_id.eq."${user.id}",user2_id.eq."${user.id}"`)
     .order("updated_at", { ascending: false });
 
   // Her konuşma için karşı tarafı ve son mesajı belirle

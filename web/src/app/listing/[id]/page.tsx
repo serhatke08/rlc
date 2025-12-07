@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { 
@@ -17,6 +17,7 @@ import { MessageButton } from "@/components/listing-message-button";
 import { ListingImageGallery } from "@/components/listing-image-gallery";
 import { ListingReportButton } from "@/components/listing-report-button";
 import { ListingBlockButton } from "@/components/listing-block-button";
+import { ListingViewTracker } from "@/components/listing-view-tracker";
 import { getSiteUrl } from "@/lib/env";
 
 interface ListingPageProps {
@@ -94,10 +95,15 @@ export default async function ListingPage({ params }: ListingPageProps) {
   
   const supabase = await createSupabaseServerClient();
   
-  // Kullanıcı bilgisini al
+  // Kullanıcı bilgisini al - giriş kontrolü
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  
+  // Giriş yapmamış kullanıcıları giriş sayfasına yönlendir
+  if (!user) {
+    redirect("/auth/login?redirect=/listing/" + id);
+  }
   
   // Listing detaylarını çek
   const { data: listing, error } = await supabase
@@ -122,13 +128,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
   // Kullanıcının kendi ilanı mı kontrol et
   const isOwner = user?.id === listingData.seller_id;
 
-  // View count'u artır (sadece kendi ilanı değilse)
-  if (!isOwner) {
-    await (supabase
-      .from("listings") as any)
-      .update({ view_count: (listingData.view_count || 0) + 1 })
-      .eq("id", id);
-  }
+  // View count will be handled client-side via API route with rate limiting
+  // This prevents server-side view count manipulation
 
   const relativeTime = formatRelativeTimeFromNow(listingData.created_at);
 
@@ -154,6 +155,9 @@ export default async function ListingPage({ params }: ListingPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
+      
+      {/* Track view count (client-side with rate limiting) */}
+      <ListingViewTracker listingId={id} isOwner={isOwner} />
       
       <div className="min-h-screen bg-zinc-50">
       {/* Header */}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { updateListingServer } from '@/app/actions/listing/update';
 import { Upload, X, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -323,28 +324,26 @@ export default function EditListingPage() {
       const selectedRegion = regions.find(r => r.id === regionId);
       const selectedCity = cities.find(c => c.id === cityId);
 
-      // Update listing
-      const { error: updateError } = await (supabase
-        .from('listings') as any)
-        .update({
-          title: title.trim(),
-          description: description.trim(),
-          category_id: categoryId || null,
-          subcategory_id: subcategoryId || null,
-          listing_type: listingType,
-          condition: condition,
-          region_id: regionId || null,
-          city_id: cityId || null,
-          city_name: selectedCity?.name || '',
-          district_name: selectedRegion?.name || null,
-          images: allImages,
-          thumbnail_url: thumbnailUrl,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', listingId)
-        .eq('seller_id', user.id);
+      // Update listing via server action (with ownership verification)
+      const result = await updateListingServer(listingId, {
+        title: title.trim(),
+        description: description.trim(),
+        category_id: categoryId || null,
+        subcategory_id: subcategoryId || null,
+        listing_type: listingType,
+        condition: condition,
+        region_id: regionId || null,
+        city_id: cityId || null,
+        city_name: selectedCity?.name || '',
+        district_name: selectedRegion?.name || null,
+        images: allImages,
+        thumbnail_url: thumbnailUrl,
+        updated_at: new Date().toISOString(),
+      });
 
-      if (updateError) throw updateError;
+      if (!result.ok) {
+        throw new Error(result.message || 'Failed to update listing');
+      }
 
       router.push(`/listing/${listingId}`);
     } catch (error) {

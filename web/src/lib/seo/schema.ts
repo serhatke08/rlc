@@ -2,6 +2,19 @@ import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/env";
 
+/**
+ * Escape HTML special characters to prevent XSS in JSON-LD schemas
+ */
+function escapeHtml(text: string | null | undefined): string {
+  if (!text) return "";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function generateOrganizationSchema() {
   const siteUrl = getSiteUrl();
   return {
@@ -76,8 +89,8 @@ export async function generateProductSchema(listingId: string) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: listingData.title,
-    description: listingData.description,
+    name: escapeHtml(listingData.title),
+    description: escapeHtml(listingData.description?.substring(0, 500)), // Limit and escape
     image: imageUrl ? [imageUrl] : [],
     offers: {
       "@type": "Offer",
@@ -94,7 +107,7 @@ export async function generateProductSchema(listingId: string) {
     },
     seller: {
       "@type": "Person",
-      name: listingData.seller?.display_name || listingData.seller?.username
+      name: escapeHtml(listingData.seller?.display_name || listingData.seller?.username)
     }
   };
 }
@@ -106,7 +119,7 @@ export function generateBreadcrumbSchema(items: Array<{ name: string; url: strin
     itemListElement: items.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      name: item.name,
+      name: escapeHtml(item.name),
       item: item.url
     }))
   };

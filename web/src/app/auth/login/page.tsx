@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  
+  // Get redirect URL from query params
+  const redirectUrl = searchParams.get("redirect") || "/account";
 
   // Eğer kullanıcı zaten giriş yapmışsa account sayfasına yönlendir
   useEffect(() => {
@@ -36,7 +40,9 @@ export default function LoginPage() {
         
         if (mounted) {
           if (session?.user) {
-            window.location.href = "/account";
+            // If user is already logged in, redirect to the intended page or account
+            const redirect = searchParams.get("redirect");
+            window.location.href = redirect || "/account";
           } else {
             setCheckingAuth(false);
           }
@@ -75,9 +81,8 @@ export default function LoginPage() {
       }
       
       if (data?.user) {
-        // Başarılı login - cookie anında set ediliyor, setTimeout gerekmez
-        // setTimeout race condition oluşturuyordu - kaldırıldı
-        window.location.assign("/account");
+        // Başarılı login - redirect URL'e yönlendir veya account sayfasına
+        window.location.assign(redirectUrl);
       } else {
         setError("Login failed. Please try again.");
         setLoading(false);

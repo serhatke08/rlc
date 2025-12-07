@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2, Loader2 } from 'lucide-react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { deleteListingServer } from '@/app/actions/listing/delete';
 
 interface DeleteListingButtonProps {
   listingId: string;
@@ -21,22 +21,22 @@ export function DeleteListingButton({ listingId }: DeleteListingButtonProps) {
     }
 
     setLoading(true);
-    const supabase = createSupabaseBrowserClient();
 
     try {
-      // Delete listing (soft delete - set status to 'deleted')
-      const { error } = await (supabase
-        .from('listings') as any)
-        .update({ status: 'deleted' })
-        .eq('id', listingId);
+      // Call server action with ownership verification
+      const result = await deleteListingServer(listingId);
 
-      if (error) throw error;
+      if (!result.ok) {
+        alert(result.message || 'Error deleting listing. Please try again.');
+        setShowConfirm(false);
+        return;
+      }
 
-      // Refresh the page
+      // Success - refresh the page
       router.refresh();
     } catch (error) {
       console.error('Error deleting listing:', error);
-      alert('Error deleting listing. Please try again.');
+      alert('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
       setShowConfirm(false);

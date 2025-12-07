@@ -6,11 +6,15 @@ export async function getCurrentUserCountry(): Promise<Country | null> {
   const supabase = await createSupabaseServerClient();
   
   try {
-    // Get current user
+    // Get current user - silently handle missing session (user not logged in)
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
+    // AuthSessionMissingError is expected when user is not logged in - don't log as error
     if (userError) {
-      console.error("Error getting user:", JSON.stringify(userError, null, 2));
+      // Only log if it's not a session missing error (which is normal for anonymous users)
+      if (userError.name !== "AuthSessionMissingError" && userError.status !== 400) {
+        console.error("Error getting user:", JSON.stringify(userError, null, 2));
+      }
       return null;
     }
 

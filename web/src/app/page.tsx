@@ -1,3 +1,4 @@
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getFeaturedListings } from "@/lib/data/listings";
 import { getCategories } from "@/lib/queries/category-server";
 import { getCurrentUserCountry, getRegionsByCountry, getRegionById, getCityById } from "@/lib/queries/location-server";
@@ -14,6 +15,12 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
   
+  const supabase = await createSupabaseServerClient();
+  
+  // Giriş kontrolü - kategorileri sadece giriş yapmış kullanıcılar için göster
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const isAuthenticated = !userError && !!user;
+  
   // Gerçek Supabase verilerini çek
   const listings = await getFeaturedListings({
     regionId: params.regionId || null,
@@ -21,8 +28,8 @@ export default async function Home({ searchParams }: HomeProps) {
     categoryId: params.categoryId || null,
   });
 
-  // Kategorileri çek
-  const categories = await getCategories();
+  // Kategorileri sadece giriş yapmış kullanıcılar için çek
+  const categories = isAuthenticated ? await getCategories() : [];
 
   // Location data'yı çek
   const country = await getCurrentUserCountry();

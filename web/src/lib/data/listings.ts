@@ -45,8 +45,16 @@ export async function getFeaturedListings(options?: {
   // Kullanıcının ülkesini al
   let userCountryId: string | null = null;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    // Silently handle missing session (user not logged in) - this is normal
+    if (userError) {
+      // Only log unexpected errors, not session missing errors
+      if (userError.name !== "AuthSessionMissingError" && userError.status !== 400) {
+        console.error("Error getting user in getFeaturedListings:", userError);
+      }
+      // Continue without user country - show all countries
+    } else if (user) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("country_id")
@@ -60,7 +68,7 @@ export async function getFeaturedListings(options?: {
     }
   } catch (error) {
     // Kullanıcı giriş yapmamışsa veya profil yoksa devam et
-    console.log("User country not found, showing all countries");
+    // Don't log - this is expected for anonymous users
   }
 
   // Sorgu oluştur

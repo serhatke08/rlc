@@ -1,19 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Package, Loader2 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function CategoriesPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     const loadCategories = async () => {
       try {
         const supabase = createSupabaseBrowserClient();
+        
+        // Giriş kontrolü - giriş yapmamış kullanıcıları yönlendir
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/auth/login?redirect=/categories");
+          return;
+        }
+        
+        setCheckingAuth(false);
         
         // EN BASIT SORGU - sadece gerekli alanlar
         let { data, error: fetchError } = await supabase
@@ -62,7 +74,7 @@ export default function CategoriesPage() {
     loadCategories();
   }, []);
 
-  if (loading) {
+  if (checkingAuth || loading) {
     return (
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <div className="space-y-2">
