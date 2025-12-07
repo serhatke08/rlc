@@ -73,6 +73,19 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
     );
   }
 
+  // Eğer kullanıcı giriş yapmamışsa, buton göster ama login'e yönlendir
+  if (!currentUserId) {
+    return (
+      <button
+        onClick={() => router.push("/auth/login")}
+        className="w-full rounded-full bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg hover:scale-[1.02]"
+      >
+        <MessageCircle className="mr-2 inline-block h-5 w-5" />
+        Message
+      </button>
+    );
+  }
+
   return (
     <button
       onClick={handleMessage}
@@ -80,7 +93,7 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
       className="w-full rounded-full bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg hover:scale-[1.02] disabled:opacity-50"
     >
       <MessageCircle className="mr-2 inline-block h-5 w-5" />
-      {loading ? "Redirecting..." : currentUserId ? "Message" : "Sign in"}
+      {loading ? "Redirecting..." : "Message"}
     </button>
   );
 }

@@ -55,35 +55,53 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
     const supabase = createSupabaseBrowserClient();
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop() || 'jpg';
       const fileName = `${userId}/avatar.${fileExt}`;
 
       // Delete old avatar if exists
-      const { data: oldFiles } = await supabase.storage
-        .from('avatars')
-        .list(userId);
-
-      if (oldFiles && oldFiles.length > 0) {
-        const oldFileNames = oldFiles.map(f => `${userId}/${f.name}`);
-        await supabase.storage
+      try {
+        const { data: oldFiles, error: listError } = await supabase.storage
           .from('avatars')
-          .remove(oldFileNames);
+          .list(userId);
+
+        if (listError) {
+          console.warn('Error listing old files (may not exist):', listError);
+        } else if (oldFiles && oldFiles.length > 0) {
+          const oldFileNames = oldFiles.map(f => `${userId}/${f.name}`);
+          const { error: removeError } = await supabase.storage
+            .from('avatars')
+            .remove(oldFileNames);
+          
+          if (removeError) {
+            console.warn('Error removing old files:', removeError);
+          }
+        }
+      } catch (err) {
+        console.warn('Error cleaning old avatar:', err);
+        // Continue anyway
       }
 
       // Upload new avatar
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
+
+      if (!publicUrl) {
+        throw new Error('Failed to get public URL');
+      }
 
       // Update profile
       const { error: updateError } = await (supabase
@@ -91,13 +109,22 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         .update({ avatar_url: publicUrl })
         .eq('id', userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        throw new Error(`Profile update failed: ${updateError.message}`);
+      }
 
-      // Refresh page
-      router.refresh();
-    } catch (error) {
+      // Update preview with new URL
+      setPreview(publicUrl);
+
+      // Refresh page after a short delay
+      setTimeout(() => {
+        router.refresh();
+      }, 500);
+    } catch (error: any) {
       console.error('Error uploading avatar:', error);
-      alert('Error uploading avatar. Please try again.');
+      const errorMessage = error?.message || 'Unknown error occurred';
+      alert(`Error uploading avatar: ${errorMessage}\n\nPlease check:\n1. You are logged in\n2. File size is under 5MB\n3. File is a valid image`);
       setPreview(currentAvatarUrl || null);
     } finally {
       setUploading(false);
@@ -112,15 +139,26 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
 
     try {
       // Delete avatar from storage
-      const { data: files } = await supabase.storage
-        .from('avatars')
-        .list(userId);
-
-      if (files && files.length > 0) {
-        const fileNames = files.map(f => `${userId}/${f.name}`);
-        await supabase.storage
+      try {
+        const { data: files, error: listError } = await supabase.storage
           .from('avatars')
-          .remove(fileNames);
+          .list(userId);
+
+        if (listError) {
+          console.warn('Error listing files:', listError);
+        } else if (files && files.length > 0) {
+          const fileNames = files.map(f => `${userId}/${f.name}`);
+          const { error: removeError } = await supabase.storage
+            .from('avatars')
+            .remove(fileNames);
+          
+          if (removeError) {
+            console.warn('Error removing files:', removeError);
+          }
+        }
+      } catch (err) {
+        console.warn('Error deleting from storage:', err);
+        // Continue to update profile anyway
       }
 
       // Update profile
@@ -129,13 +167,19 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         .update({ avatar_url: null })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw new Error(`Profile update failed: ${error.message}`);
+      }
 
       setPreview(null);
-      router.refresh();
-    } catch (error) {
+      setTimeout(() => {
+        router.refresh();
+      }, 500);
+    } catch (error: any) {
       console.error('Error removing avatar:', error);
-      alert('Error removing avatar. Please try again.');
+      const errorMessage = error?.message || 'Unknown error occurred';
+      alert(`Error removing avatar: ${errorMessage}`);
     } finally {
       setUploading(false);
     }

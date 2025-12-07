@@ -38,6 +38,7 @@ type RawListing = {
 export async function getFeaturedListings(options?: {
   regionId?: string | null;
   cityId?: string | null;
+  categoryId?: string | null;
 }): Promise<FeaturedListing[]> {
   const supabase = await createSupabaseServerClient();
 
@@ -101,7 +102,12 @@ export async function getFeaturedListings(options?: {
     )
     .eq("status", "active");
 
-  // Şehir filtresi (en öncelikli)
+  // Kategori filtresi (en öncelikli - diğer filtrelerle birlikte çalışabilir)
+  if (options?.categoryId && options.categoryId.trim() !== '' && options.categoryId !== 'null' && options.categoryId !== 'undefined') {
+    query = query.eq("category_id", options.categoryId);
+  }
+
+  // Şehir filtresi
   if (options?.cityId && options.cityId.trim() !== '' && options.cityId !== 'null' && options.cityId !== 'undefined') {
     query = query.eq("city_id", options.cityId);
   }

@@ -8,7 +8,7 @@ const DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
   { amount: Number.POSITIVE_INFINITY, unit: "years" },
 ];
 
-const formatter = new Intl.RelativeTimeFormat("tr", { numeric: "auto" });
+const formatter = new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" });
 
 export function formatRelativeTimeFromNow(dateInput: string) {
   const now = Date.now();

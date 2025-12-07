@@ -116,16 +116,43 @@ export default function CreateListingPage() {
         await loadRegions(profileData.country_id);
       }
 
-      // Load categories
-      const { data: categoriesData, error: categoriesError } = await supabase
+      // Load categories - RLS politikası USING (true) olmalı
+      // is_active filtresini client-side'da yapacağız
+      let { data: categoriesData, error: categoriesError } = await supabase
         .from('product_categories')
-        .select('id, name, slug')
-        .eq('is_active', true)
+        .select('id, name, slug, is_active')
         .order('order_index', { ascending: true, nullsFirst: false })
         .order('name', { ascending: true });
 
-      if (categoriesError) throw categoriesError;
-      if (categoriesData) setCategories(categoriesData);
+      // Eğer RLS hatası varsa, alternatif sorgu dene
+      if (categoriesError) {
+        console.error('Error loading categories:', categoriesError);
+        
+        // RLS hatası olabilir - alternatif sorgu dene
+        if (categoriesError.code === '42501' || categoriesError.code === 'PGRST301' || categoriesError.message?.includes('permission') || categoriesError.message?.includes('policy')) {
+          console.log('🔄 RLS policy error detected, trying alternative query...');
+          
+          const altResult = await supabase
+            .from('product_categories')
+            .select('id, name, slug')
+            .limit(100);
+          
+          if (!altResult.error && altResult.data) {
+            // Client-side'da is_active filtresi yap
+            const activeCategories = altResult.data.filter((cat: any) => cat.is_active !== false);
+            setCategories(activeCategories);
+          } else {
+            throw categoriesError;
+          }
+        } else {
+          throw categoriesError;
+        }
+      } else if (categoriesData) {
+        // Client-side'da is_active filtresi yap
+        // is_active = true veya is_active IS NULL olanları göster
+        const activeCategories = categoriesData.filter((cat: any) => cat.is_active !== false);
+        setCategories(activeCategories);
+      }
     } catch (error) {
       console.error('Error loading initial data:', error);
     } finally {

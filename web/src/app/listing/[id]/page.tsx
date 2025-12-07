@@ -181,22 +181,22 @@ export default async function ListingPage({ params }: ListingPageProps) {
         {listingData.seller && (
           <div className="mb-6">
             <div className="mb-3 flex items-center gap-3">
-              {listingData.seller.avatar_url ? (
-                <img
-                  src={listingData.seller.avatar_url}
-                  alt={listingData.seller.display_name || listingData.seller.username}
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                  <User className="h-6 w-6 text-white" />
-                </div>
-              )}
+            {listingData.seller.avatar_url ? (
+              <img
+                src={listingData.seller.avatar_url}
+                alt={listingData.seller.display_name || listingData.seller.username}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
+                <User className="h-6 w-6 text-white" />
+              </div>
+            )}
               <div className="flex-1">
-                <p className="font-semibold text-zinc-900">
-                  {listingData.seller.display_name || listingData.seller.username}
-                </p>
-                <p className="text-sm text-zinc-500">@{listingData.seller.username}</p>
+              <p className="font-semibold text-zinc-900">
+                {listingData.seller.display_name || listingData.seller.username}
+              </p>
+              <p className="text-sm text-zinc-500">@{listingData.seller.username}</p>
               </div>
               {!isOwner && (
                 <div className="flex gap-2">
@@ -240,12 +240,12 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
         {/* Mesaj veya Düzenle Butonu */}
         <div className="mb-4">
-          <MessageButton
-            listingId={id}
-            sellerId={listingData.seller_id}
-            currentUserId={user?.id || null}
-            isOwner={isOwner}
-          />
+        <MessageButton
+          listingId={id}
+          sellerId={listingData.seller_id}
+          currentUserId={user?.id || null}
+          isOwner={isOwner}
+        />
         </div>
 
         {/* Report Butonu */}

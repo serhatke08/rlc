@@ -24,48 +24,115 @@ export function SiteHeader() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     const supabase = createSupabaseBrowserClient();
     
-    // Kullanıcıyı kontrol et
+    // Kullanıcıyı kontrol et - sadece getSession() kullan, getUser() deprecated ve bug yaratıyor
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user || null);
-      setLoading(false);
-      
-      if (user) {
+      try {
+        // Sadece getSession() kullan - getUser() kaldırıldı
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        // Session hatası varsa veya session yoksa
+        if (sessionError || !session) {
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Session varsa user'ı direkt session'dan al
+        const user = session.user;
+        
+        if (!user) {
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+        
+        // User varsa set et
+        setUser(user);
+        setLoading(false);
+        
         // Profil bilgilerini çek
-        const { data } = await supabase
-          .from("profiles")
-          .select("username, avatar_url")
-          .eq("id", user.id)
-          .single();
-        setProfile(data);
-      } else {
-        setProfile(null);
+        try {
+          const { data, error: profileError } = await supabase
+            .from("profiles")
+            .select("username, avatar_url")
+            .eq("id", user.id)
+            .single();
+          
+          if (!mounted) return;
+          
+          if (profileError) {
+            console.error("Error loading profile:", profileError);
+            setProfile(null);
+          } else {
+            setProfile(data);
+          }
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+          if (mounted) setProfile(null);
+        }
+      } catch (err) {
+        console.error("Error in checkUser:", err);
+        if (mounted) {
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+        }
       }
     };
     
     checkUser();
 
-    // Auth değişikliklerini dinle
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user || null;
-      setUser(currentUser);
-      setLoading(false);
+    // Auth değişikliklerini dinle - login/logout için
+    // TOKEN_REFRESHED kaldırıldı - Next.js App Router'da çift trigger yapıyor
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
       
-      if (currentUser) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("username, avatar_url")
-          .eq("id", currentUser.id)
-          .single();
-        setProfile(data);
-      } else {
+      // Sadece SIGNED_IN event'inde user'ı güncelle
+      if (event === 'SIGNED_IN') {
+        if (session?.user) {
+          setUser(session.user);
+          setLoading(false);
+          
+          // Profil bilgilerini çek
+          try {
+            const { data, error: profileError } = await supabase
+              .from("profiles")
+              .select("username, avatar_url")
+              .eq("id", session.user.id)
+              .single();
+            
+            if (!mounted) return;
+            
+            if (!profileError && data) {
+              setProfile(data);
+            } else {
+              setProfile(null);
+            }
+          } catch (err) {
+            if (mounted) setProfile(null);
+          }
+        }
+      }
+      
+      // SIGNED_OUT event'inde state'i temizle
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
         setProfile(null);
+        setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -108,20 +175,6 @@ export function SiteHeader() {
         </div>
         <div className="flex items-center gap-4">
           <SearchBar />
-          <div className="flex items-center gap-3">
-            <Link
-              href="/listings"
-              className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
-            >
-              Listings
-            </Link>
-            <Link
-              href="/categories"
-              className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
-            >
-              Categories
-            </Link>
-          </div>
         </div>
       </div>
 

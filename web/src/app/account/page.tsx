@@ -19,7 +19,7 @@ export default async function AccountPage() {
   }
 
   // Profil bilgilerini country bilgisiyle birlikte çek
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(`
       *,
@@ -32,22 +32,58 @@ export default async function AccountPage() {
     .eq("id", user.id)
     .single();
 
+  if (profileError) {
+    console.error("Error loading profile:", profileError);
+  }
+
   // Kullanıcının ilanlarını çek
-  const { data: listings } = await supabase
+  const { data: listings, error: listingsError } = await supabase
     .from("listings")
     .select("*")
     .eq("seller_id", user.id)
     .eq("status", "active")
     .order("created_at", { ascending: false });
 
+  if (listingsError) {
+    console.error("Error loading listings:", listingsError);
+  }
+
 
   // Ülke bilgisini formatla
-  const profileData = profile as any;
   const listingsData = (listings || []) as any[];
-  const country = profileData?.country;
-  const countryName = country 
-    ? `${country.name} ${country.flag_emoji || ''}`.trim()
-    : "Country not selected";
+
+  // Profil yoksa veya hata varsa bilgi göster
+  if (!profile) {
+    if (profileError) {
+      return (
+        <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+            <h2 className="text-xl font-semibold text-red-900 mb-2">Profile Error</h2>
+            <p className="text-red-700 mb-4">
+              There was an error loading your profile: {profileError.message}
+            </p>
+            <p className="text-sm text-zinc-600">
+              Please refresh the page or try again later.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Profil yoksa ama hata da yoksa (yeni kullanıcı olabilir) - default değerlerle göster
+    // Bu durumda profil oluşturulması gerekebilir ama şimdilik default gösterelim
+  }
+
+  // Profil verilerini güvenli şekilde al
+  const profileData = (profile || {}) as any;
+  const safeProfileData = {
+    ...profileData,
+    display_name: profileData?.display_name || profileData?.username || "User",
+    username: profileData?.username || "user",
+    follower_count: profileData?.follower_count || 0,
+    following_count: profileData?.following_count || 0,
+    reputation: profileData?.reputation || 0,
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
@@ -58,7 +94,7 @@ export default async function AccountPage() {
           {/* Avatar */}
           <div className="absolute bottom-0 left-6 translate-y-1/2 z-20">
             <AvatarUpload 
-              currentAvatarUrl={profileData?.avatar_url} 
+              currentAvatarUrl={safeProfileData?.avatar_url} 
               userId={user.id}
               size="lg"
             />
@@ -72,9 +108,9 @@ export default async function AccountPage() {
           <div className="mt-20 space-y-3">
             <div>
               <h1 className="text-2xl font-bold text-zinc-900">
-                {profileData?.display_name || profileData?.username || "User"}
+                {safeProfileData.display_name}
               </h1>
-              <p className="text-base text-zinc-500">@{profileData?.username}</p>
+              <p className="text-base text-zinc-500">@{safeProfileData.username}</p>
             </div>
 
             {/* İstatistikler */}
@@ -82,7 +118,7 @@ export default async function AccountPage() {
               {/* Takipçi */}
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-zinc-900">
-                  {profileData?.follower_count || 0}
+                  {safeProfileData.follower_count}
                 </span>
                 <span className="text-zinc-500">Followers</span>
               </div>
@@ -90,7 +126,7 @@ export default async function AccountPage() {
               {/* Takip */}
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-zinc-900">
-                  {profileData?.following_count || 0}
+                  {safeProfileData.following_count}
                 </span>
                 <span className="text-zinc-500">Following</span>
               </div>
@@ -99,21 +135,25 @@ export default async function AccountPage() {
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 <span className="font-semibold text-zinc-900">
-                  {profileData?.reputation || 0}
+                  {safeProfileData.reputation}
                 </span>
                 <span className="text-zinc-500">Points</span>
               </div>
             </div>
 
             {/* Ülke */}
-            <div className="flex items-center gap-2 text-sm text-zinc-600">
-              <MapPin className="h-4 w-4" />
-              <span>{countryName}</span>
-            </div>
+            {profileData?.country && (
+              <div className="flex items-center gap-2 text-sm text-zinc-600">
+                <MapPin className="h-4 w-4" />
+                <span>
+                  {profileData.country.name} {profileData.country.flag_emoji || ''}
+                </span>
+              </div>
+            )}
 
             {/* Bio */}
-            {profileData?.bio && (
-              <p className="mt-4 text-sm text-zinc-600">{profileData.bio}</p>
+            {safeProfileData.bio && (
+              <p className="mt-4 text-sm text-zinc-600">{safeProfileData.bio}</p>
             )}
 
             {/* Çıkış Butonu */}

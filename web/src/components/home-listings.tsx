@@ -1,24 +1,30 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ListingFilterPills } from "@/components/listings/filter-pills";
-import { CategoryFilters } from "@/components/listings/category-filters";
-import { RegionScroller } from "@/components/listings/region-scroller";
 import { ListingCard } from "@/components/listing-card";
+import { CategoriesMenu } from "@/components/categories-menu";
+import { LocationMenu } from "@/components/location-menu";
 import type { FeaturedListing } from "@/types/listing";
+import type { Category } from "@/lib/types/category";
+import type { Country, Region, City } from "@/lib/types/location";
 
 interface HomeListingsProps {
   listings: FeaturedListing[];
+  categories?: Category[];
+  country?: Country | null;
+  regions?: Region[];
+  selectedRegion?: Region | null;
+  selectedCity?: City | null;
 }
 
-export function HomeListings({ listings }: HomeListingsProps) {
+export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null }: HomeListingsProps) {
   const [activeFilter, setActiveFilter] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('gallery');
 
-  // Filtrelenmiş listeler (sadece tip ve kategori - region/şehir server-side yapılıyor)
+  // Filtrelenmiş listeler (sadece tip - region/şehir server-side yapılıyor)
   const filteredListings = useMemo(() => {
     return listings.filter((listing) => {
       // Tip filtresi (listing_type metadata'dan gelir)
@@ -36,38 +42,64 @@ export function HomeListings({ listings }: HomeListingsProps) {
         }
       }
 
-      // Kategori filtresi
-      if (selectedCategory && listing.categoryId !== selectedCategory) {
-        return false;
-      }
-
       return true;
     });
-  }, [listings, activeFilter, selectedCategory]);
+  }, [listings, activeFilter]);
 
   return (
-    <div className="py-12">
+    <div className="pt-2 pb-12">
       <section className="space-y-4">
         <ListingFilterPills 
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
         />
-        <CategoryFilters
-          activeCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-        />
-        <RegionScroller 
-          activeRegion={null}
-          onRegionChange={() => {}}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-        />
+        {/* Categories Menu */}
+        {categories.length > 0 && (
+          <Suspense fallback={<div className="h-10" />}>
+            <CategoriesMenu categories={categories} />
+          </Suspense>
+        )}
+        {/* Location Menu & View Mode Toggle */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Location Menu - sol taraf */}
+          {country && (
+            <LocationMenu 
+              initialCountry={country}
+              initialRegions={regions}
+              selectedRegion={selectedRegion}
+              selectedCity={selectedCity}
+            />
+          )}
+          {/* View Mode Toggle - sağ taraf */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                viewMode === 'grid'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+              }`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode('gallery')}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                viewMode === 'gallery'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+              }`}
+            >
+              Gallery
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="mt-8">
         <h2 className="mb-4 text-xl font-semibold text-zinc-900">
           Latest Listings
-          {(activeFilter !== "all" || selectedCategory) && (
+          {activeFilter !== "all" && (
             <span className="ml-2 text-base font-normal text-zinc-500">
               ({filteredListings.length} results)
             </span>
@@ -79,7 +111,7 @@ export function HomeListings({ listings }: HomeListingsProps) {
           </div>
         ) : viewMode === 'gallery' ? (
           // Gallery View - Sadece görseller
-          <div className="grid gap-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+          <div className="grid gap-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
             {filteredListings.map((listing) => (
               <Link
                 key={listing.id}
@@ -92,7 +124,7 @@ export function HomeListings({ listings }: HomeListingsProps) {
                     alt={listing.title}
                     fill
                     className="object-cover transition duration-300 group-hover:scale-110"
-                    sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 12vw"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
                   />
                 ) : (
                   <div className="h-full w-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />

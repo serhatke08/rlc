@@ -26,14 +26,18 @@ export async function POST() {
     }
   );
 
-  // Sign out
+  // Sign out - global scope tüm cihazlarda logout yapar
   await supabase.auth.signOut({ scope: 'global' });
 
   // Clear all auth-related cookies
+  // Next.js 14+ için cookie silme: delete() yerine set with maxAge: 0 kullan
   const allCookies = cookieStore.getAll();
   allCookies.forEach((cookie) => {
     if (cookie.name.includes('sb-') || cookie.name.includes('auth')) {
-      cookieStore.delete(cookie.name);
+      cookieStore.set(cookie.name, "", {
+        maxAge: 0,
+        path: "/",
+      });
     }
   });
 

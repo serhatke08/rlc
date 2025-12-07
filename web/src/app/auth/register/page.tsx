@@ -73,7 +73,7 @@ export default function RegisterPage() {
       const sanitizedValue = value.replace(/\s+/g, "_");
       setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
 

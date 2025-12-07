@@ -69,8 +69,8 @@ export default async function FreeStuffPage() {
     coverImage: listing.thumbnail_url || listing.images?.[0],
     tags: [],
     createdAt: listing.created_at,
-      views: listing.view_count || 0,
-      comments: listing.comment_count || 0,
+    views: listing.view_count || 0,
+    comments: listing.comment_count || 0,
       favorites: listing.favorite_count || 0,
   }));
 
