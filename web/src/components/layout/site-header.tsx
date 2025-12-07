@@ -170,7 +170,7 @@ export function SiteHeader() {
                 Sign In
               </Link>
             )}
-            <AddProductButton />
+            {user && <AddProductButton />}
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -189,7 +189,7 @@ export function SiteHeader() {
         </button>
         <Logo />
         <div className="flex items-center gap-2">
-          <AddProductButton compact />
+          {user && <AddProductButton compact />}
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />
           ) : user ? (
