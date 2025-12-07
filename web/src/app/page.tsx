@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getFeaturedListings } from "@/lib/data/listings";
 import { getCategories } from "@/lib/queries/category-server";
 import { getCurrentUserCountry, getRegionsByCountry, getRegionById, getCityById } from "@/lib/queries/location-server";
+import type { Region } from "@/lib/types/location";
 import { HomeListings } from "@/components/home-listings";
 
 interface HomeProps {
@@ -33,7 +34,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   // Location data'yı çek
   const country = await getCurrentUserCountry();
-  let initialRegions = [];
+  let initialRegions: Region[] = [];
   if (country) {
     initialRegions = await getRegionsByCountry(country.id);
   }

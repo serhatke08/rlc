@@ -1,6 +1,9 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/types/database";
+
+type ListingRow = Database["public"]["Tables"]["listings"]["Row"];
 
 type ListingUpdateData = {
   title?: string;
@@ -43,7 +46,10 @@ export async function updateListingServer(
       return { ok: false, status: 404, message: "Listing not found" };
     }
 
-    if (listing.seller_id !== user.id) {
+    // Type assertion for selected fields
+    const listingData = listing as Pick<ListingRow, "seller_id">;
+
+    if (listingData.seller_id !== user.id) {
       return { ok: false, status: 403, message: "Forbidden: You don't own this listing" };
     }
 
@@ -70,8 +76,8 @@ export async function updateListingServer(
     ) as ListingUpdateData;
 
     // Update listing with ownership check
-    const { error: updateError } = await supabase
-      .from("listings")
+    const { error: updateError } = await (supabase
+      .from("listings") as any)
       .update(cleanUpdates)
       .eq("id", listingId)
       .eq("seller_id", user.id); // Double check ownership in update

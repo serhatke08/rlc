@@ -1,6 +1,9 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/types/database";
+
+type ListingRow = Database["public"]["Tables"]["listings"]["Row"];
 
 export async function deleteListingServer(listingId: string) {
   try {
@@ -24,14 +27,17 @@ export async function deleteListingServer(listingId: string) {
       return { ok: false, status: 404, message: "Listing not found" };
     }
 
+    // Type assertion for selected fields
+    const listingData = listing as Pick<ListingRow, "seller_id" | "status">;
+
     // Check ownership
-    if (listing.seller_id !== user.id) {
+    if (listingData.seller_id !== user.id) {
       return { ok: false, status: 403, message: "Forbidden: You don't own this listing" };
     }
 
     // Soft delete - update status to 'deleted'
-    const { error: updateError } = await supabase
-      .from("listings")
+    const { error: updateError } = await (supabase
+      .from("listings") as any)
       .update({ status: "deleted" })
       .eq("id", listingId)
       .eq("seller_id", user.id); // Double check ownership in update

@@ -1,4 +1,5 @@
 import { getCurrentUserCountry, getRegionsByCountry } from "@/lib/queries/location-server";
+import type { Region } from "@/lib/types/location";
 import { LocationMenu } from "@/components/location-menu";
 
 export async function LocationMenuWrapper() {
@@ -6,7 +7,7 @@ export async function LocationMenuWrapper() {
   const country = await getCurrentUserCountry();
   
   // If user has a country, fetch regions for initial load
-  let initialRegions = [];
+  let initialRegions: Region[] = [];
   if (country) {
     initialRegions = await getRegionsByCountry(country.id);
   }

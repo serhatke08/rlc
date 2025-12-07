@@ -34,7 +34,10 @@ export async function getCurrentUserCountry(): Promise<Country | null> {
       return null;
     }
 
-    if (!profile?.country_id) {
+    // Type assertion for profile
+    const profileData = profile as { country_id?: string } | null;
+
+    if (!profileData?.country_id) {
       console.log("User has no country_id in profile");
       return null;
     }
@@ -43,7 +46,7 @@ export async function getCurrentUserCountry(): Promise<Country | null> {
     const { data: country, error: countryError } = await supabase
       .from("countries")
       .select("id, name, code, flag_emoji")
-      .eq("id", profile.country_id)
+      .eq("id", profileData.country_id)
       .single();
 
     if (countryError) {

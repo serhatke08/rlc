@@ -30,8 +30,8 @@ export async function POST(
     if (user) {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       
-      const { data: recentView } = await supabase
-        .from("listing_views")
+      const { data: recentView } = await (supabase
+        .from("listing_views") as any)
         .select("id")
         .eq("listing_id", listingId)
         .eq("user_id", user.id)
@@ -45,8 +45,8 @@ export async function POST(
       }
 
       // Record the view
-      await supabase
-        .from("listing_views")
+      await (supabase
+        .from("listing_views") as any)
         .insert({
           listing_id: listingId,
           user_id: user.id,
@@ -65,21 +65,21 @@ export async function POST(
     }
 
     // Increment view count
-    const { error: updateError } = await supabase.rpc("increment_listing_view_count", {
+    const { error: updateError } = await (supabase.rpc as any)("increment_listing_view_count", {
       listing_id: listingId,
     });
 
     // If RPC doesn't exist, fall back to direct update
     if (updateError) {
-      const { data: listing } = await supabase
-        .from("listings")
+      const { data: listing } = await (supabase
+        .from("listings") as any)
         .select("view_count")
         .eq("id", listingId)
         .single();
 
       if (listing) {
-        await supabase
-          .from("listings")
+        await (supabase
+          .from("listings") as any)
           .update({ view_count: (listing.view_count || 0) + 1 })
           .eq("id", listingId);
       }
