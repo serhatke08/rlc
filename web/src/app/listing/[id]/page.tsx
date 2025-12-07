@@ -18,6 +18,7 @@ import { ListingImageGallery } from "@/components/listing-image-gallery";
 import { ListingReportButton } from "@/components/listing-report-button";
 import { ListingBlockButton } from "@/components/listing-block-button";
 import { ListingViewTracker } from "@/components/listing-view-tracker";
+import { ListingFavoriteButton } from "@/components/listing-favorite-button";
 import { getSiteUrl } from "@/lib/env";
 
 interface ListingPageProps {
@@ -242,14 +243,24 @@ export default async function ListingPage({ params }: ListingPageProps) {
           </span>
         </div>
 
-        {/* Mesaj veya Düzenle Butonu */}
-        <div className="mb-4">
-        <MessageButton
-          listingId={id}
-          sellerId={listingData.seller_id}
-          currentUserId={user?.id || null}
-          isOwner={isOwner}
-        />
+        {/* Mesaj veya Düzenle Butonu ve Favori Butonu */}
+        <div className="mb-4 flex gap-3">
+          <div className="flex-1">
+            <MessageButton
+              listingId={id}
+              sellerId={listingData.seller_id}
+              currentUserId={user?.id || null}
+              isOwner={isOwner}
+            />
+          </div>
+          {!isOwner && (
+            <ListingFavoriteButton
+              listingId={id}
+              currentUserId={user?.id || null}
+              isOwner={isOwner}
+              initialFavoriteCount={listingData.favorite_count || 0}
+            />
+          )}
         </div>
 
         {/* Report Butonu */}

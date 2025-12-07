@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { Send } from "lucide-react";
 
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-
 interface MessageInputProps {
   conversationId: string;
   receiverId: string;
@@ -30,37 +28,45 @@ export function MessageInput({ conversationId, receiverId, listingId }: MessageI
     // Additional validation: check for only whitespace
     if (sanitizedMessage.length === 0) return;
 
-    const supabase = createSupabaseBrowserClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
-
     setLoading(true);
 
     try {
-      // Mesaj gönder (listing_id ile)
-      // Server-side RPC should also validate length & content
-      const { error } = await (supabase.rpc as any)("send_message", {
-        p_sender_id: user.id,
-        p_receiver_id: receiverId,
-        p_content: sanitizedMessage, // Sanitized message
-        p_listing_id: listingId || null,
+      console.log("Sending message:", { receiverId, listingId, contentLength: sanitizedMessage.length });
+      
+      // API route kullan (server-side, RLS bypass eder)
+      const response = await fetch('/api/messages/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receiverId,
+          content: sanitizedMessage,
+          listingId: listingId || null
+        })
       });
 
-      if (error) {
-        console.error("Mesaj gönderme hatası:", error);
-        alert("Mesaj gönderilemedi. Lütfen tekrar deneyin.");
-      } else {
+      const data = await response.json();
+      console.log("Send message API response:", { status: response.status, data });
+
+      if (!response.ok) {
+        console.error("Failed to send message:", data);
+        alert(`Mesaj gönderilemedi: ${data.error || 'Unknown error'}`);
+        setLoading(false);
+        return;
+      }
+
+      if (data.success) {
         setMessage("");
         // Sayfayı yenile (mesajlar otomatik güncellenecek)
         window.location.reload();
+      } else {
+        alert("Mesaj gönderilemedi. Lütfen tekrar deneyin.");
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Hata:", error);
-      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
-    } finally {
+    } catch (error: any) {
+      console.error("Error:", error);
+      alert(`Bir hata oluştu: ${error?.message || JSON.stringify(error)}`);
       setLoading(false);
     }
   };

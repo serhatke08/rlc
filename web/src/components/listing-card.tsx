@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowUpRight, Eye, MapPin, Heart, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -33,12 +32,11 @@ const TYPE_META: Record<
 };
 
 export function ListingCard({ listing }: ListingCardProps) {
-  const router = useRouter();
   const cover = listing.coverImage;
   const seller = listing.seller;
 
   const handleCardClick = async (e: React.MouseEvent) => {
-    // View count'u artır
+    // View count'u artır (Link zaten yönlendiriyor)
     try {
       const supabase = createSupabaseBrowserClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -55,13 +53,14 @@ export function ListingCard({ listing }: ListingCardProps) {
       // Hata olsa bile sayfaya git
       console.error("Failed to increment view count:", error);
     }
-    
-    // Sayfaya git
-    router.push(`/listing/${listing.id}`);
   };
 
   return (
-    <div onClick={handleCardClick}>
+    <Link 
+      href={`/listing/${listing.id}`}
+      onClick={handleCardClick}
+      className="block"
+    >
       <article className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-100 ring-1 ring-transparent transition hover:-translate-y-1 hover:shadow-lg hover:ring-emerald-300/60 cursor-pointer">
         <div className="relative overflow-hidden rounded-xl">
           {cover ? (
@@ -156,7 +155,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           </div>
         </div>
       </article>
-    </div>
+    </Link>
   );
 }
 

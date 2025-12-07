@@ -17,45 +17,61 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleMessage = async () => {
+  const handleMessage = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (!currentUserId) {
-      router.push("/auth/login");
+      window.location.href = "/auth/login";
       return;
     }
 
     if (isOwner) {
       // Kendi ilanıysa düzenle sayfasına git
-      router.push(`/edit-listing/${listingId}`);
+      window.location.href = `/edit-listing/${listingId}`;
       return;
     }
 
     setLoading(true);
-    const supabase = createSupabaseBrowserClient();
 
     try {
-      // Konuşmayı oluştur veya getir
-      const { data: conversationId, error: convError } = await (supabase.rpc as any)(
-        'get_or_create_conversation',
-        {
-          p_user1_id: currentUserId,
-          p_user2_id: sellerId,
-          p_listing_id: listingId
-        }
-      );
+      console.log("Creating conversation:", { currentUserId, sellerId, listingId });
+      
+      // API route kullan (server-side, RLS bypass eder)
+      const response = await fetch('/api/conversations/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sellerId,
+          listingId
+        })
+      });
 
-      if (convError || !conversationId) {
-        console.error("Failed to create conversation:", convError);
-        alert("Failed to send message. Please try again.");
+      const data = await response.json();
+      console.log("API Response:", { status: response.status, data });
+
+      if (!response.ok) {
+        console.error("Failed to create conversation:", data);
+        alert(`Failed to send message: ${data.error || 'Unknown error'}`);
         setLoading(false);
         return;
       }
 
+      if (!data.conversationId) {
+        console.error("No conversation ID returned");
+        alert("Failed to create conversation. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Redirecting to conversation:", data.conversationId);
       // Mesajlar sayfasına yönlendir
-      router.push(`/messages/${conversationId}`);
-    } catch (error) {
+      window.location.href = `/messages/${data.conversationId}`;
+    } catch (error: any) {
       console.error("Error:", error);
-      alert("An error occurred. Please try again.");
-    } finally {
+      alert(`An error occurred: ${error?.message || JSON.stringify(error)}`);
       setLoading(false);
     }
   };
@@ -63,6 +79,7 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
   if (isOwner) {
     return (
       <button
+        type="button"
         onClick={handleMessage}
         disabled={loading}
         className="w-full rounded-full border-2 border-emerald-600 bg-white px-6 py-3 font-semibold text-emerald-600 shadow-md transition hover:bg-emerald-50 hover:scale-[1.02] disabled:opacity-50"
@@ -77,7 +94,12 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
   if (!currentUserId) {
     return (
       <button
-        onClick={() => router.push("/auth/login")}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.location.href = "/auth/login";
+        }}
         className="w-full rounded-full bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg hover:scale-[1.02]"
       >
         <MessageCircle className="mr-2 inline-block h-5 w-5" />
@@ -88,6 +110,7 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
 
   return (
     <button
+      type="button"
       onClick={handleMessage}
       disabled={loading}
       className="w-full rounded-full bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg hover:scale-[1.02] disabled:opacity-50"
