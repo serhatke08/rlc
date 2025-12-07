@@ -33,6 +33,13 @@ type City = {
   name: string;
 };
 
+type Country = {
+  id: string;
+  name: string;
+  code: string;
+  flag_emoji?: string | null;
+};
+
 const LISTING_TYPES = [
   { value: 'free', label: 'Free' },
   { value: 'exchange', label: 'Swap' },
@@ -59,6 +66,7 @@ export default function CreateListingPage() {
   const [description, setDescription] = useState('');
   const [listingType, setListingType] = useState<string>('');
   const [condition, setCondition] = useState<string>('used');
+  const [countryId, setCountryId] = useState<string>('');
   const [regionId, setRegionId] = useState<string>('');
   const [cityId, setCityId] = useState<string>('');
   const [photos, setPhotos] = useState<File[]>([]);
@@ -67,13 +75,13 @@ export default function CreateListingPage() {
   // Data state
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
   const [cities, setCities] = useState<City[]>([]);
-  const [userCountryId, setUserCountryId] = useState<string | null>(null);
-  const [countryName, setCountryName] = useState<string>('');
   
   // Loading states
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
@@ -92,6 +100,23 @@ export default function CreateListingPage() {
       setSubcategoryId('');
     }
   }, [categoryId]);
+
+  // Load regions when country changes
+  useEffect(() => {
+    if (countryId) {
+      loadRegions(countryId);
+      // Reset region and city when country changes
+      setRegionId('');
+      setCityId('');
+      setCities([]);
+    } else {
+      setRegions([]);
+      setRegionId('');
+      setCityId('');
+      setCities([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countryId]);
 
   // Load cities when region changes
   useEffect(() => {
@@ -153,10 +178,10 @@ export default function CreateListingPage() {
         setLoadingCategories(false);
       }
 
-      // 2. Load regions immediately (don't wait for user country)
-      await loadAllRegions();
+      // 2. Load countries
+      await loadCountries();
 
-      // 3. Load user session and country (don't block on this)
+      // 3. Load user session and set default country
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -176,26 +201,8 @@ export default function CreateListingPage() {
             const profile = profileData as { country_id?: string } | null;
             
             if (profile?.country_id) {
-              setUserCountryId(profile.country_id);
-
-              // 4. Load country name
-              const { data: countryData, error: countryError } = await supabase
-                .from('countries')
-                .select('name')
-                .eq('id', profile.country_id)
-                .single();
-
-              if (countryError) {
-                // Country name error - continue without country name
-              } else if (countryData) {
-                const country = countryData as { name?: string } | null;
-                if (country?.name) {
-                  setCountryName(country.name);
-                }
-              }
-
-              // 5. If user has country, filter regions by country (optional - already loaded all)
-              // Regions are already loaded, but we can filter if needed
+              // Set user's country as default
+              setCountryId(profile.country_id);
             }
           }
         }
@@ -209,25 +216,25 @@ export default function CreateListingPage() {
     }
   };
 
-  const loadAllRegions = async () => {
-    setLoadingRegions(true);
+  const loadCountries = async () => {
+    setLoadingCountries(true);
     
-    // Try API route first (load all regions)
+    // Try API route first
     try {
-      const apiResponse = await fetch('/api/regions', {
+      const apiResponse = await fetch('/api/countries', {
         cache: 'no-store',
       });
       
       if (apiResponse.ok) {
         const apiData = await apiResponse.json();
         if (apiData && Array.isArray(apiData) && apiData.length > 0) {
-          const regionsData = apiData as Region[];
-          setRegions(regionsData);
-          setLoadingRegions(false);
+          const countriesData = apiData as Country[];
+          setCountries(countriesData);
+          setLoadingCountries(false);
           return;
         } else {
-          setRegions([]);
-          setLoadingRegions(false);
+          setCountries([]);
+          setLoadingCountries(false);
           return;
         }
       } else {
@@ -238,24 +245,23 @@ export default function CreateListingPage() {
       const supabase = createSupabaseBrowserClient();
       try {
         const { data, error } = await supabase
-          .from('regions')
-          .select('id, name, country_id, code')
-          .order('name', { ascending: true })
-          .limit(200);
+          .from('countries')
+          .select('id, name, code, flag_emoji')
+          .order('name', { ascending: true });
 
         if (error) {
-          setRegions([]);
+          setCountries([]);
         } else if (data && data.length > 0) {
-          const regionsData = data as Region[];
-          setRegions(regionsData);
+          const countriesData = data as Country[];
+          setCountries(countriesData);
         } else {
-          setRegions([]);
+          setCountries([]);
         }
       } catch (directError) {
-        setRegions([]);
+        setCountries([]);
       }
     } finally {
-      setLoadingRegions(false);
+      setLoadingCountries(false);
     }
   };
 
@@ -503,11 +509,11 @@ export default function CreateListingPage() {
       formData.append('subcategoryId', subcategoryId);
       formData.append('listingType', listingType);
       formData.append('condition', condition);
+      formData.append('countryId', countryId);
       formData.append('regionId', regionId);
       formData.append('cityId', cityId);
       formData.append('cityName', selectedCity?.name || '');
       formData.append('districtName', selectedRegion?.name || '');
-      formData.append('countryId', userCountryId || '');
       
       // Add photos
       photos.forEach((photo, i) => {
@@ -547,6 +553,7 @@ export default function CreateListingPage() {
         {process.env.NODE_ENV === 'development' && (
           <div className="rounded-lg bg-zinc-100 p-4 text-xs">
             <div>Categories: {categories.length} | Loading: {loadingCategories ? 'Yes' : 'No'}</div>
+            <div>Countries: {countries.length} | Loading: {loadingCountries ? 'Yes' : 'No'}</div>
             <div>Regions: {regions.length} | Loading: {loadingRegions ? 'Yes' : 'No'}</div>
             <div>Cities: {cities.length} | Loading: {loadingCities ? 'Yes' : 'No'}</div>
             <div>Subcategories: {subcategories.length} | Loading: {loadingSubcategories ? 'Yes' : 'No'}</div>
@@ -673,16 +680,25 @@ export default function CreateListingPage() {
         </div>
 
         {/* Country */}
-        {countryName && (
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-zinc-900">
-              Country
-            </label>
-            <div className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
-              {countryName}
-            </div>
-          </div>
-        )}
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-zinc-900">
+            Country *
+          </label>
+          <select
+            value={countryId}
+            onChange={(e) => setCountryId(e.target.value)}
+            required
+            disabled={loadingCountries}
+            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm disabled:bg-zinc-50 disabled:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            <option value="">{loadingCountries ? 'Loading countries...' : 'Select a country'}</option>
+            {countries.map((country) => (
+              <option key={country.id} value={country.id}>
+                {country.flag_emoji ? `${country.flag_emoji} ` : ''}{country.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Region */}
         <div>
