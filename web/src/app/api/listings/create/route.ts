@@ -61,8 +61,8 @@ export async function POST(request: Request) {
     }
 
     // Create listing
-    const { data: listing, error: listingError } = await supabase
-      .from('listings')
+    const { data: listing, error: listingError } = await (supabase
+      .from('listings') as any)
       .insert({
         title: title.trim(),
         description: description.trim(),
