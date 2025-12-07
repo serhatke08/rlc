@@ -37,6 +37,6 @@ export async function GET(
   }
 
   console.log("✅ Cities fetched:", data?.length || 0);
-  return NextResponse.json({ cities: data || [] });
+  return NextResponse.json(data || []);
 }
 

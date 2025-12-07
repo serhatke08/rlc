@@ -9,6 +9,10 @@ type Category = {
   id: string;
   name: string;
   slug: string;
+  icon?: string | null;
+  image_url?: string | null;
+  listing_count?: number | null;
+  order_index?: number | null;
 };
 
 type Subcategory = {
@@ -20,6 +24,8 @@ type Subcategory = {
 type Region = {
   id: string;
   name: string;
+  country_id?: string;
+  code?: string | null;
 };
 
 type City = {
@@ -44,7 +50,6 @@ const CONDITIONS = [
 
 export default function CreateListingPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
   // Form state
@@ -65,9 +70,32 @@ export default function CreateListingPage() {
   const [regions, setRegions] = useState<Region[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [userCountryId, setUserCountryId] = useState<string | null>(null);
+  const [countryName, setCountryName] = useState<string>('');
+  
+  // Loading states
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingRegions, setLoadingRegions] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+
+  // Debug: Log when categories change
+  useEffect(() => {
+    console.log('📊 Categories state changed:', categories.length, categories);
+  }, [categories]);
+
+  // Debug: Log when regions change
+  useEffect(() => {
+    console.log('📊 Regions state changed:', regions.length, regions);
+  }, [regions]);
+
+  // Debug: Log when cities change
+  useEffect(() => {
+    console.log('📊 Cities state changed:', cities.length, cities);
+  }, [cities]);
 
   // Load initial data
   useEffect(() => {
+    console.log('🚀 useEffect triggered - loading initial data');
     loadInitialData();
   }, []);
 
@@ -89,122 +117,433 @@ export default function CreateListingPage() {
       setCities([]);
       setCityId('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [regionId]);
 
   const loadInitialData = async () => {
-    setLoading(true);
     const supabase = createSupabaseBrowserClient();
-
+    
     try {
-      // Check authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
-
-      // Load user's country
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('country_id')
-        .eq('id', user.id)
-        .single();
-
-      const profileData = profile as any;
-      if (profileData?.country_id) {
-        setUserCountryId(profileData.country_id);
-        await loadRegions(profileData.country_id);
-      }
-
-      // Load categories - RLS politikası USING (true) olmalı
-      // is_active filtresini client-side'da yapacağız
-      let { data: categoriesData, error: categoriesError } = await supabase
-        .from('product_categories')
-        .select('id, name, slug, is_active')
-        .order('order_index', { ascending: true, nullsFirst: false })
-        .order('name', { ascending: true });
-
-      // Eğer RLS hatası varsa, alternatif sorgu dene
-      if (categoriesError) {
-        console.error('Error loading categories:', categoriesError);
+      // 1. Load categories FIRST - try API route first (more reliable)
+      setLoadingCategories(true);
+      console.log('📦 Loading categories...');
+      
+      // Try API route first (server-side, bypasses RLS issues)
+      try {
+        console.log('📦 Trying API route...');
+        const apiResponse = await fetch('/api/categories', {
+          cache: 'no-store',
+        });
         
-        // RLS hatası olabilir - alternatif sorgu dene
-        if (categoriesError.code === '42501' || categoriesError.code === 'PGRST301' || categoriesError.message?.includes('permission') || categoriesError.message?.includes('policy')) {
-          console.log('🔄 RLS policy error detected, trying alternative query...');
-          
-          const altResult = await supabase
-            .from('product_categories')
-            .select('id, name, slug')
-            .limit(100);
-          
-          if (!altResult.error && altResult.data) {
-            // Client-side'da is_active filtresi yap
-            const activeCategories = altResult.data.filter((cat: any) => cat.is_active !== false);
-            setCategories(activeCategories);
+        if (apiResponse.ok) {
+          const apiData = await apiResponse.json();
+          if (apiData && Array.isArray(apiData) && apiData.length > 0) {
+            setCategories(apiData);
+            console.log('✅ Categories loaded via API:', apiData.length, apiData.map((c: any) => c.name));
+            setLoadingCategories(false);
+            // Continue with user session loading
           } else {
-            throw categoriesError;
+            console.warn('⚠️ API returned empty array');
+            throw new Error('API returned empty');
           }
         } else {
-          throw categoriesError;
+          console.warn('⚠️ API response not OK:', apiResponse.status);
+          throw new Error(`API error: ${apiResponse.status}`);
         }
-      } else if (categoriesData) {
-        // Client-side'da is_active filtresi yap
-        // is_active = true veya is_active IS NULL olanları göster
-        const activeCategories = categoriesData.filter((cat: any) => cat.is_active !== false);
-        setCategories(activeCategories);
+      } catch (apiError: any) {
+        console.error('❌ API route failed, trying direct query:', apiError);
+        
+        // Fallback to direct Supabase query
+        try {
+          const { data: categoriesData, error: categoriesError } = await supabase
+            .from('product_categories')
+            .select('id, name, slug, is_active')
+            .limit(100);
+          
+          console.log('📦 Direct query result - data:', categoriesData?.length, 'error:', categoriesError);
+          
+          if (categoriesError) {
+            console.error('❌ Direct query error:', categoriesError);
+            setCategories([]);
+          } else if (categoriesData && categoriesData.length > 0) {
+            const activeCategories = categoriesData.filter((cat: any) => cat.is_active !== false);
+            activeCategories.sort((a: any, b: any) => a.name.localeCompare(b.name));
+            setCategories(activeCategories);
+            console.log('✅ Categories loaded via direct query:', activeCategories.length);
+          } else {
+            console.warn('⚠️ No categories data returned');
+            setCategories([]);
+          }
+        } catch (directError) {
+          console.error('❌ Direct query exception:', directError);
+          setCategories([]);
+        }
+      } finally {
+        setLoadingCategories(false);
+      }
+
+      // 2. Load regions immediately (don't wait for user country)
+      console.log('🌍 Loading all regions...');
+      await loadAllRegions();
+
+      // 3. Load user session and country (don't block on this)
+      console.log('👤 Loading user session...');
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        console.log('👤 Session check - session:', session ? 'exists' : 'null', 'error:', sessionError);
+        
+        if (sessionError) {
+          console.error('❌ Session error:', sessionError);
+          console.error('Session error details:', JSON.stringify(sessionError, null, 2));
+        } else if (session?.user) {
+          console.log('✅ User session found:', session.user.id);
+
+          // 3. Load user profile with country
+          console.log('🌍 Loading user profile...');
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('country_id')
+            .eq('id', session.user.id)
+            .single();
+
+          console.log('🌍 Profile check - data:', profileData ? 'exists' : 'null', 'error:', profileError);
+          
+          if (profileError) {
+            console.error('❌ Profile error:', profileError);
+            console.error('Profile error details:', JSON.stringify(profileError, null, 2));
+          } else if (profileData) {
+            const profile = profileData as { country_id?: string } | null;
+            console.log('🌍 Profile data:', profile);
+            
+            if (profile?.country_id) {
+              console.log('✅ User country_id:', profile.country_id);
+              setUserCountryId(profile.country_id);
+
+              // 4. Load country name
+              console.log('🌍 Loading country name...');
+              const { data: countryData, error: countryError } = await supabase
+                .from('countries')
+                .select('name')
+                .eq('id', profile.country_id)
+                .single();
+
+              if (countryError) {
+                console.error('❌ Country name error:', countryError);
+              } else if (countryData) {
+                const country = countryData as { name?: string } | null;
+                if (country?.name) {
+                  setCountryName(country.name);
+                  console.log('✅ Country name:', country.name);
+                }
+              }
+
+              // 5. If user has country, filter regions by country (optional - already loaded all)
+              // Regions are already loaded, but we can filter if needed
+              console.log('🌍 User country_id:', profile.country_id, '- Regions already loaded');
+            } else {
+              console.warn('⚠️ User has no country_id in profile');
+              console.warn('⚠️ Profile object:', JSON.stringify(profile, null, 2));
+            }
+          } else {
+            console.warn('⚠️ Profile data is null');
+          }
+        } else {
+          console.warn('⚠️ No user session found - session:', session, 'user:', session?.user);
+        }
+      } catch (sessionErr) {
+        console.error('❌ Session loading exception:', sessionErr);
+        console.error('Exception details:', JSON.stringify(sessionErr, null, 2));
       }
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      console.error('❌ Unexpected error in loadInitialData:', error);
     } finally {
-      setLoading(false);
+      setLoadingCategories(false);
+    }
+  };
+
+  const loadAllRegions = async () => {
+    setLoadingRegions(true);
+    console.log('🌍 Loading all regions...');
+    
+    // Try API route first (load all regions)
+    try {
+      const apiResponse = await fetch('/api/regions', {
+        cache: 'no-store',
+      });
+      
+      if (apiResponse.ok) {
+        const apiData = await apiResponse.json();
+        if (apiData && Array.isArray(apiData) && apiData.length > 0) {
+          const regionsData = apiData as Region[];
+          setRegions(regionsData);
+          console.log('✅ All regions loaded via API:', regionsData.length, regionsData.map(r => r.name));
+          setLoadingRegions(false);
+          return;
+        } else {
+          console.warn('⚠️ No regions found');
+          setRegions([]);
+          setLoadingRegions(false);
+          return;
+        }
+      } else {
+        throw new Error(`API error: ${apiResponse.status}`);
+      }
+    } catch (apiError: any) {
+      console.error('❌ API route failed, trying direct query:', apiError);
+      
+      // Fallback to direct Supabase query
+      const supabase = createSupabaseBrowserClient();
+      try {
+        const { data, error } = await supabase
+          .from('regions')
+          .select('id, name, country_id, code')
+          .order('name', { ascending: true })
+          .limit(200);
+
+        if (error) {
+          console.error('❌ Regions error:', error);
+          console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          });
+          setRegions([]);
+        } else if (data && data.length > 0) {
+          const regionsData = data as Region[];
+          console.log('✅ All regions loaded via direct query:', regionsData.length, regionsData.map(r => r.name));
+          setRegions(regionsData);
+        } else {
+          console.warn('⚠️ No regions found');
+          setRegions([]);
+        }
+      } catch (directError) {
+        console.error('❌ Direct query exception:', directError);
+        setRegions([]);
+      }
+    } finally {
+      setLoadingRegions(false);
     }
   };
 
   const loadRegions = async (countryId: string) => {
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase
-      .from('regions')
-      .select('id, name')
-      .eq('country_id', countryId)
-      .order('name');
+    if (!countryId) {
+      console.warn('⚠️ No countryId provided for loadRegions');
+      return;
+    }
 
-    if (error) {
-      console.error('Error loading regions:', error);
-    } else if (data) {
-      setRegions(data);
+    setLoadingRegions(true);
+    console.log('🌍 Loading regions for countryId:', countryId);
+    
+    // Try API route first
+    try {
+      const apiResponse = await fetch(`/api/regions?countryId=${countryId}`, {
+        cache: 'no-store',
+      });
+      
+      if (apiResponse.ok) {
+        const apiData = await apiResponse.json();
+        if (apiData && Array.isArray(apiData) && apiData.length > 0) {
+          const regionsData = apiData as Region[];
+          setRegions(regionsData);
+          console.log('✅ Regions loaded via API:', regionsData.length, regionsData.map(r => r.name));
+          setLoadingRegions(false);
+          return;
+        } else {
+          console.warn('⚠️ No regions found for countryId:', countryId);
+          setRegions([]);
+          setLoadingRegions(false);
+          return;
+        }
+      } else {
+        throw new Error(`API error: ${apiResponse.status}`);
+      }
+    } catch (apiError: any) {
+      console.error('❌ API route failed, trying direct query:', apiError);
+      
+      // Fallback to direct Supabase query
+      const supabase = createSupabaseBrowserClient();
+      try {
+        const { data, error } = await supabase
+          .from('regions')
+          .select('id, name, country_id, code')
+          .eq('country_id', countryId)
+          .order('name', { ascending: true });
+
+        if (error) {
+          console.error('❌ Regions error:', error);
+          console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          });
+          setRegions([]);
+        } else if (data && data.length > 0) {
+          const regionsData = data as Region[];
+          console.log('✅ Regions loaded via direct query:', regionsData.length, regionsData.map(r => r.name));
+          setRegions(regionsData);
+        } else {
+          console.warn('⚠️ No regions found for countryId:', countryId);
+          setRegions([]);
+        }
+      } catch (directError) {
+        console.error('❌ Direct query exception:', directError);
+        setRegions([]);
+      }
+    } finally {
+      setLoadingRegions(false);
     }
   };
 
   const loadSubcategories = async (categoryId: string) => {
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase
-      .from('product_subcategories')
-      .select('id, name, slug')
-      .eq('category_id', categoryId)
-      .eq('is_active', true)
-      .order('order_index')
-      .order('name');
+    if (!categoryId) {
+      setSubcategories([]);
+      setLoadingSubcategories(false);
+      return;
+    }
 
-    if (error) {
-      console.error('Error loading subcategories:', error);
-    } else if (data) {
-      setSubcategories(data);
+    setLoadingSubcategories(true);
+    console.log('📂 Loading subcategories for categoryId:', categoryId);
+    
+    // Try API route first
+    try {
+      const apiResponse = await fetch(`/api/subcategories/${categoryId}`, {
+        cache: 'no-store',
+      });
+      
+      if (apiResponse.ok) {
+        const apiData = await apiResponse.json();
+        if (apiData && Array.isArray(apiData) && apiData.length > 0) {
+          setSubcategories(apiData);
+          console.log('✅ Subcategories loaded via API:', apiData.length, apiData.map((s: any) => s.name));
+          setLoadingSubcategories(false);
+          return;
+        } else {
+          console.log('ℹ️ No subcategories found for categoryId:', categoryId);
+          setSubcategories([]);
+          setLoadingSubcategories(false);
+          return;
+        }
+      } else {
+        throw new Error(`API error: ${apiResponse.status}`);
+      }
+    } catch (apiError: any) {
+      console.error('❌ API route failed, trying direct query:', apiError);
+      
+      // Fallback to direct Supabase query
+      const supabase = createSupabaseBrowserClient();
+      try {
+        const { data, error } = await supabase
+          .from('product_subcategories')
+          .select('id, name, slug')
+          .eq('category_id', categoryId)
+          .eq('is_active', true)
+          .order('order_index', { ascending: true, nullsFirst: false })
+          .order('name', { ascending: true });
+
+        if (error) {
+          console.error('❌ Subcategories error:', error);
+          setSubcategories([]);
+        } else if (data && data.length > 0) {
+          console.log('✅ Subcategories loaded via direct query:', data.length);
+          setSubcategories(data);
+        } else {
+          console.log('ℹ️ No subcategories found for categoryId:', categoryId);
+          setSubcategories([]);
+        }
+      } catch (directError) {
+        console.error('❌ Direct query exception:', directError);
+        setSubcategories([]);
+      }
+    } finally {
+      setLoadingSubcategories(false);
     }
   };
 
   const loadCities = async (regionId: string) => {
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase
-      .from('cities')
-      .select('id, name')
-      .eq('region_id', regionId)
-      .order('is_major', { ascending: false })
-      .order('name');
+    if (!regionId) {
+      setCities([]);
+      setCityId('');
+      setLoadingCities(false);
+      return;
+    }
 
-    if (error) {
-      console.error('Error loading cities:', error);
-    } else if (data) {
-      setCities(data);
+    setLoadingCities(true);
+    console.log('🏙️ Loading cities for regionId:', regionId);
+    
+    // Try API route first
+    try {
+      const apiResponse = await fetch(`/api/cities/${regionId}`, {
+        cache: 'no-store',
+      });
+      
+      if (apiResponse.ok) {
+        const apiData = await apiResponse.json();
+        if (apiData && Array.isArray(apiData) && apiData.length > 0) {
+          const citiesData = apiData as City[];
+          setCities(citiesData);
+          console.log('✅ Cities loaded via API:', citiesData.length, citiesData.map(c => c.name));
+          // Reset city selection if current city is not in the new list
+          if (cityId && !citiesData.find((c: City) => c.id === cityId)) {
+            setCityId('');
+          }
+          setLoadingCities(false);
+          return;
+        } else {
+          console.warn('⚠️ No cities found for regionId:', regionId);
+          setCities([]);
+          setCityId('');
+          setLoadingCities(false);
+          return;
+        }
+      } else {
+        throw new Error(`API error: ${apiResponse.status}`);
+      }
+    } catch (apiError: any) {
+      console.error('❌ API route failed, trying direct query:', apiError);
+      
+      // Fallback to direct Supabase query
+      const supabase = createSupabaseBrowserClient();
+      try {
+        const { data, error } = await supabase
+          .from('cities')
+          .select('id, name')
+          .eq('region_id', regionId)
+          .order('is_major', { ascending: false })
+          .order('name', { ascending: true });
+
+        if (error) {
+          console.error('❌ Cities error:', error);
+          console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          });
+          setCities([]);
+          setCityId('');
+        } else if (data && data.length > 0) {
+          const citiesData = data as City[];
+          console.log('✅ Cities loaded via direct query:', citiesData.length, citiesData.map(c => c.name));
+          setCities(citiesData);
+          // Reset city selection if current city is not in the new list
+          if (cityId && !data.find((c: City) => c.id === cityId)) {
+            setCityId('');
+          }
+        } else {
+          console.warn('⚠️ No cities found for regionId:', regionId);
+          setCities([]);
+          setCityId('');
+        }
+      } catch (directError) {
+        console.error('❌ Direct query exception:', directError);
+        setCities([]);
+        setCityId('');
+      }
+    } finally {
+      setLoadingCities(false);
     }
   };
 
@@ -256,6 +595,11 @@ export default function CreateListingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent multiple submissions
+    if (submitting) {
+      return;
+    }
+    
     if (photos.length === 0) {
       alert('Please add at least one photo');
       return;
@@ -265,11 +609,27 @@ export default function CreateListingPage() {
     const supabase = createSupabaseBrowserClient();
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // Check authentication - getSession kullan
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      // Geçersiz token hatası varsa session'ı temizle ve login'e yönlendir
+      if (sessionError) {
+        console.error('Session error during submit:', sessionError);
+        if (sessionError.message?.includes('Refresh Token') || sessionError.message?.includes('Invalid')) {
+          await supabase.auth.signOut({ scope: 'local' });
+        }
+        setSubmitting(false);
         router.push('/auth/login');
         return;
       }
+      
+      if (!session?.user) {
+        setSubmitting(false);
+        router.push('/auth/login');
+        return;
+      }
+      
+      const user = session.user;
 
       // Upload photos to Supabase Storage
       const uploadedUrls: string[] = [];
@@ -321,45 +681,65 @@ export default function CreateListingPage() {
 
       if (listingError) throw listingError;
 
+      // Reset state before navigation to prevent stuck button
+      setSubmitting(false);
       router.push(`/listing/${listing.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating listing:', error);
+      
+      // Auth hatası varsa session'ı temizle ve login'e yönlendir
+      if (error?.message?.includes('Refresh Token') || error?.message?.includes('Invalid') || error?.status === 401) {
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        setSubmitting(false);
+        router.push('/auth/login');
+        return;
+      }
+      
       alert('Error creating listing. Please try again.');
-    } finally {
       setSubmitting(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-8 text-3xl font-bold text-zinc-900">Add Product</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="rounded-lg bg-zinc-100 p-4 text-xs">
+            <div>Categories: {categories.length} | Loading: {loadingCategories ? 'Yes' : 'No'}</div>
+            <div>Regions: {regions.length} | Loading: {loadingRegions ? 'Yes' : 'No'}</div>
+            <div>Cities: {cities.length} | Loading: {loadingCities ? 'Yes' : 'No'}</div>
+            <div>Subcategories: {subcategories.length} | Loading: {loadingSubcategories ? 'Yes' : 'No'}</div>
+          </div>
+        )}
+
         {/* Category */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-zinc-900">
-            Category *
+            Category * {categories.length > 0 && `(${categories.length} available)`}
           </label>
           <select
             value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+            onChange={(e) => {
+              console.log('Category selected:', e.target.value);
+              setCategoryId(e.target.value);
+            }}
             required
-            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            disabled={loadingCategories}
+            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm disabled:bg-zinc-50 disabled:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="">Select a category</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
+            <option value="">{loadingCategories ? 'Loading categories...' : 'Select a category'}</option>
+            {categories.length > 0 ? (
+              categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))
+            ) : (
+              !loadingCategories && <option value="" disabled>No categories available</option>
+            )}
           </select>
         </div>
 
@@ -371,10 +751,10 @@ export default function CreateListingPage() {
           <select
             value={subcategoryId}
             onChange={(e) => setSubcategoryId(e.target.value)}
-            disabled={!categoryId || subcategories.length === 0}
+            disabled={!categoryId || loadingSubcategories}
             className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm disabled:bg-zinc-50 disabled:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="">Select (Optional)</option>
+            <option value="">{loadingSubcategories ? 'Loading subcategories...' : 'Select (Optional)'}</option>
             {subcategories.map((sub) => (
               <option key={sub.id} value={sub.id}>
                 {sub.name}
@@ -455,6 +835,18 @@ export default function CreateListingPage() {
           </select>
         </div>
 
+        {/* Country */}
+        {countryName && (
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-zinc-900">
+              Country
+            </label>
+            <div className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
+              {countryName}
+            </div>
+          </div>
+        )}
+
         {/* Region */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-zinc-900">
@@ -464,10 +856,10 @@ export default function CreateListingPage() {
             value={regionId}
             onChange={(e) => setRegionId(e.target.value)}
             required
-            disabled={!userCountryId}
+            disabled={loadingRegions}
             className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm disabled:bg-zinc-50 disabled:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="">Select a region</option>
+            <option value="">{loadingRegions ? 'Loading regions...' : 'Select a region'}</option>
             {regions.map((region) => (
               <option key={region.id} value={region.id}>
                 {region.name}
@@ -485,10 +877,10 @@ export default function CreateListingPage() {
             value={cityId}
             onChange={(e) => setCityId(e.target.value)}
             required
-            disabled={!regionId || cities.length === 0}
+            disabled={!regionId || loadingCities}
             className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm disabled:bg-zinc-50 disabled:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           >
-            <option value="">Select a city</option>
+            <option value="">{loadingCities ? 'Loading cities...' : 'Select a city'}</option>
             {cities.map((city) => (
               <option key={city.id} value={city.id}>
                 {city.name}
