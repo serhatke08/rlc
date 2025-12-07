@@ -89,8 +89,8 @@ export function ListingFavoriteButton({
         setFavoriteCount(prev => Math.max(0, prev - 1));
       } else {
         // Add to favorites
-        const { error } = await supabase
-          .from('listing_favorites')
+        const { error } = await (supabase
+          .from('listing_favorites') as any)
           .insert({
             listing_id: listingId,
             user_id: currentUserId,
