@@ -1,8 +1,13 @@
 import type { MetadataRoute } from 'next'
-import { getSiteUrl } from '@/lib/env'
+import { getSiteUrl, getSiteUrlFromHeaders } from '@/lib/env'
+
+// Dynamic route - her domain için farklı robots.txt
+export const dynamic = 'force-dynamic';
  
-export default function robots(): MetadataRoute.Robots {
-  const siteUrl = getSiteUrl();
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  // Request'ten domain'i al - her domain için doğru robots.txt
+  const siteUrl = await getSiteUrlFromHeaders();
+  
   return {
     rules: [
       {

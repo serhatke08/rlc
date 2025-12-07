@@ -28,6 +28,33 @@ export function hasSupabaseCredentials() {
 }
 
 /**
+ * Request header'larından domain'i al (server-side)
+ * Bu fonksiyon sitemap ve robots.txt gibi route handler'larda kullanılır
+ * Next.js 15'te headers() async olmalı
+ */
+export async function getSiteUrlFromHeaders(): Promise<string> {
+  try {
+    // Next.js 15'te headers() async
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const host = headersList.get('host') || headersList.get('x-forwarded-host');
+    const protocol = headersList.get('x-forwarded-proto') || 'https';
+    
+    if (host) {
+      // www'yi kaldır (isteğe bağlı)
+      const cleanHost = host.replace(/^www\./, '');
+      return `${protocol}://${cleanHost}`;
+    }
+  } catch (error) {
+    // headers() sadece server component/route handler'da çalışır
+    // Bu normal, fallback kullanılacak
+  }
+  
+  // Fallback: Environment variable veya default
+  return getSiteUrl();
+}
+
+/**
  * Vercel'de otomatik olarak sağlanan URL'i veya custom domain'i döndürür
  * Production'da mutlaka reloopcycle.co.uk kullanılır, preview'da VERCEL_URL kullanılabilir
  */

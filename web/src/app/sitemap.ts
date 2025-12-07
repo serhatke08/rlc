@@ -1,9 +1,14 @@
 import type { MetadataRoute } from 'next'
+import { headers } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { getSiteUrl } from '@/lib/env'
+import { getSiteUrl, getSiteUrlFromHeaders } from '@/lib/env'
+
+// Dynamic route - her domain için farklı sitemap
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = getSiteUrl()
+  // Request'ten domain'i al - her domain için doğru sitemap
+  const baseUrl = await getSiteUrlFromHeaders()
   
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
