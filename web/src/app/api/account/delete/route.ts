@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     // Call RPC function to delete user account (deletes profile and all related data)
-    const { error: rpcError } = await supabase.rpc('delete_user_account');
+    const { error: rpcError } = await (supabase.rpc as any)('delete_user_account');
 
     if (rpcError) {
       console.error('Error deleting user account:', rpcError);

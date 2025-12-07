@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     // Konuşmayı oluştur veya getir
-    const { data: conversationId, error: convError } = await supabase.rpc(
+    const { data: conversationId, error: convError } = await (supabase.rpc as any)(
       'get_or_create_conversation',
       {
         p_user1_id: user.id,
