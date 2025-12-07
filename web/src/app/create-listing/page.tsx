@@ -78,24 +78,8 @@ export default function CreateListingPage() {
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
 
-  // Debug: Log when categories change
-  useEffect(() => {
-    console.log('📊 Categories state changed:', categories.length, categories);
-  }, [categories]);
-
-  // Debug: Log when regions change
-  useEffect(() => {
-    console.log('📊 Regions state changed:', regions.length, regions);
-  }, [regions]);
-
-  // Debug: Log when cities change
-  useEffect(() => {
-    console.log('📊 Cities state changed:', cities.length, cities);
-  }, [cities]);
-
   // Load initial data
   useEffect(() => {
-    console.log('🚀 useEffect triggered - loading initial data');
     loadInitialData();
   }, []);
 
@@ -126,11 +110,9 @@ export default function CreateListingPage() {
     try {
       // 1. Load categories FIRST - try API route first (more reliable)
       setLoadingCategories(true);
-      console.log('📦 Loading categories...');
       
       // Try API route first (server-side, bypasses RLS issues)
       try {
-        console.log('📦 Trying API route...');
         const apiResponse = await fetch('/api/categories', {
           cache: 'no-store',
         });
@@ -139,20 +121,15 @@ export default function CreateListingPage() {
           const apiData = await apiResponse.json();
           if (apiData && Array.isArray(apiData) && apiData.length > 0) {
             setCategories(apiData);
-            console.log('✅ Categories loaded via API:', apiData.length, apiData.map((c: any) => c.name));
             setLoadingCategories(false);
             // Continue with user session loading
           } else {
-            console.warn('⚠️ API returned empty array');
             throw new Error('API returned empty');
           }
         } else {
-          console.warn('⚠️ API response not OK:', apiResponse.status);
           throw new Error(`API error: ${apiResponse.status}`);
         }
       } catch (apiError: any) {
-        console.error('❌ API route failed, trying direct query:', apiError);
-        
         // Fallback to direct Supabase query
         try {
           const { data: categoriesData, error: categoriesError } = await supabase
@@ -160,22 +137,16 @@ export default function CreateListingPage() {
             .select('id, name, slug, is_active')
             .limit(100);
           
-          console.log('📦 Direct query result - data:', categoriesData?.length, 'error:', categoriesError);
-          
           if (categoriesError) {
-            console.error('❌ Direct query error:', categoriesError);
             setCategories([]);
           } else if (categoriesData && categoriesData.length > 0) {
             const activeCategories = categoriesData.filter((cat: any) => cat.is_active !== false);
             activeCategories.sort((a: any, b: any) => a.name.localeCompare(b.name));
             setCategories(activeCategories);
-            console.log('✅ Categories loaded via direct query:', activeCategories.length);
           } else {
-            console.warn('⚠️ No categories data returned');
             setCategories([]);
           }
         } catch (directError) {
-          console.error('❌ Direct query exception:', directError);
           setCategories([]);
         }
       } finally {
@@ -183,45 +154,31 @@ export default function CreateListingPage() {
       }
 
       // 2. Load regions immediately (don't wait for user country)
-      console.log('🌍 Loading all regions...');
       await loadAllRegions();
 
       // 3. Load user session and country (don't block on this)
-      console.log('👤 Loading user session...');
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        console.log('👤 Session check - session:', session ? 'exists' : 'null', 'error:', sessionError);
-        
         if (sessionError) {
-          console.error('❌ Session error:', sessionError);
-          console.error('Session error details:', JSON.stringify(sessionError, null, 2));
+          // Session error - continue without user data
         } else if (session?.user) {
-          console.log('✅ User session found:', session.user.id);
-
           // 3. Load user profile with country
-          console.log('🌍 Loading user profile...');
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('country_id')
             .eq('id', session.user.id)
             .single();
-
-          console.log('🌍 Profile check - data:', profileData ? 'exists' : 'null', 'error:', profileError);
           
           if (profileError) {
-            console.error('❌ Profile error:', profileError);
-            console.error('Profile error details:', JSON.stringify(profileError, null, 2));
+            // Profile error - continue without country
           } else if (profileData) {
             const profile = profileData as { country_id?: string } | null;
-            console.log('🌍 Profile data:', profile);
             
             if (profile?.country_id) {
-              console.log('✅ User country_id:', profile.country_id);
               setUserCountryId(profile.country_id);
 
               // 4. Load country name
-              console.log('🌍 Loading country name...');
               const { data: countryData, error: countryError } = await supabase
                 .from('countries')
                 .select('name')
@@ -229,34 +186,24 @@ export default function CreateListingPage() {
                 .single();
 
               if (countryError) {
-                console.error('❌ Country name error:', countryError);
+                // Country name error - continue without country name
               } else if (countryData) {
                 const country = countryData as { name?: string } | null;
                 if (country?.name) {
                   setCountryName(country.name);
-                  console.log('✅ Country name:', country.name);
                 }
               }
 
               // 5. If user has country, filter regions by country (optional - already loaded all)
               // Regions are already loaded, but we can filter if needed
-              console.log('🌍 User country_id:', profile.country_id, '- Regions already loaded');
-            } else {
-              console.warn('⚠️ User has no country_id in profile');
-              console.warn('⚠️ Profile object:', JSON.stringify(profile, null, 2));
             }
-          } else {
-            console.warn('⚠️ Profile data is null');
           }
-        } else {
-          console.warn('⚠️ No user session found - session:', session, 'user:', session?.user);
         }
       } catch (sessionErr) {
-        console.error('❌ Session loading exception:', sessionErr);
-        console.error('Exception details:', JSON.stringify(sessionErr, null, 2));
+        // Session loading exception - continue without user data
       }
     } catch (error) {
-      console.error('❌ Unexpected error in loadInitialData:', error);
+      // Unexpected error in loadInitialData
     } finally {
       setLoadingCategories(false);
     }
@@ -264,7 +211,6 @@ export default function CreateListingPage() {
 
   const loadAllRegions = async () => {
     setLoadingRegions(true);
-    console.log('🌍 Loading all regions...');
     
     // Try API route first (load all regions)
     try {
@@ -277,11 +223,9 @@ export default function CreateListingPage() {
         if (apiData && Array.isArray(apiData) && apiData.length > 0) {
           const regionsData = apiData as Region[];
           setRegions(regionsData);
-          console.log('✅ All regions loaded via API:', regionsData.length, regionsData.map(r => r.name));
           setLoadingRegions(false);
           return;
         } else {
-          console.warn('⚠️ No regions found');
           setRegions([]);
           setLoadingRegions(false);
           return;
@@ -290,8 +234,6 @@ export default function CreateListingPage() {
         throw new Error(`API error: ${apiResponse.status}`);
       }
     } catch (apiError: any) {
-      console.error('❌ API route failed, trying direct query:', apiError);
-      
       // Fallback to direct Supabase query
       const supabase = createSupabaseBrowserClient();
       try {
@@ -302,24 +244,14 @@ export default function CreateListingPage() {
           .limit(200);
 
         if (error) {
-          console.error('❌ Regions error:', error);
-          console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint,
-          });
           setRegions([]);
         } else if (data && data.length > 0) {
           const regionsData = data as Region[];
-          console.log('✅ All regions loaded via direct query:', regionsData.length, regionsData.map(r => r.name));
           setRegions(regionsData);
         } else {
-          console.warn('⚠️ No regions found');
           setRegions([]);
         }
       } catch (directError) {
-        console.error('❌ Direct query exception:', directError);
         setRegions([]);
       }
     } finally {
@@ -329,12 +261,10 @@ export default function CreateListingPage() {
 
   const loadRegions = async (countryId: string) => {
     if (!countryId) {
-      console.warn('⚠️ No countryId provided for loadRegions');
       return;
     }
 
     setLoadingRegions(true);
-    console.log('🌍 Loading regions for countryId:', countryId);
     
     // Try API route first
     try {
@@ -347,11 +277,9 @@ export default function CreateListingPage() {
         if (apiData && Array.isArray(apiData) && apiData.length > 0) {
           const regionsData = apiData as Region[];
           setRegions(regionsData);
-          console.log('✅ Regions loaded via API:', regionsData.length, regionsData.map(r => r.name));
           setLoadingRegions(false);
           return;
         } else {
-          console.warn('⚠️ No regions found for countryId:', countryId);
           setRegions([]);
           setLoadingRegions(false);
           return;
@@ -360,8 +288,6 @@ export default function CreateListingPage() {
         throw new Error(`API error: ${apiResponse.status}`);
       }
     } catch (apiError: any) {
-      console.error('❌ API route failed, trying direct query:', apiError);
-      
       // Fallback to direct Supabase query
       const supabase = createSupabaseBrowserClient();
       try {
@@ -372,24 +298,14 @@ export default function CreateListingPage() {
           .order('name', { ascending: true });
 
         if (error) {
-          console.error('❌ Regions error:', error);
-          console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint,
-          });
           setRegions([]);
         } else if (data && data.length > 0) {
           const regionsData = data as Region[];
-          console.log('✅ Regions loaded via direct query:', regionsData.length, regionsData.map(r => r.name));
           setRegions(regionsData);
         } else {
-          console.warn('⚠️ No regions found for countryId:', countryId);
           setRegions([]);
         }
       } catch (directError) {
-        console.error('❌ Direct query exception:', directError);
         setRegions([]);
       }
     } finally {
@@ -405,7 +321,6 @@ export default function CreateListingPage() {
     }
 
     setLoadingSubcategories(true);
-    console.log('📂 Loading subcategories for categoryId:', categoryId);
     
     // Try API route first
     try {
@@ -417,11 +332,9 @@ export default function CreateListingPage() {
         const apiData = await apiResponse.json();
         if (apiData && Array.isArray(apiData) && apiData.length > 0) {
           setSubcategories(apiData);
-          console.log('✅ Subcategories loaded via API:', apiData.length, apiData.map((s: any) => s.name));
           setLoadingSubcategories(false);
           return;
         } else {
-          console.log('ℹ️ No subcategories found for categoryId:', categoryId);
           setSubcategories([]);
           setLoadingSubcategories(false);
           return;
@@ -430,8 +343,6 @@ export default function CreateListingPage() {
         throw new Error(`API error: ${apiResponse.status}`);
       }
     } catch (apiError: any) {
-      console.error('❌ API route failed, trying direct query:', apiError);
-      
       // Fallback to direct Supabase query
       const supabase = createSupabaseBrowserClient();
       try {
@@ -444,17 +355,13 @@ export default function CreateListingPage() {
           .order('name', { ascending: true });
 
         if (error) {
-          console.error('❌ Subcategories error:', error);
           setSubcategories([]);
         } else if (data && data.length > 0) {
-          console.log('✅ Subcategories loaded via direct query:', data.length);
           setSubcategories(data);
         } else {
-          console.log('ℹ️ No subcategories found for categoryId:', categoryId);
           setSubcategories([]);
         }
       } catch (directError) {
-        console.error('❌ Direct query exception:', directError);
         setSubcategories([]);
       }
     } finally {
@@ -471,7 +378,6 @@ export default function CreateListingPage() {
     }
 
     setLoadingCities(true);
-    console.log('🏙️ Loading cities for regionId:', regionId);
     
     // Try API route first
     try {
@@ -484,7 +390,6 @@ export default function CreateListingPage() {
         if (apiData && Array.isArray(apiData) && apiData.length > 0) {
           const citiesData = apiData as City[];
           setCities(citiesData);
-          console.log('✅ Cities loaded via API:', citiesData.length, citiesData.map(c => c.name));
           // Reset city selection if current city is not in the new list
           if (cityId && !citiesData.find((c: City) => c.id === cityId)) {
             setCityId('');
@@ -492,7 +397,6 @@ export default function CreateListingPage() {
           setLoadingCities(false);
           return;
         } else {
-          console.warn('⚠️ No cities found for regionId:', regionId);
           setCities([]);
           setCityId('');
           setLoadingCities(false);
@@ -502,8 +406,6 @@ export default function CreateListingPage() {
         throw new Error(`API error: ${apiResponse.status}`);
       }
     } catch (apiError: any) {
-      console.error('❌ API route failed, trying direct query:', apiError);
-      
       // Fallback to direct Supabase query
       const supabase = createSupabaseBrowserClient();
       try {
@@ -515,30 +417,20 @@ export default function CreateListingPage() {
           .order('name', { ascending: true });
 
         if (error) {
-          console.error('❌ Cities error:', error);
-          console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint,
-          });
           setCities([]);
           setCityId('');
         } else if (data && data.length > 0) {
           const citiesData = data as City[];
-          console.log('✅ Cities loaded via direct query:', citiesData.length, citiesData.map(c => c.name));
           setCities(citiesData);
           // Reset city selection if current city is not in the new list
           if (cityId && !data.find((c: City) => c.id === cityId)) {
             setCityId('');
           }
         } else {
-          console.warn('⚠️ No cities found for regionId:', regionId);
           setCities([]);
           setCityId('');
         }
       } catch (directError) {
-        console.error('❌ Direct query exception:', directError);
         setCities([]);
         setCityId('');
       }
@@ -594,109 +486,55 @@ export default function CreateListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Prevent multiple submissions
-    if (submitting) {
-      return;
-    }
-    
-    if (photos.length === 0) {
-      alert('Please add at least one photo');
-      return;
-    }
+    if (submitting || photos.length === 0) return;
 
     setSubmitting(true);
-    const supabase = createSupabaseBrowserClient();
 
     try {
-      // Check authentication - getSession kullan
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      // Geçersiz token hatası varsa session'ı temizle ve login'e yönlendir
-      if (sessionError) {
-        console.error('Session error during submit:', sessionError);
-        if (sessionError.message?.includes('Refresh Token') || sessionError.message?.includes('Invalid')) {
-          await supabase.auth.signOut({ scope: 'local' });
-        }
-        setSubmitting(false);
-        router.push('/auth/login');
-        return;
-      }
-      
-      if (!session?.user) {
-        setSubmitting(false);
-        router.push('/auth/login');
-        return;
-      }
-      
-      const user = session.user;
-
-      // Upload photos to Supabase Storage
-      const uploadedUrls: string[] = [];
-      for (const photo of photos) {
-        const fileExt = photo.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('listings-images')
-          .upload(fileName, photo);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('listings-images')
-          .getPublicUrl(fileName);
-
-        uploadedUrls.push(publicUrl);
-      }
-
-      // Get region and city names
+      // Get names
       const selectedRegion = regions.find(r => r.id === regionId);
       const selectedCity = cities.find(c => c.id === cityId);
 
-      // Create listing
-      const { data: listing, error: listingError } = await (supabase
-        .from('listings') as any)
-        .insert({
-          title: title.trim(),
-          description: description.trim(),
-          seller_id: user.id,
-          category_id: categoryId || null,
-          subcategory_id: subcategoryId || null,
-          listing_type: listingType,
-          condition: condition,
-          country_id: userCountryId || null, // Kullanıcının ülkesi otomatik eklenir
-          region_id: regionId || null,
-          city_id: cityId || null,
-          city_name: selectedCity?.name || '',
-          district_name: selectedRegion?.name || null,
-          images: uploadedUrls,
-          thumbnail_url: uploadedUrls[0],
-          price: listingType === 'free' || listingType === 'exchange' || listingType === 'need' || listingType === 'ownership' ? 0 : 0, // Will be updated based on listing type
-          currency: 'GBP',
-          status: 'active',
-        })
-        .select()
-        .single();
-
-      if (listingError) throw listingError;
-
-      // Reset state before navigation to prevent stuck button
-      setSubmitting(false);
-      router.push(`/listing/${listing.id}`);
-    } catch (error: any) {
-      console.error('Error creating listing:', error);
+      // Create FormData
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('categoryId', categoryId);
+      formData.append('subcategoryId', subcategoryId);
+      formData.append('listingType', listingType);
+      formData.append('condition', condition);
+      formData.append('regionId', regionId);
+      formData.append('cityId', cityId);
+      formData.append('cityName', selectedCity?.name || '');
+      formData.append('districtName', selectedRegion?.name || '');
+      formData.append('countryId', userCountryId || '');
       
-      // Auth hatası varsa session'ı temizle ve login'e yönlendir
-      if (error?.message?.includes('Refresh Token') || error?.message?.includes('Invalid') || error?.status === 401) {
-        await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+      // Add photos
+      photos.forEach((photo, i) => {
+        formData.append(`photo${i}`, photo);
+      });
+
+      // Send to API
+      const response = await fetch('/api/listings/create', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create listing');
+      }
+
+      if (data.id) {
+        router.push(`/listing/${data.id}`);
+      } else {
         setSubmitting(false);
-        router.push('/auth/login');
-        return;
       }
       
-      alert('Error creating listing. Please try again.');
+    } catch (error: any) {
       setSubmitting(false);
+      alert(error?.message || 'Error creating listing');
     }
   };
 
@@ -723,7 +561,6 @@ export default function CreateListingPage() {
           <select
             value={categoryId}
             onChange={(e) => {
-              console.log('Category selected:', e.target.value);
               setCategoryId(e.target.value);
             }}
             required
