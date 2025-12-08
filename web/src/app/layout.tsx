@@ -114,6 +114,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href={iconPath} />
         <link rel="shortcut icon" type="image/png" href={faviconPath} />
         
+        {/* Google AdSense Account Verification */}
+        <meta name="google-adsense-account" content="ca-pub-6962376212093267" />
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
