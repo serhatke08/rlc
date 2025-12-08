@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import type { CSSProperties } from 'react';
 
 interface GoogleAdSenseProps {
   /**
@@ -17,11 +18,7 @@ interface GoogleAdSenseProps {
   /**
    * Ad style (for display ads)
    */
-  style?: {
-    display?: 'block' | 'inline-block';
-    width?: string;
-    height?: string;
-  };
+  style?: CSSProperties;
   
   /**
    * Ad type: 'display' or 'auto'
