@@ -19,11 +19,13 @@ interface HomeListingsProps {
   regions?: Region[];
   selectedRegion?: Region | null;
   selectedCity?: City | null;
+  isAuthenticated?: boolean;
 }
 
-export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null }: HomeListingsProps) {
+export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null, isAuthenticated = false }: HomeListingsProps) {
   const [activeFilter, setActiveFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('gallery');
+  // Giriş yapmamış kullanıcılar için varsayılan grid (açıklamalı), giriş yapmışlar için gallery
+  const [viewMode, setViewMode] = useState<'grid' | 'gallery'>(isAuthenticated ? 'gallery' : 'grid');
 
   // Filtrelenmiş listeler (sadece tip - region/şehir server-side yapılıyor)
   const filteredListings = useMemo(() => {
@@ -110,9 +112,16 @@ export function HomeListings({ listings, categories = [], country = null, region
           <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-12 text-center">
             <p className="text-sm text-zinc-600">No listings found for these filters.</p>
           </div>
-        ) : viewMode === 'gallery' ? (
+        ) : (
+          <>
+            {viewMode === 'gallery' ? (
           // Gallery View - Sadece görseller
-          <div className="grid gap-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
+          // Giriş yapmamış kullanıcılar için mobil/tablet'te alt alta 3 tane (1 sütun)
+          <div className={`grid gap-2 ${
+            !isAuthenticated 
+              ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-4' 
+              : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-4'
+          }`}>
             {filteredListings.flatMap((listing, index) => {
               const items = [
                 <Link
@@ -164,7 +173,12 @@ export function HomeListings({ listings, categories = [], country = null, region
           </div>
         ) : (
           // Grid View - Normal kartlar
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          // Giriş yapmamış kullanıcılar için mobil/tablet'te alt alta 3 tane (1 sütun)
+          <div className={`grid gap-4 ${
+            !isAuthenticated 
+              ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-4' 
+              : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+          }`}>
             {filteredListings.flatMap((listing, index) => {
               const items = [
                 <ListingCard key={listing.id} listing={listing} />
@@ -182,6 +196,26 @@ export function HomeListings({ listings, categories = [], country = null, region
               return items;
             })}
           </div>
+        )}
+        
+        {/* Giriş yapmamış kullanıcılar için mesaj */}
+        {!isAuthenticated && filteredListings.length > 0 && (
+          <div className="mt-8 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 md:p-8 text-center">
+            <h3 className="mb-2 text-lg md:text-xl font-semibold text-zinc-900">
+              Sign in to see more
+            </h3>
+            <p className="mb-4 text-sm text-zinc-600">
+              Discover thousands of free items, swaps, and sales by signing in to your account.
+            </p>
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
+            >
+              Sign In
+            </Link>
+          </div>
+        )}
+          </>
         )}
       </section>
     </div>

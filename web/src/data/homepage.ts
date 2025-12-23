@@ -78,6 +78,7 @@ export const LANDING_PAGES = [
   { slug: "swap-items-online", title: "Swap Items Online", blurb: "Find new owners with swap-friendly listings." },
   { slug: "reuse-items-platform", title: "Reuse Items Platform", blurb: "Send items to the circular economy, not the trash." },
   { slug: "zero-waste-community-uk", title: "Zero Waste Community UK", blurb: "List zero-waste focused listings." },
+  { slug: "trade-websites-uk-free", title: "Trade Websites UK Free", blurb: "Discover the best free trade websites in the UK." },
 ];
 
 export const POPULAR_SEARCHES = [

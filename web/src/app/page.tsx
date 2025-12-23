@@ -23,11 +23,14 @@ export default async function Home({ searchParams }: HomeProps) {
   const isAuthenticated = !userError && !!user;
   
   // Gerçek Supabase verilerini çek
-  const listings = await getFeaturedListings({
+  const allListings = await getFeaturedListings({
     regionId: params.regionId || null,
     cityId: params.cityId || null,
     categoryId: params.categoryId || null,
   });
+
+  // Giriş yapmamış kullanıcılar için sadece 3 ürün göster
+  const listings = isAuthenticated ? allListings : allListings.slice(0, 3);
 
   // Kategorileri sadece giriş yapmış kullanıcılar için çek
   const categories = isAuthenticated ? await getCategories() : [];
@@ -60,6 +63,7 @@ export default async function Home({ searchParams }: HomeProps) {
       regions={initialRegions}
       selectedRegion={selectedRegion}
       selectedCity={selectedCity}
+      isAuthenticated={isAuthenticated}
     />
   );
 }

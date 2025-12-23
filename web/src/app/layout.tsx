@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 
 import { UIProvider } from "@/components/providers/ui-provider";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -140,6 +141,13 @@ export default function RootLayout({
             <MobileBottomNav />
           </div>
         </UIProvider>
+        {/* Google AdSense Code */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6962376212093267"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
