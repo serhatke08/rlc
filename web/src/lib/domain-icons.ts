@@ -29,20 +29,20 @@ export function getDomainIcon(hostname: string): string {
 
 export function getDomainFavicon(hostname: string): string {
   // Domain bazlı favicon mapping - Tüm ReloopCycle domainleri
-  // PNG formatını kullanıyoruz (modern tarayıcılar destekliyor)
-  // Google aramalarında da görünecek
+  // .ico formatını kullanıyoruz (Google için gerekli)
+  // Next.js App Router'da app/favicon.ico otomatik olarak /favicon.ico olarak sunulur
   const domainFavicons: Record<string, string> = {
-    'reloopcycle.co.uk': '/favicon.png',
-    'reloopcycle.com': '/favicon.png',
-    'reloopcycle.net': '/favicon.png',
-    'reloopcycle.org': '/favicon.png',
-    'www.reloopcycle.co.uk': '/favicon.png',
-    'www.reloopcycle.com': '/favicon.png',
-    'www.reloopcycle.net': '/favicon.png',
-    'www.reloopcycle.org': '/favicon.png',
+    'reloopcycle.co.uk': '/favicon.ico',
+    'reloopcycle.com': '/favicon.ico',
+    'reloopcycle.net': '/favicon.ico',
+    'reloopcycle.org': '/favicon.ico',
+    'www.reloopcycle.co.uk': '/favicon.ico',
+    'www.reloopcycle.com': '/favicon.ico',
+    'www.reloopcycle.net': '/favicon.ico',
+    'www.reloopcycle.org': '/favicon.ico',
   };
 
-  return domainFavicons[hostname] || '/favicon.png';
+  return domainFavicons[hostname] || '/favicon.ico';
 }
 
 /**

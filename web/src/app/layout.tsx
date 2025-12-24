@@ -25,34 +25,40 @@ const geistMono = Geist_Mono({
 
 const siteUrl = getSiteUrl();
 
-// Domain bazlı icon belirleme
+// Domain bazlı icon belirleme - Google için mutlak URL'ler gerekli
 function getIconsForDomain() {
   try {
     const hostname = getHostnameFromSiteUrl(siteUrl);
     const iconPath = getDomainIcon(hostname);
     const faviconPath = getDomainFavicon(hostname);
     
+    // Mutlak URL'ler oluştur (Google için gerekli)
+    const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
+    
     return {
       icon: [
-        { url: iconPath, sizes: "32x32", type: "image/png" },
-        { url: iconPath, sizes: "192x192", type: "image/png" },
+        { url: `${baseUrl}/favicon.ico`, sizes: "any" }, // Google için .ico dosyası (öncelikli)
+        { url: `${baseUrl}${iconPath}`, sizes: "32x32", type: "image/png" },
+        { url: `${baseUrl}${iconPath}`, sizes: "192x192", type: "image/png" },
       ],
       apple: [
-        { url: iconPath, sizes: "180x180", type: "image/png" },
+        { url: `${baseUrl}${iconPath}`, sizes: "180x180", type: "image/png" },
       ],
-      shortcut: faviconPath,
+      shortcut: `${baseUrl}/favicon.ico`, // Google için .ico formatı
     };
   } catch {
-    // Fallback
+    // Fallback - mutlak URL'ler
+    const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
     return {
       icon: [
-        { url: "/icon.png", sizes: "32x32", type: "image/png" },
-        { url: "/icon.png", sizes: "192x192", type: "image/png" },
+        { url: `${baseUrl}/icon.png`, sizes: "32x32", type: "image/png" },
+        { url: `${baseUrl}/icon.png`, sizes: "192x192", type: "image/png" },
+        { url: `${baseUrl}/favicon.ico`, sizes: "any" },
       ],
       apple: [
-        { url: "/icon.png", sizes: "180x180", type: "image/png" },
+        { url: `${baseUrl}/icon.png`, sizes: "180x180", type: "image/png" },
       ],
-      shortcut: "/favicon.ico",
+      shortcut: `${baseUrl}/favicon.ico`,
     };
   }
 }
@@ -99,7 +105,8 @@ export default function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   const websiteSchema = generateWebsiteSchema();
 
-  // Domain bazlı favicon path'i
+  // Domain bazlı favicon path'i ve mutlak URL'ler (Google için gerekli)
+  const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
   const hostname = getHostnameFromSiteUrl(siteUrl);
   const faviconPath = getDomainFavicon(hostname);
   const iconPath = getDomainIcon(hostname);
@@ -108,12 +115,12 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Favicon links for all domains - Google search results */}
-        {/* Google'ın favicon'u görmesi için gerekli link tag'leri */}
-        <link rel="icon" type="image/png" href={faviconPath} />
-        <link rel="icon" type="image/png" sizes="32x32" href={iconPath} />
-        <link rel="icon" type="image/png" sizes="192x192" href={iconPath} />
-        <link rel="apple-touch-icon" sizes="180x180" href={iconPath} />
-        <link rel="shortcut icon" type="image/png" href={faviconPath} />
+        {/* Google'ın favicon'u görmesi için mutlak URL'ler ve .ico formatı gerekli */}
+        <link rel="icon" type="image/x-icon" href={`${baseUrl}/favicon.ico`} />
+        <link rel="icon" type="image/png" sizes="32x32" href={`${baseUrl}${iconPath}`} />
+        <link rel="icon" type="image/png" sizes="192x192" href={`${baseUrl}${iconPath}`} />
+        <link rel="apple-touch-icon" sizes="180x180" href={`${baseUrl}${iconPath}`} />
+        <link rel="shortcut icon" type="image/x-icon" href={`${baseUrl}/favicon.ico`} />
         
         {/* Google AdSense Account Verification */}
         <meta name="google-adsense-account" content="ca-pub-6962376212093267" />
