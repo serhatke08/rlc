@@ -38,6 +38,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'At least one photo required' }, { status: 400 });
     }
 
+    // Validate photo types (Supabase storage doesn't support AVIF)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+    for (const photo of photos) {
+      if (!allowedTypes.includes(photo.type)) {
+        return NextResponse.json({ 
+          error: `Photo upload failed: mime type ${photo.type} is not supported. Please use JPEG, PNG, GIF, or WebP format.` 
+        }, { status: 400 });
+      }
+    }
+
     // Upload photos
     const uploadedUrls: string[] = [];
     for (let i = 0; i < photos.length; i++) {

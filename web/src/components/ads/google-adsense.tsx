@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 
 interface GoogleAdSenseProps {
@@ -147,6 +147,76 @@ export function BannerAd({ className = '' }: { className?: string }) {
         format="horizontal"
         style={{ display: 'block', width: '100%', minHeight: '90px' }}
       />
+    </div>
+  );
+}
+
+// Display Ad Card - Kart görünümünde reklam (ana sayfa için)
+export function DisplayAdCard({ className = '' }: { className?: string }) {
+  const adRef = useRef<HTMLDivElement>(null);
+  const pushedRef = useRef(false);
+
+  useEffect(() => {
+    // Sadece bir kez push yap
+    if (pushedRef.current || typeof window === 'undefined') {
+      return;
+    }
+
+    const pushAd = () => {
+      try {
+        if ((window as any).adsbygoogle && !pushedRef.current) {
+          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+          pushedRef.current = true;
+          console.log('AdSense ad pushed');
+        }
+      } catch (err) {
+        console.error('AdSense push error:', err);
+      }
+    };
+
+    // Script'in yüklenmesini bekle
+    const checkAndPush = () => {
+      if ((window as any).adsbygoogle) {
+        pushAd();
+      } else {
+        // Script henüz yüklenmedi, tekrar dene
+        setTimeout(checkAndPush, 200);
+      }
+    };
+
+    // İlk kontrol
+    checkAndPush();
+
+    // Fallback: 3 saniye sonra tekrar dene
+    const fallbackTimer = setTimeout(() => {
+      if (!pushedRef.current) {
+        checkAndPush();
+      }
+    }, 3000);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+    };
+  }, []);
+
+  return (
+    <div ref={adRef} className={`flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-100 ring-1 ring-transparent ${className}`}>
+      {/* Resim alanı - ListingCard ile aynı yükseklik (h-36 = 144px) */}
+      <div className="relative h-36 w-full overflow-hidden rounded-xl">
+        <ins
+          className="adsbygoogle"
+          style={{ display: 'block', width: '100%', height: '100%', minHeight: '144px' }}
+          data-ad-client="ca-pub-6962376212093267"
+          data-ad-slot="2883132795"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+      </div>
+      
+      {/* Alt kısım - ListingCard ile aynı yapı (flex-1 ile alanı doldur) */}
+      <div className="flex flex-1 flex-col gap-2 pt-3">
+        {/* Boş alan - reklam yüklenene kadar veya reklam yüklenmezse */}
+      </div>
     </div>
   );
 }

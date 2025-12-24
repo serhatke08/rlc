@@ -23,7 +23,8 @@ VALUES (
     'image/gif',
     'image/webp',
     'image/heic',
-    'image/heif'
+    'image/heif',
+    'image/avif'
   ]
 )
 ON CONFLICT (id) DO UPDATE SET
@@ -36,7 +37,8 @@ ON CONFLICT (id) DO UPDATE SET
     'image/gif',
     'image/webp',
     'image/heic',
-    'image/heif'
+    'image/heif',
+    'image/avif'
   ];
 
 -- ============================================

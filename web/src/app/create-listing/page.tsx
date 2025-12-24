@@ -452,11 +452,25 @@ export default function CreateListingPage() {
       return;
     }
 
-    const newPhotos = [...photos, ...files];
+    // Filter out unsupported formats (AVIF)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+    const validFiles = files.filter(file => {
+      const isAllowed = allowedTypes.includes(file.type);
+      if (!isAllowed) {
+        alert(`File ${file.name} has unsupported format (${file.type}). Please use JPEG, PNG, GIF, or WebP format.`);
+      }
+      return isAllowed;
+    });
+
+    if (validFiles.length === 0) {
+      return;
+    }
+
+    const newPhotos = [...photos, ...validFiles];
     setPhotos(newPhotos);
 
     // Create previews
-    const newPreviews = files.map(file => URL.createObjectURL(file));
+    const newPreviews = validFiles.map(file => URL.createObjectURL(file));
     setPhotoPreviews([...photoPreviews, ...newPreviews]);
   };
 
