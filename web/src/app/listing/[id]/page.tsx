@@ -101,7 +101,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
     data: { user },
   } = await supabase.auth.getUser();
   
-  // Giriş yapmamış kullanıcıları giriş sayfasına yönlendir
+  // Redirect non-authenticated users to login page
   if (!user) {
     redirect("/auth/login?redirect=/listing/" + id);
   }

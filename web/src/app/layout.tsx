@@ -25,40 +25,36 @@ const geistMono = Geist_Mono({
 
 const siteUrl = getSiteUrl();
 
-// Domain bazlı icon belirleme - Google için mutlak URL'ler gerekli
+// Domain-based icon determination
+// Relative paths are automatically converted to absolute URLs thanks to metadataBase
 function getIconsForDomain() {
   try {
     const hostname = getHostnameFromSiteUrl(siteUrl);
     const iconPath = getDomainIcon(hostname);
-    const faviconPath = getDomainFavicon(hostname);
-    
-    // Mutlak URL'ler oluştur (Google için gerekli)
-    const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
     
     return {
       icon: [
-        { url: `${baseUrl}/favicon.ico`, sizes: "any" }, // Google için .ico dosyası (öncelikli)
-        { url: `${baseUrl}${iconPath}`, sizes: "32x32", type: "image/png" },
-        { url: `${baseUrl}${iconPath}`, sizes: "192x192", type: "image/png" },
+        { url: '/favicon.ico', sizes: "any" }, // .ico file for Google (priority)
+        { url: iconPath, sizes: "32x32", type: "image/png" },
+        { url: iconPath, sizes: "192x192", type: "image/png" },
       ],
       apple: [
-        { url: `${baseUrl}${iconPath}`, sizes: "180x180", type: "image/png" },
+        { url: iconPath, sizes: "180x180", type: "image/png" },
       ],
-      shortcut: `${baseUrl}/favicon.ico`, // Google için .ico formatı
+      shortcut: '/favicon.ico', // .ico format for Google
     };
   } catch {
-    // Fallback - mutlak URL'ler
-    const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
+    // Fallback
     return {
       icon: [
-        { url: `${baseUrl}/icon.png`, sizes: "32x32", type: "image/png" },
-        { url: `${baseUrl}/icon.png`, sizes: "192x192", type: "image/png" },
-        { url: `${baseUrl}/favicon.ico`, sizes: "any" },
+        { url: '/favicon.ico', sizes: "any" },
+        { url: '/icon.png', sizes: "32x32", type: "image/png" },
+        { url: '/icon.png', sizes: "192x192", type: "image/png" },
       ],
       apple: [
-        { url: `${baseUrl}/icon.png`, sizes: "180x180", type: "image/png" },
+        { url: '/icon.png', sizes: "180x180", type: "image/png" },
       ],
-      shortcut: `${baseUrl}/favicon.ico`,
+      shortcut: '/favicon.ico',
     };
   }
 }
@@ -105,25 +101,14 @@ export default function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   const websiteSchema = generateWebsiteSchema();
 
-  // Domain bazlı favicon path'i ve mutlak URL'ler (Google için gerekli)
-  const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
-  const hostname = getHostnameFromSiteUrl(siteUrl);
-  const faviconPath = getDomainFavicon(hostname);
-  const iconPath = getDomainIcon(hostname);
-
   return (
     <html lang="en">
       <head>
-        {/* Favicon links for all domains - Google search results */}
-        {/* Google'ın favicon'u görmesi için mutlak URL'ler ve .ico formatı gerekli */}
-        <link rel="icon" type="image/x-icon" href={`${baseUrl}/favicon.ico`} />
-        <link rel="icon" type="image/png" sizes="32x32" href={`${baseUrl}${iconPath}`} />
-        <link rel="icon" type="image/png" sizes="192x192" href={`${baseUrl}${iconPath}`} />
-        <link rel="apple-touch-icon" sizes="180x180" href={`${baseUrl}${iconPath}`} />
-        <link rel="shortcut icon" type="image/x-icon" href={`${baseUrl}/favicon.ico`} />
-        
         {/* Google AdSense Account Verification */}
         <meta name="google-adsense-account" content="ca-pub-6962376212093267" />
+        
+        {/* Favicon - metadata'da tanımlı, burada ekstra link gerekmez */}
+        {/* Absolute URLs for Google are already defined in metadata */}
         
         <script
           type="application/ld+json"

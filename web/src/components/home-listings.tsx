@@ -24,10 +24,10 @@ interface HomeListingsProps {
 
 export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null, isAuthenticated = false }: HomeListingsProps) {
   const [activeFilter, setActiveFilter] = useState("all");
-  // Giriş yapmamış kullanıcılar için varsayılan grid (açıklamalı), giriş yapmışlar için gallery
+  // Default grid (with descriptions) for non-authenticated users, gallery for authenticated users
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>(isAuthenticated ? 'gallery' : 'grid');
 
-  // Filtrelenmiş listeler (sadece tip - region/şehir server-side yapılıyor)
+  // Filtered listings (only type - region/city is handled server-side)
   const filteredListings = useMemo(() => {
     return listings.filter((listing) => {
       // Tip filtresi (listing_type metadata'dan gelir)
@@ -64,7 +64,7 @@ export function HomeListings({ listings, categories = [], country = null, region
         )}
         {/* Location Menu & View Mode Toggle */}
         <div className="flex items-center justify-between gap-2">
-          {/* Location Menu - sol taraf */}
+          {/* Location Menu - left side */}
           {country && (
             <LocationMenu 
               initialCountry={country}
@@ -73,7 +73,7 @@ export function HomeListings({ listings, categories = [], country = null, region
               selectedCity={selectedCity}
             />
           )}
-          {/* View Mode Toggle - sağ taraf */}
+          {/* View Mode Toggle - right side */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('grid')}
@@ -115,15 +115,15 @@ export function HomeListings({ listings, categories = [], country = null, region
         ) : (
           <>
             {viewMode === 'gallery' ? (
-          // Gallery View - Sadece görseller
-          // Giriş yapmamış kullanıcılar için mobil/tablet'te alt alta 3 tane (1 sütun)
+          // Gallery View - Images only
+          // For non-authenticated users: 3 items + 1 ad (4th card)
           <div className={`grid gap-2 ${
             !isAuthenticated 
               ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-4' 
               : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-4'
           }`}>
             {!isAuthenticated ? (
-              // Giriş yapmamış kullanıcılar: 3 ürün + 1 reklam (4. kart)
+              // Non-authenticated users: 3 products + 1 ad (4th card)
               <>
                 {filteredListings.slice(0, 3).map((listing, index) => (
                   <Link
@@ -162,7 +162,7 @@ export function HomeListings({ listings, categories = [], country = null, region
                 <DisplayAdCard />
               </>
             ) : (
-              // Giriş yapmış kullanıcılar: tüm ürünler
+              // Authenticated users: all products
               filteredListings.map((listing) => (
                 <Link
                   key={listing.id}
@@ -200,16 +200,16 @@ export function HomeListings({ listings, categories = [], country = null, region
             )}
           </div>
         ) : (
-          // Grid View - Normal kartlar
-          // Giriş yapmamış kullanıcılar için mobil/tablet'te alt alta 3 tane (1 sütun)
-          // PC'de her satırda 2 kart (grid-cols-2)
+          // Grid View - Normal cards
+          // For non-authenticated users: 3 items + 1 ad (4th card)
+          // PC view: 2 cards per row (grid-cols-2)
           <div className={`grid gap-4 ${
             !isAuthenticated 
               ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-2' 
               : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-2'
           }`}>
             {!isAuthenticated ? (
-              // Giriş yapmamış kullanıcılar: 3 ürün + 1 reklam (4. kart)
+              // Non-authenticated users: 3 products + 1 ad (4th card)
               <>
                 {filteredListings.slice(0, 3).map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
@@ -217,7 +217,7 @@ export function HomeListings({ listings, categories = [], country = null, region
                 <DisplayAdCard />
               </>
             ) : (
-              // Giriş yapmış kullanıcılar: tüm ürünler
+              // Authenticated users: all products
               filteredListings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))
@@ -225,7 +225,7 @@ export function HomeListings({ listings, categories = [], country = null, region
           </div>
         )}
         
-        {/* Giriş yapmamış kullanıcılar için mesaj */}
+        {/* Message for non-authenticated users */}
         {!isAuthenticated && filteredListings.length > 0 && (
           <div className="mt-8 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 md:p-8 text-center">
             <h3 className="mb-2 text-lg md:text-xl font-semibold text-zinc-900">

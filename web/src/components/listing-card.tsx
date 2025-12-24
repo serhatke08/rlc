@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowUpRight, Eye, MapPin, Heart, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { FeaturedListing } from "@/types/listing";
 
 interface ListingCardProps {
@@ -35,30 +34,12 @@ export function ListingCard({ listing }: ListingCardProps) {
   const cover = listing.coverImage;
   const seller = listing.seller;
 
-  const handleCardClick = async (e: React.MouseEvent) => {
-    // View count'u artır (Link zaten yönlendiriyor)
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Sadece kendi ilanı değilse view count'u artır
-      // Seller bilgisi yoksa veya kullanıcı seller değilse artır
-      if (!seller || user?.id !== seller.id) {
-        await (supabase
-          .from("listings") as any)
-          .update({ view_count: (listing.views || 0) + 1 })
-          .eq("id", listing.id);
-      }
-    } catch (error) {
-      // Hata olsa bile sayfaya git
-      console.error("Failed to increment view count:", error);
-    }
-  };
+  // View count is tracked on the listing detail page via ListingViewTracker component
+  // No need to track views on card clicks - this avoids inflating view counts
 
   return (
     <Link 
       href={`/listing/${listing.id}`}
-      onClick={handleCardClick}
       className="block"
     >
       <article className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-100 ring-1 ring-transparent transition hover:-translate-y-1 hover:shadow-lg hover:ring-emerald-300/60 cursor-pointer">

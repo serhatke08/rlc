@@ -1,18 +1,18 @@
 /**
- * Domain bazlı icon/favicon yönetimi
- * Her domain için farklı icon dosyası belirleyebilirsiniz
+ * Domain-based icon/favicon management
+ * You can specify different icon files for each domain
  * 
- * Kullanım:
- * 1. Her domain için icon dosyasını web/public/ klasörüne ekleyin
+ * Usage:
+ * 1. Add icon files for each domain to web/public/ folder
  *    - icon-domain2.png
  *    - icon-domain3.png
  *    - favicon-domain2.ico
  *    - favicon-domain3.ico
- * 2. Aşağıdaki mapping'e domain'lerinizi ekleyin
+ * 2. Add your domains to the mapping below
  */
 
 export function getDomainIcon(hostname: string): string {
-  // Domain bazlı icon mapping - Tüm ReloopCycle domainleri
+  // Domain-based icon mapping - All ReloopCycle domains
   const domainIcons: Record<string, string> = {
     'reloopcycle.co.uk': '/icon.png',
     'reloopcycle.com': '/icon.png',
@@ -28,9 +28,9 @@ export function getDomainIcon(hostname: string): string {
 }
 
 export function getDomainFavicon(hostname: string): string {
-  // Domain bazlı favicon mapping - Tüm ReloopCycle domainleri
-  // .ico formatını kullanıyoruz (Google için gerekli)
-  // Next.js App Router'da app/favicon.ico otomatik olarak /favicon.ico olarak sunulur
+  // Domain-based favicon mapping - All ReloopCycle domains
+  // We use .ico format (required for Google)
+  // In Next.js App Router, app/favicon.ico is automatically served as /favicon.ico
   const domainFavicons: Record<string, string> = {
     'reloopcycle.co.uk': '/favicon.ico',
     'reloopcycle.com': '/favicon.ico',
@@ -46,7 +46,7 @@ export function getDomainFavicon(hostname: string): string {
 }
 
 /**
- * Site URL'den hostname'i al
+ * Extract hostname from site URL
  */
 export function getHostnameFromSiteUrl(siteUrl: string): string {
   try {

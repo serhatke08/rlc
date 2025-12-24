@@ -32,7 +32,7 @@ export const FEATURED_CATEGORIES = [
   },
   {
     slug: "elektronik",
-    title: "Elektronik & Tech",
+    title: "Electronics & Tech",
     description: "Keep devices like laptops, phones, and screens in the loop.",
     accent: "text-sky-600",
     background: "from-sky-400/20 via-sky-500/10 to-transparent",
@@ -79,6 +79,11 @@ export const LANDING_PAGES = [
   { slug: "reuse-items-platform", title: "Reuse Items Platform", blurb: "Send items to the circular economy, not the trash." },
   { slug: "zero-waste-community-uk", title: "Zero Waste Community UK", blurb: "List zero-waste focused listings." },
   { slug: "trade-websites-uk-free", title: "Trade Websites UK Free", blurb: "Discover the best free trade websites in the UK." },
+  { slug: "how-to-give-away-stuff-free", title: "How to Give Away Stuff for Free", blurb: "Complete guide on giving away items for free in the UK." },
+  { slug: "how-to-give-away-without-facebook", title: "Give Away Without Facebook", blurb: "Privacy-friendly alternatives to Facebook for giving away items." },
+  { slug: "how-to-give-away-large-items", title: "How to Give Away Large Items", blurb: "Guide on giving away furniture and appliances in the UK." },
+  { slug: "how-to-declutter-giving-away", title: "How to Declutter by Giving", blurb: "Transform your home by decluttering through giving items away." },
+  { slug: "beginner-guide-zero-waste-living", title: "Zero Waste Living Guide", blurb: "Beginner's guide to zero waste living and sustainable practices." },
 ];
 
 export const POPULAR_SEARCHES = [

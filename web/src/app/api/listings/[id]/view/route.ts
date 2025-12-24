@@ -64,13 +64,14 @@ export async function POST(
       // For now, we'll just increment the count (RLS should handle abuse)
     }
 
-    // Increment view count
-    const { error: updateError } = await (supabase.rpc as any)("increment_listing_view_count", {
-      listing_id: listingId,
+    // Increment view count using SQL function
+    const { error: updateError } = await (supabase.rpc as any)("increment_listing_view", {
+      listing_uuid: listingId,
     });
 
     // If RPC doesn't exist, fall back to direct update
     if (updateError) {
+      console.error("Error calling increment_listing_view:", updateError);
       const { data: listing } = await (supabase
         .from("listings") as any)
         .select("view_count")

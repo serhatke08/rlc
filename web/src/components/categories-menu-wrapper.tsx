@@ -13,7 +13,7 @@ export async function CategoriesMenuWrapper() {
     console.error("Error checking auth in CategoriesMenuWrapper:", userError);
   }
   
-  // Giriş yapmamış kullanıcılar için kategori menüsünü gösterme
+  // Don't show category menu for non-authenticated users
   if (!user) {
     return null;
   }

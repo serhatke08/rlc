@@ -29,7 +29,7 @@ export default async function Home({ searchParams }: HomeProps) {
     categoryId: params.categoryId || null,
   });
 
-  // Giriş yapmamış kullanıcılar için sadece 3 ürün göster
+  // Show only 3 products for non-authenticated users
   const listings = isAuthenticated ? allListings : allListings.slice(0, 3);
 
   // Kategorileri sadece giriş yapmış kullanıcılar için çek
