@@ -162,52 +162,41 @@ export function HomeListings({ listings, categories = [], country = null, region
                 <DisplayAdCard />
               </>
             ) : (
-              // Giriş yapmış kullanıcılar: tüm ürünler + her 7 gönderiden sonra reklam
-              filteredListings.flatMap((listing, index) => {
-                const items = [
-                  <Link
-                    key={listing.id}
-                    href={`/listing/${listing.id}`}
-                    className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 transition hover:scale-105 hover:border-emerald-300 hover:shadow-md"
-                  >
-                    {listing.coverImage ? (
-                      <Image
-                        src={listing.coverImage}
-                        alt={listing.title}
-                        fill
-                        className="object-cover transition duration-300 group-hover:scale-110"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
-                    )}
-                    <div className="absolute left-1 top-1">
-                      <div className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold text-white shadow ${
-                        listing.listingType === 'give' ? 'bg-emerald-600' :
-                        listing.listingType === 'swap' ? 'bg-sky-600' :
-                        listing.listingType === 'sell' ? 'bg-orange-500' :
-                        listing.listingType === 'need' ? 'bg-purple-600' :
-                        'bg-cyan-600'
-                      }`}>
-                        {listing.listingType === 'give' ? 'Free' :
-                         listing.listingType === 'swap' ? 'Swap' :
-                         listing.listingType === 'sell' ? 'Sale' :
-                         listing.listingType === 'need' ? 'Need' :
-                         'Adopt'}
-                      </div>
+              // Giriş yapmış kullanıcılar: tüm ürünler
+              filteredListings.map((listing) => (
+                <Link
+                  key={listing.id}
+                  href={`/listing/${listing.id}`}
+                  className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 transition hover:scale-105 hover:border-emerald-300 hover:shadow-md"
+                >
+                  {listing.coverImage ? (
+                    <Image
+                      src={listing.coverImage}
+                      alt={listing.title}
+                      fill
+                      className="object-cover transition duration-300 group-hover:scale-110"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
+                  )}
+                  <div className="absolute left-1 top-1">
+                    <div className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold text-white shadow ${
+                      listing.listingType === 'give' ? 'bg-emerald-600' :
+                      listing.listingType === 'swap' ? 'bg-sky-600' :
+                      listing.listingType === 'sell' ? 'bg-orange-500' :
+                      listing.listingType === 'need' ? 'bg-purple-600' :
+                      'bg-cyan-600'
+                    }`}>
+                      {listing.listingType === 'give' ? 'Free' :
+                       listing.listingType === 'swap' ? 'Swap' :
+                       listing.listingType === 'sell' ? 'Sale' :
+                       listing.listingType === 'need' ? 'Need' :
+                       'Adopt'}
                     </div>
-                  </Link>
-                ];
-                
-                // Her 7 ilandan sonra 8. sırada reklam göster (kartlarla aynı boyutta)
-                if ((index + 1) % 7 === 0 && index < filteredListings.length - 1) {
-                  items.push(
-                    <DisplayAdCard key={`ad-${index}`} />
-                  );
-                }
-                
-                return items;
-              })
+                  </div>
+                </Link>
+              ))
             )}
           </div>
         ) : (
@@ -228,21 +217,10 @@ export function HomeListings({ listings, categories = [], country = null, region
                 <DisplayAdCard />
               </>
             ) : (
-              // Giriş yapmış kullanıcılar: tüm ürünler + her 7 gönderiden sonra reklam
-              filteredListings.flatMap((listing, index) => {
-                const items = [
-                  <ListingCard key={listing.id} listing={listing} />
-                ];
-                
-                // Her 7 ilandan sonra 8. sırada reklam göster (kartlarla aynı boyutta)
-                if ((index + 1) % 7 === 0 && index < filteredListings.length - 1) {
-                  items.push(
-                    <DisplayAdCard key={`ad-${index}`} />
-                  );
-                }
-                
-                return items;
-              })
+              // Giriş yapmış kullanıcılar: tüm ürünler
+              filteredListings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))
             )}
           </div>
         )}
