@@ -43,19 +43,19 @@ export function ListingCard({ listing }: ListingCardProps) {
       className="block"
     >
       <article className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-100 ring-1 ring-transparent transition hover:-translate-y-1 hover:shadow-lg hover:ring-emerald-300/60 cursor-pointer">
-        <div className="relative overflow-hidden rounded-xl">
+        <div className="relative overflow-hidden rounded-xl aspect-square">
           {cover ? (
             <Image
               src={cover}
               alt={listing.title}
               width={400}
-              height={300}
-              className="h-36 w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+              height={400}
+              className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.02]"
               sizes="(max-width: 768px) 50vw, 33vw"
               priority={false}
             />
           ) : (
-            <div className="h-36 w-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
+            <div className="w-full h-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
           )}
           {/* Listing Type Badge - Top Left */}
           <div
