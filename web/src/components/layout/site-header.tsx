@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useUI } from "@/components/providers/ui-provider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const gradientButton =
   "bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd] text-white shadow-lg shadow-[#9c6cfe]/30";
@@ -175,6 +176,7 @@ export function SiteHeader() {
               <div className="h-10 w-20 animate-pulse rounded-2xl bg-zinc-200" />
             ) : user ? (
               <>
+                <NotificationBell />
                 <div className="relative user-dropdown">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -243,6 +245,7 @@ export function SiteHeader() {
         <Logo />
         <div className="flex items-center gap-2">
           {user && <AddProductButton compact />}
+          {user && <NotificationBell />}
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />
           ) : user ? (

@@ -51,15 +51,31 @@ export function HomeListings({ listings, categories = [], country = null, region
 
   return (
     <>
-      {/* Hero Section - Image as Background - Full width, no gap from navbar */}
-      <section className="relative overflow-hidden w-full aspect-video lg:aspect-[3/1] min-h-[400px] lg:min-h-[500px] -mx-4 lg:-mx-8">
+      {/* Hero Section - Image as Background */}
+      {/* Mobile: Full width, no padding, image fits perfectly */}
+      <section className="relative overflow-hidden w-screen ml-[calc(-50vw+50%)] lg:hidden">
+        <div className="relative w-full">
+          <Image
+            src="/images/reloopcycleheromobil.png"
+            alt="ReloopCycle - Circular Economy Marketplace"
+            width={0}
+            height={0}
+            className="w-full h-auto"
+            priority
+            sizes="100vw"
+            unoptimized
+          />
+        </div>
+      </section>
+      {/* Desktop: Container width */}
+      <section className="relative overflow-hidden hidden lg:block mx-auto max-w-6xl aspect-[3/1] min-h-[500px] px-6">
         <Image
           src="/images/Reloopcycle.png"
           alt="ReloopCycle - Circular Economy Marketplace"
           fill
-          className="object-contain object-center"
+          className="object-contain object-left"
           priority
-          sizes="100vw"
+          sizes="(max-width: 1024px) 100vw, 1280px"
         />
       </section>
 
