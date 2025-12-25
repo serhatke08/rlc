@@ -205,55 +205,11 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["cities"]["Row"]>;
       };
-      feedback: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          name: string;
-          email: string;
-          subject: string;
-          message: string;
-          type: "feedback" | "bug_report" | "feature_request" | "other";
-          status: "pending" | "reviewed" | "resolved" | "closed";
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          user_id?: string | null;
-          name: string;
-          email: string;
-          subject: string;
-          message: string;
-          type: "feedback" | "bug_report" | "feature_request" | "other";
-          status?: "pending" | "reviewed" | "resolved" | "closed";
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
-        Update: Partial<Database["public"]["Tables"]["feedback"]["Row"]>;
-      };
-      feedback_replies: {
-        Row: {
-          id: string;
-          feedback_id: string;
-          admin_id: string | null;
-          reply_text: string;
-          created_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          feedback_id: string;
-          admin_id?: string | null;
-          reply_text: string;
-          created_at?: string | null;
-        };
-        Update: Partial<Database["public"]["Tables"]["feedback_replies"]["Row"]>;
-      };
       notifications: {
         Row: {
           id: string;
           user_id: string;
-          type: "feedback_reply" | "message" | "listing_update" | "system";
+          type: "message" | "listing_update" | "system";
           title: string;
           message: string;
           link: string | null;
@@ -264,7 +220,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          type: "feedback_reply" | "message" | "listing_update" | "system";
+          type: "message" | "listing_update" | "system";
           title: string;
           message: string;
           link?: string | null;

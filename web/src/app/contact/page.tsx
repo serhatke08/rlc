@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
-import { FeedbackForm } from "@/components/contact/feedback-form";
 
 export const metadata: Metadata = {
   title: "Contact Us | ReloopCycle Support",
@@ -21,8 +20,6 @@ export default function ContactPage() {
           </p>
         </div>
       </section>
-
-      <FeedbackForm />
 
       <section className="bg-white py-16">
         <div className="mx-auto max-w-4xl px-4">
