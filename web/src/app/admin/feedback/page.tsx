@@ -101,7 +101,8 @@ export default function AdminFeedbackPage() {
       if (error) throw error;
 
       // Feedback status'unu güncelle
-      await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any)
         .from('feedback')
         .update({ status: 'reviewed' })
         .eq('id', selectedFeedback.id);
@@ -119,7 +120,8 @@ export default function AdminFeedbackPage() {
 
   const updateStatus = async (feedbackId: string, status: string) => {
     const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
       .from('feedback')
       .update({ status })
       .eq('id', feedbackId);
