@@ -50,9 +50,9 @@ export function HomeListings({ listings, categories = [], country = null, region
   }, [listings, activeFilter]);
 
   return (
-    <div className="pb-12">
-      {/* Hero Section - Image as Background */}
-      <section className="relative overflow-hidden w-full aspect-video lg:aspect-[3/1] min-h-[400px] lg:min-h-[500px]">
+    <>
+      {/* Hero Section - Image as Background - Full width, no gap from navbar */}
+      <section className="relative overflow-hidden w-full aspect-video lg:aspect-[3/1] min-h-[400px] lg:min-h-[500px] -mx-4 lg:-mx-8">
         <Image
           src="/images/Reloopcycle.png"
           alt="ReloopCycle - Circular Economy Marketplace"
@@ -63,6 +63,7 @@ export function HomeListings({ listings, categories = [], country = null, region
         />
       </section>
 
+      <div className="pb-12">
       <section className="space-y-4 pt-8">
         <ListingFilterPills 
           activeFilter={activeFilter}
