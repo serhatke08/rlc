@@ -55,17 +55,25 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
     const supabase = createSupabaseBrowserClient();
 
     try {
-      const fileExt = file.name.split('.').pop() || 'jpg';
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('You must be logged in to upload an avatar');
+      }
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `${userId}/avatar.${fileExt}`;
 
-      // Delete old avatar if exists
+      console.log('Starting avatar upload:', { userId, fileName, fileSize: file.size });
+
+      // Delete old avatar if exists (skip if error - not critical)
       try {
         const { data: oldFiles, error: listError } = await supabase.storage
           .from('avatars')
           .list(userId);
 
-        if (listError) {
-          console.warn('Error listing old files (may not exist):', listError);
+        if (listError && listError.message !== 'The resource was not found') {
+          console.warn('Error listing old files:', listError);
         } else if (oldFiles && oldFiles.length > 0) {
           const oldFileNames = oldFiles.map(f => `${userId}/${f.name}`);
           const { error: removeError } = await supabase.storage
@@ -77,11 +85,12 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
           }
         }
       } catch (err) {
-        console.warn('Error cleaning old avatar:', err);
+        console.warn('Error cleaning old avatar (non-critical):', err);
         // Continue anyway
       }
 
       // Upload new avatar
+      console.log('Uploading to avatars bucket...');
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, {
@@ -90,9 +99,11 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        console.error('Upload error details:', uploadError);
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
+
+      console.log('Upload successful:', uploadData);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -103,7 +114,10 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         throw new Error('Failed to get public URL');
       }
 
+      console.log('Public URL:', publicUrl);
+
       // Update profile with the public URL
+      console.log('Updating profile...');
       const { error: updateError } = await (supabase
         .from('profiles') as any)
         .update({ avatar_url: publicUrl })
@@ -113,6 +127,8 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         console.error('Profile update error:', updateError);
         throw new Error(`Profile update failed: ${updateError.message}`);
       }
+
+      console.log('Profile updated successfully');
 
       // Update preview with new URL (add cache busting for preview only)
       setPreview(`${publicUrl}?t=${Date.now()}`);
@@ -124,10 +140,11 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
       const errorMessage = error?.message || 'Unknown error occurred';
-      alert(`Error uploading avatar: ${errorMessage}\n\nPlease check:\n1. You are logged in\n2. File size is under 5MB\n3. File is a valid image`);
+      alert(`Error uploading avatar: ${errorMessage}\n\nPlease check:\n1. You are logged in\n2. File size is under 5MB\n3. File is a valid image\n4. You have permission to upload`);
       setPreview(currentAvatarUrl || null);
     } finally {
       setUploading(false);
+      console.log('Upload process finished');
     }
   };
 
