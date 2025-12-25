@@ -93,7 +93,7 @@ export default function AdminFeedbackPage() {
           feedback_id: selectedFeedback.id,
           admin_id: user.id,
           reply_text: replyText.trim(),
-        });
+        } as any);
 
       if (error) throw error;
 
