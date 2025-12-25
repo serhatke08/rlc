@@ -89,14 +89,14 @@ export default function AdminFeedbackPage() {
 
     try {
       // Type assertion needed because Supabase type inference may not recognize feedback_replies
-      const insertPayload = {
-        feedback_id: selectedFeedback.id,
-        admin_id: user.id,
-        reply_text: replyText.trim(),
-      };
-      const { error } = await (supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from('feedback_replies')
-        .insert(insertPayload as Database['public']['Tables']['feedback_replies']['Insert']) as any);
+        .insert({
+          feedback_id: selectedFeedback.id,
+          admin_id: user.id,
+          reply_text: replyText.trim(),
+        });
 
       if (error) throw error;
 
