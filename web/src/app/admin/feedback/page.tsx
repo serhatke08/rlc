@@ -88,14 +88,15 @@ export default function AdminFeedbackPage() {
     const supabase = createSupabaseBrowserClient();
 
     try {
-      // Type assertion needed because Supabase client may not have updated types
+      // Type assertion needed because Supabase type inference may not recognize feedback_replies
+      const insertPayload = {
+        feedback_id: selectedFeedback.id,
+        admin_id: user.id,
+        reply_text: replyText.trim(),
+      };
       const { error } = await (supabase
         .from('feedback_replies')
-        .insert({
-          feedback_id: selectedFeedback.id,
-          admin_id: user.id,
-          reply_text: replyText.trim(),
-        }) as any);
+        .insert(insertPayload as Database['public']['Tables']['feedback_replies']['Insert']) as any);
 
       if (error) throw error;
 
