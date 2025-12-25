@@ -94,7 +94,7 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      // Get public URL with cache busting
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
@@ -103,13 +103,10 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         throw new Error('Failed to get public URL');
       }
 
-      // Add timestamp to URL to bypass cache
-      const publicUrlWithCache = `${publicUrl}?t=${Date.now()}`;
-
-      // Update profile
+      // Update profile with the public URL
       const { error: updateError } = await (supabase
         .from('profiles') as any)
-        .update({ avatar_url: publicUrlWithCache })
+        .update({ avatar_url: publicUrl })
         .eq('id', userId);
 
       if (updateError) {
@@ -117,8 +114,8 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         throw new Error(`Profile update failed: ${updateError.message}`);
       }
 
-      // Update preview with new URL
-      setPreview(publicUrlWithCache);
+      // Update preview with new URL (add cache busting for preview only)
+      setPreview(`${publicUrl}?t=${Date.now()}`);
 
       // Refresh page after a short delay
       setTimeout(() => {
