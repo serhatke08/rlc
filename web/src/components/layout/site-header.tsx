@@ -140,12 +140,24 @@ export function SiteHeader() {
   }, []);
 
   const handleSignOut = async () => {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setDropdownOpen(false);
-    window.location.href = '/';
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        alert('Error signing out. Please try again.');
+        return;
+      }
+      
+      setUser(null);
+      setProfile(null);
+      setDropdownOpen(false);
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Sign out error:', err);
+      alert('Error signing out. Please try again.');
+    }
   };
 
   // Dropdown'u dışına tıklandığında kapat
@@ -204,7 +216,7 @@ export function SiteHeader() {
                         className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 first:rounded-t-2xl"
                       >
                         <User className="h-4 w-4" />
-                        Hesabım
+                        My Account
                       </Link>
                       <button
                         onClick={handleSignOut}
@@ -275,7 +287,7 @@ export function SiteHeader() {
                     className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 first:rounded-t-2xl"
                   >
                     <User className="h-4 w-4" />
-                    Hesabım
+                    My Account
                   </Link>
                   <button
                     onClick={handleSignOut}
