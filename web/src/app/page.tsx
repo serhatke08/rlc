@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getServerUser } from "@/lib/supabase/server";
 import { getFeaturedListings } from "@/lib/data/listings";
 import { getCategories } from "@/lib/queries/category-server";
 import { getCurrentUserCountry, getRegionsByCountry, getRegionById, getCityById } from "@/lib/queries/location-server";
@@ -18,9 +18,9 @@ export default async function Home({ searchParams }: HomeProps) {
   
   const supabase = await createSupabaseServerClient();
   
-  // Giriş kontrolü - kategorileri sadece giriş yapmış kullanıcılar için göster
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  const isAuthenticated = !userError && !!user;
+  // Giriş kontrolü - güvenli helper kullan
+  const user = await getServerUser();
+  const isAuthenticated = !!user;
   
   // Gerçek Supabase verilerini çek
   const allListings = await getFeaturedListings({

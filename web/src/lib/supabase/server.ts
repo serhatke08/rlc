@@ -33,3 +33,27 @@ export async function createSupabaseServerClient() {
   );
 }
 
+/**
+ * Güvenli şekilde kullanıcı bilgisini alır
+ * Refresh token hatası alındığında null döner
+ */
+export async function getServerUser() {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      // Refresh token hatası veya başka bir auth hatası
+      return null;
+    }
+    
+    return session?.user ?? null;
+  } catch (error: any) {
+    // Refresh token hatası veya başka bir hata
+    if (error?.message?.includes('refresh') || error?.message?.includes('token')) {
+      return null;
+    }
+    return null;
+  }
+}
+
