@@ -125,7 +125,7 @@ export default function RootLayout({
         <UIProvider>
           <div className="relative min-h-screen bg-white">
             <SiteHeader />
-            <div className="mx-auto flex w-full max-w-6xl gap-6 px-4 pb-24 pt-1 lg:px-6">
+            <div className="mx-auto flex w-full max-w-[1600px] gap-6 px-4 pb-24 pt-1 lg:px-8">
               <SiteSidebar />
               <main className="flex-1 min-w-0 rounded-[32px] bg-white px-4 py-6 shadow-sm shadow-zinc-100">
                 {children}
