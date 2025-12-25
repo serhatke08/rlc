@@ -244,7 +244,6 @@ export function SiteHeader() {
         </button>
         <Logo />
         <div className="flex items-center gap-2">
-          {user && <AddProductButton compact />}
           {user && <NotificationBell />}
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />
