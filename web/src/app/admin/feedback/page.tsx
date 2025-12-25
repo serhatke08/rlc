@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { MessageSquare, Send, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import type { Database } from "@/lib/types/database";
 
 interface Feedback {
   id: string;
@@ -87,13 +88,15 @@ export default function AdminFeedbackPage() {
     const supabase = createSupabaseBrowserClient();
 
     try {
+      const insertData: Database['public']['Tables']['feedback_replies']['Insert'] = {
+        feedback_id: selectedFeedback.id,
+        admin_id: user.id,
+        reply_text: replyText.trim(),
+      };
+      
       const { error } = await supabase
         .from('feedback_replies')
-        .insert({
-          feedback_id: selectedFeedback.id,
-          admin_id: user.id,
-          reply_text: replyText.trim(),
-        } as any);
+        .insert(insertData);
 
       if (error) throw error;
 
