@@ -8,6 +8,8 @@ import {
   Plus,
   Search,
   User,
+  LogOut,
+  ChevronDown,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -22,6 +24,7 @@ export function SiteHeader() {
   const [user, setUser] = useState<any>(undefined); // undefined = loading, null = not logged in
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -135,6 +138,32 @@ export function SiteHeader() {
     };
   }, []);
 
+  const handleSignOut = async () => {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setDropdownOpen(false);
+    window.location.href = '/';
+  };
+
+  // Dropdown'u dışına tıklandığında kapat
+  useEffect(() => {
+    if (!dropdownOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.user-dropdown')) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   return (
     <header className="sticky top-0 z-40 border-b border-white/60 bg-white/90 backdrop-blur-lg">
       {/* Desktop layout */}
@@ -145,23 +174,48 @@ export function SiteHeader() {
             {loading ? (
               <div className="h-10 w-20 animate-pulse rounded-2xl bg-zinc-200" />
             ) : user ? (
-              <Link
-                href="/account"
-                className="flex items-center gap-2 rounded-2xl border border-zinc-200 px-4 py-2 transition hover:border-emerald-200"
-              >
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.username}
-                    className="h-6 w-6 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                    <User className="h-3 w-3 text-white" />
-                  </div>
-                )}
-                <span className="text-zinc-700">@{profile?.username || "Profile"}</span>
-              </Link>
+              <>
+                <div className="relative user-dropdown">
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center gap-2 rounded-2xl border border-zinc-200 px-4 py-2 transition hover:border-emerald-200"
+                  >
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile.username || "User"}
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
+                        <User className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                    <span className="text-zinc-700">@{profile?.username || "Profile"}</span>
+                    <ChevronDown className="h-4 w-4 text-zinc-500" />
+                  </button>
+                  {dropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white shadow-lg z-50">
+                      <Link
+                        href="/account"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 first:rounded-t-2xl"
+                      >
+                        <User className="h-4 w-4" />
+                        Hesabım
+                      </Link>
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50 last:rounded-b-2xl"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <AddProductButton />
+              </>
             ) : (
               <Link
                 href="/auth/login"
@@ -170,7 +224,6 @@ export function SiteHeader() {
                 Sign In
               </Link>
             )}
-            {user && <AddProductButton />}
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -193,20 +246,45 @@ export function SiteHeader() {
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />
           ) : user ? (
-            <Link
-              href="/account"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200"
-            >
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.username}
-                  className="h-full w-full rounded-2xl object-cover"
-                />
-              ) : (
-                <User className="h-4 w-4 text-zinc-700" />
+            <div className="relative user-dropdown">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-zinc-200 px-3"
+              >
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.username || "User"}
+                    className="h-6 w-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="h-4 w-4 text-zinc-700" />
+                )}
+                {profile?.username && (
+                  <span className="text-xs font-semibold text-zinc-700">@{profile.username}</span>
+                )}
+                <ChevronDown className="h-3 w-3 text-zinc-500" />
+              </button>
+              {dropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white shadow-lg z-50">
+                  <Link
+                    href="/account"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 first:rounded-t-2xl"
+                  >
+                    <User className="h-4 w-4" />
+                    Hesabım
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50 last:rounded-b-2xl"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
               )}
-            </Link>
+            </div>
           ) : (
             <Link
               href="/auth/login"
