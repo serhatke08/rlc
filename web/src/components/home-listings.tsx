@@ -51,22 +51,16 @@ export function HomeListings({ listings, categories = [], country = null, region
 
   return (
     <div className="pb-12">
-      {/* Hero Section - Image Only */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50 px-4 py-8 lg:py-12">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex items-center justify-center">
-            <div className="relative w-full max-w-4xl aspect-video lg:aspect-[3/1]">
-              <Image
-                src="/images/Reloopcycle.png"
-                alt="ReloopCycle - Circular Economy Marketplace"
-                fill
-                className="object-contain"
-                priority
-                sizes="100vw"
-              />
-            </div>
-          </div>
-        </div>
+      {/* Hero Section - Image as Background */}
+      <section className="relative overflow-hidden w-full aspect-video lg:aspect-[3/1] min-h-[400px] lg:min-h-[500px]">
+        <Image
+          src="/images/Reloopcycle.png"
+          alt="ReloopCycle - Circular Economy Marketplace"
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="100vw"
+        />
       </section>
 
       <section className="space-y-4 pt-8">
