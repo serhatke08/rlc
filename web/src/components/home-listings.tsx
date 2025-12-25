@@ -3,6 +3,7 @@
 import { useState, useMemo, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Leaf, ArrowRight } from "lucide-react";
 import { ListingFilterPills } from "@/components/listings/filter-pills";
 import { ListingCard } from "@/components/listing-card";
 import { CategoriesMenu } from "@/components/categories-menu";
@@ -50,8 +51,79 @@ export function HomeListings({ listings, categories = [], country = null, region
   }, [listings, activeFilter]);
 
   return (
-    <div className="pt-2 pb-12">
-      <section className="space-y-4">
+    <div className="pb-12">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50 px-4 py-12 lg:py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-12">
+            {/* Left: Text Content */}
+            <div className="text-center lg:text-left">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+                <Leaf className="h-4 w-4" />
+                UK's Circular Economy Marketplace
+              </div>
+              
+              <h1 className="mb-4 text-4xl font-bold text-zinc-900 lg:text-5xl xl:text-6xl">
+                Give, Swap, Reuse
+              </h1>
+              
+              <p className="mb-6 text-lg text-zinc-600 lg:text-xl">
+                Join thousands of people across the UK who are giving items a second life. 
+                Connect with your community, reduce waste, and build a more sustainable future.
+              </p>
+
+              <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
+                <Link
+                  href="/create-listing"
+                  className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
+                >
+                  List Your Item
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/give-away-items-uk"
+                  className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-3 font-semibold text-zinc-900 transition hover:border-zinc-300"
+                >
+                  Browse Free Items
+                </Link>
+              </div>
+
+              {/* Stats */}
+              <div className="mt-8 grid grid-cols-3 gap-4 text-center lg:text-left">
+                <div>
+                  <div className="text-2xl font-bold text-emerald-600 lg:text-3xl">18.4K+</div>
+                  <div className="text-sm text-zinc-600">Active Listings</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-emerald-600 lg:text-3xl">3.1K</div>
+                  <div className="text-sm text-zinc-600">Tons Saved</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-emerald-600 lg:text-3xl">220K</div>
+                  <div className="text-sm text-zinc-600">Members</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Hero Image */}
+            <div className="relative">
+              <div className="relative aspect-square max-w-lg mx-auto lg:max-w-none">
+                <Image
+                  src="/images/Reloopcycle.png"
+                  alt="ReloopCycle - Circular Economy Marketplace"
+                  width={800}
+                  height={800}
+                  className="object-contain"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4 pt-8">
         <ListingFilterPills 
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
