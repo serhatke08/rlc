@@ -179,7 +179,7 @@ export default async function BeginnerGuideZeroWastePage() {
                 <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white">3</div>
                   <h3 className="text-xl font-semibold text-zinc-900">Buy Second-Hand First</h3>
-                </p>
+                </div>
                 <p className="text-zinc-600">
                   When you do need something new, check second-hand options first. Platforms like ReloopCycle 
                   are perfect for finding quality items that others no longer need. This extends the life of 
