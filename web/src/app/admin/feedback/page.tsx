@@ -88,15 +88,13 @@ export default function AdminFeedbackPage() {
     const supabase = createSupabaseBrowserClient();
 
     try {
-      const insertData: Database['public']['Tables']['feedback_replies']['Insert'] = {
-        feedback_id: selectedFeedback.id,
-        admin_id: user.id,
-        reply_text: replyText.trim(),
-      };
-      
       const { error } = await supabase
         .from('feedback_replies')
-        .insert(insertData);
+        .insert({
+          feedback_id: selectedFeedback.id,
+          admin_id: user.id,
+          reply_text: replyText.trim(),
+        } as Database['public']['Tables']['feedback_replies']['Insert']);
 
       if (error) throw error;
 
