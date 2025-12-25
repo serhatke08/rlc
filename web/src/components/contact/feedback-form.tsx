@@ -28,7 +28,8 @@ export function FeedbackForm() {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || null;
 
-      const { error: insertError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: insertError } = await (supabase as any)
         .from("feedback")
         .insert({
           user_id: userId,
