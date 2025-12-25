@@ -57,7 +57,7 @@ export function HomeListings({ listings, categories = [], country = null, region
           src="/images/Reloopcycle.png"
           alt="ReloopCycle - Circular Economy Marketplace"
           fill
-          className="object-cover object-center"
+          className="object-contain object-center"
           priority
           sizes="100vw"
         />
