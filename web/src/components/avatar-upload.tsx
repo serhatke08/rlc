@@ -53,11 +53,12 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
   const uploadAvatar = async (file: File) => {
     setUploading(true);
     const supabase = createSupabaseBrowserClient();
+    let uploadTimeout: NodeJS.Timeout | null = null;
 
     try {
       // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
         throw new Error('You must be logged in to upload an avatar');
       }
 
@@ -68,14 +69,25 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
 
       // Delete old avatar if exists (skip if error - not critical)
       try {
-        const { data: oldFiles, error: listError } = await supabase.storage
+        const listPromise = supabase.storage
           .from('avatars')
           .list(userId);
+
+        const timeoutPromise = new Promise((_, reject) => {
+          uploadTimeout = setTimeout(() => reject(new Error('List operation timeout')), 5000);
+        });
+
+        const { data: oldFiles, error: listError } = await Promise.race([
+          listPromise,
+          timeoutPromise,
+        ]) as any;
+
+        if (uploadTimeout) clearTimeout(uploadTimeout);
 
         if (listError && listError.message !== 'The resource was not found') {
           console.warn('Error listing old files:', listError);
         } else if (oldFiles && oldFiles.length > 0) {
-          const oldFileNames = oldFiles.map(f => `${userId}/${f.name}`);
+          const oldFileNames = oldFiles.map((f: any) => `${userId}/${f.name}`);
           const { error: removeError } = await supabase.storage
             .from('avatars')
             .remove(oldFileNames);
@@ -84,23 +96,42 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
             console.warn('Error removing old files:', removeError);
           }
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (uploadTimeout) clearTimeout(uploadTimeout);
         console.warn('Error cleaning old avatar (non-critical):', err);
         // Continue anyway
       }
 
-      // Upload new avatar
+      // Upload new avatar with timeout
       console.log('Uploading to avatars bucket...');
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      
+      const uploadPromise = supabase.storage
         .from('avatars')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true,
         });
 
+      const uploadTimeoutPromise = new Promise((_, reject) => {
+        uploadTimeout = setTimeout(() => reject(new Error('Upload timeout after 30 seconds')), 30000);
+      });
+
+      const uploadResult = await Promise.race([
+        uploadPromise,
+        uploadTimeoutPromise,
+      ]) as any;
+
+      if (uploadTimeout) clearTimeout(uploadTimeout);
+
+      const { data: uploadData, error: uploadError } = uploadResult;
+
       if (uploadError) {
         console.error('Upload error details:', uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
+        throw new Error(`Upload failed: ${uploadError.message || 'Unknown upload error'}`);
+      }
+
+      if (!uploadData) {
+        throw new Error('Upload returned no data');
       }
 
       console.log('Upload successful:', uploadData);
@@ -138,11 +169,13 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
         router.refresh();
       }, 500);
     } catch (error: any) {
+      if (uploadTimeout) clearTimeout(uploadTimeout);
       console.error('Error uploading avatar:', error);
       const errorMessage = error?.message || 'Unknown error occurred';
-      alert(`Error uploading avatar: ${errorMessage}\n\nPlease check:\n1. You are logged in\n2. File size is under 5MB\n3. File is a valid image\n4. You have permission to upload`);
+      alert(`Error uploading avatar: ${errorMessage}\n\nPlease check:\n1. You are logged in\n2. File size is under 5MB\n3. File is a valid image\n4. You have permission to upload\n5. Network connection is stable`);
       setPreview(currentAvatarUrl || null);
     } finally {
+      if (uploadTimeout) clearTimeout(uploadTimeout);
       setUploading(false);
       console.log('Upload process finished');
     }
