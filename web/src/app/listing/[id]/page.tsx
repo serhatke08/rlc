@@ -96,15 +96,10 @@ export default async function ListingPage({ params }: ListingPageProps) {
   
   const supabase = await createSupabaseServerClient();
   
-  // Kullanıcı bilgisini al - giriş kontrolü
+  // Kullanıcı bilgisini al - giriş yapmadan da görüntülenebilir
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  
-  // Redirect non-authenticated users to login page
-  if (!user) {
-    redirect("/auth/login?redirect=/listing/" + id);
-  }
   
   // Listing detaylarını çek
   const { data: listing, error } = await supabase
@@ -126,8 +121,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
   const listingData = listing as any;
 
-  // Kullanıcının kendi ilanı mı kontrol et
-  const isOwner = user?.id === listingData.seller_id;
+  // Kullanıcının kendi ilanı mı kontrol et (giriş yapmışsa)
+  const isOwner = user ? user.id === listingData.seller_id : false;
 
   // View count will be handled client-side via API route with rate limiting
   // This prevents server-side view count manipulation

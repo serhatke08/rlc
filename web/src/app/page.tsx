@@ -29,11 +29,11 @@ export default async function Home({ searchParams }: HomeProps) {
     categoryId: params.categoryId || null,
   });
 
-  // Show only 3 products for non-authenticated users
-  const listings = isAuthenticated ? allListings : allListings.slice(0, 3);
+  // Tüm ilanları göster (giriş yapmadan da)
+  const listings = allListings;
 
-  // Kategorileri sadece giriş yapmış kullanıcılar için çek
-  const categories = isAuthenticated ? await getCategories() : [];
+  // Kategorileri herkes için göster
+  const categories = await getCategories();
 
   // Location data'yı çek
   const country = await getCurrentUserCountry();

@@ -114,8 +114,29 @@ export function ListingFavoriteButton({
     }
   };
 
-  if (isOwner || !currentUserId) {
-    return null; // Don't show button for owners or non-logged-in users
+  if (isOwner) {
+    return null; // Don't show button for owners
+  }
+
+  // If user is not logged in, show button but redirect to login on click
+  if (!currentUserId) {
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.location.href = "/auth/login";
+        }}
+        className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:scale-105 hover:border-rose-300 hover:bg-rose-50"
+      >
+        <Heart className="h-4 w-4" />
+        <span>Add to Favorites</span>
+        {favoriteCount > 0 && (
+          <span className="ml-1 text-xs">({favoriteCount})</span>
+        )}
+      </button>
+    );
   }
 
   if (checking) {
