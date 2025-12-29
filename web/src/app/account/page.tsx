@@ -49,20 +49,29 @@ export default async function AccountPage() {
     console.error("Error loading listings:", listingsError);
   }
 
-  // item_transactions'da completed olan listing_id'leri çek (given ve received)
-  const { data: completedTransactions } = await supabase
+  // item_transactions'da completed olan TÜM listing_id'leri çek (TÜM kullanıcıların given ve received'ı)
+  // Bu sayede hiçbir kullanıcının given/received'ındaki ürünler Items tab'ında görünmez
+  const { data: completedTransactions, error: transactionsError } = await supabase
     .from("item_transactions")
     .select("listing_id")
     .eq("status", "completed");
 
-  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
-  const completedListingIds = new Set(
-    completedTransactions
-      ?.map((t) => t.listing_id)
-      .filter((id): id is string => id !== null) || []
-  );
+  // Hata varsa logla ama devam et
+  if (transactionsError) {
+    console.error("Error loading completed transactions:", transactionsError);
+  }
 
-  // Completed olan ürünleri filtrele
+  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
+  const completedListingIds = new Set<string>();
+  if (completedTransactions && Array.isArray(completedTransactions)) {
+    completedTransactions.forEach((t) => {
+      if (t.listing_id) {
+        completedListingIds.add(t.listing_id);
+      }
+    });
+  }
+
+  // Completed olan ürünleri filtrele - TÜM kullanıcıların given/received'ındaki ürünler filtrelenir
   const filteredListings = (listings || []).filter(
     (listing: any) => !completedListingIds.has(listing.id)
   );

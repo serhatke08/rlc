@@ -8,7 +8,6 @@ import {
   Plus,
   Search,
   User,
-  LogOut,
   ChevronDown,
 } from "lucide-react";
 
@@ -139,26 +138,6 @@ export function SiteHeader() {
     };
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Sign out error:', error);
-        alert('Error signing out. Please try again.');
-        return;
-      }
-      
-      setUser(null);
-      setProfile(null);
-      setDropdownOpen(false);
-      window.location.href = '/';
-    } catch (err) {
-      console.error('Sign out error:', err);
-      alert('Error signing out. Please try again.');
-    }
-  };
 
   // Dropdown'u dışına tıklandığında kapat
   useEffect(() => {
@@ -213,18 +192,11 @@ export function SiteHeader() {
                       <Link
                         href="/account"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 first:rounded-t-2xl"
+                        className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 rounded-2xl"
                       >
                         <User className="h-4 w-4" />
                         My Account
                       </Link>
-                      <button
-                        onClick={handleSignOut}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50 last:rounded-b-2xl"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Sign Out
-                      </button>
                     </div>
                   )}
                 </div>
@@ -286,18 +258,11 @@ export function SiteHeader() {
                   <Link
                     href="/account"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 first:rounded-t-2xl"
+                    className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 rounded-2xl"
                   >
                     <User className="h-4 w-4" />
                     My Account
                   </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50 last:rounded-b-2xl"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </button>
                 </div>
               )}
             </div>

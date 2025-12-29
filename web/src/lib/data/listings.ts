@@ -144,20 +144,29 @@ export async function getFeaturedListings(options?: {
     return [];
   }
 
-  // item_transactions'da completed olan ürünleri çek (given ve received)
-  const { data: completedTransactions } = await supabase
+  // item_transactions'da completed olan TÜM ürünleri çek (TÜM kullanıcıların given ve received'ı)
+  // Bu sayede hiçbir kullanıcının given/received'ındaki ürünler anasayfada görünmez
+  const { data: completedTransactions, error: transactionsError } = await supabase
     .from("item_transactions")
     .select("listing_id")
     .eq("status", "completed");
 
-  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
-  const completedListingIds = new Set(
-    completedTransactions
-      ?.map((t) => t.listing_id)
-      .filter((id): id is string => id !== null) || []
-  );
+  // Hata varsa logla ama devam et
+  if (transactionsError) {
+    console.error("Error loading completed transactions:", transactionsError);
+  }
 
-  // Completed olan ürünleri filtrele
+  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
+  const completedListingIds = new Set<string>();
+  if (completedTransactions && Array.isArray(completedTransactions)) {
+    completedTransactions.forEach((t) => {
+      if (t.listing_id) {
+        completedListingIds.add(t.listing_id);
+      }
+    });
+  }
+
+  // Completed olan ürünleri filtrele - TÜM kullanıcıların given/received'ındaki ürünler filtrelenir
   const filteredData = data.filter((listing) => !completedListingIds.has(listing.id));
 
   const lifecycleMap: Record<string, ListingLifecycle> = {
