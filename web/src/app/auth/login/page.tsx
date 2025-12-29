@@ -75,19 +75,37 @@ function LoginForm() {
       });
       
       if (signInError) {
+        console.error("Login error:", signInError);
         setError(signInError.message);
         setLoading(false);
         return;
       }
       
-      if (data?.user) {
-        // Başarılı login - redirect URL'e yönlendir veya account sayfasına
-        window.location.assign(redirectUrl);
+      if (data?.user && data?.session) {
+        // Session'ı kontrol et
+        const { data: { session: newSession } } = await supabase.auth.getSession();
+        
+        if (newSession?.user) {
+          console.log("Login successful, redirecting to:", redirectUrl);
+          // Başarılı login - redirect URL'e yönlendir veya account sayfasına
+          // window.location.assign yerine router.push kullan ve hard refresh yap
+          router.push(redirectUrl);
+          // Hard refresh için kısa bir süre bekle
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 100);
+        } else {
+          console.error("Login succeeded but no session found");
+          setError("Login succeeded but session not found. Please try again.");
+          setLoading(false);
+        }
       } else {
+        console.error("Login failed - no user or session in response");
         setError("Login failed. Please try again.");
         setLoading(false);
       }
     } catch (err: any) {
+      console.error("Login exception:", err);
       setError(err?.message || "An unexpected error occurred. Please try again.");
       setLoading(false);
     }
