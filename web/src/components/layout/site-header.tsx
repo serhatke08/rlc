@@ -93,12 +93,13 @@ export function SiteHeader() {
     checkUser();
 
     // Auth değişikliklerini dinle - login/logout için
-    // TOKEN_REFRESHED kaldırıldı - Next.js App Router'da çift trigger yapıyor
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
-      // Sadece SIGNED_IN event'inde user'ı güncelle
-      if (event === 'SIGNED_IN') {
+      console.log("[SiteHeader] Auth state change:", event, session?.user?.id);
+      
+      // SIGNED_IN ve TOKEN_REFRESHED event'lerinde user'ı güncelle
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
           setUser(session.user);
           setLoading(false);
@@ -119,8 +120,13 @@ export function SiteHeader() {
               setProfile(null);
             }
           } catch (err) {
+            console.error("[SiteHeader] Error loading profile:", err);
             if (mounted) setProfile(null);
           }
+        } else {
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
         }
       }
       
