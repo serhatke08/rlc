@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUI } from "@/components/providers/ui-provider";
+import { SidebarAd } from "@/components/ads/google-adsense";
 
 const MAIN_LINKS = [
   { label: "Home", href: "/", icon: Home },
@@ -117,6 +118,14 @@ function SidebarContent({
           );
         })}
       </div>
+
+      {/* Advertisement Section - Clearly labeled and separated from navigation */}
+      {!collapsed && (
+        <div className="mt-auto pt-4 border-t border-zinc-200">
+          <p className="mb-2 text-xs font-medium text-zinc-400 uppercase tracking-wide">Advertisement</p>
+          <SidebarAd />
+        </div>
+      )}
     </div>
   );
 }
