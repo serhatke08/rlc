@@ -28,27 +28,9 @@ export const metadata: Metadata = {
 export default async function FreeStuffPage() {
   const supabase = await createSupabaseServerClient();
 
-  // item_transactions'da completed olan TÜM ürünleri çek (TÜM kullanıcıların given ve received'ı)
-  const { data: completedTransactions, error: transactionsError } = await supabase
-    .from("item_transactions")
-    .select("listing_id")
-    .eq("status", "completed");
-
-  if (transactionsError) {
-    console.error("Error loading completed transactions:", transactionsError);
-  }
-
-  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
-  const completedListingIds = new Set<string>();
-  if (completedTransactions && Array.isArray(completedTransactions) && completedTransactions.length > 0) {
-    completedTransactions.forEach((t) => {
-      if (t && t.listing_id && typeof t.listing_id === 'string') {
-        completedListingIds.add(t.listing_id);
-      }
-    });
-  }
-
   // Fetch free listings
+  // NOT: Completed transactions filtrelemesi artık RLS (Row Level Security) policy'si ile
+  // database seviyesinde yapılıyor. JavaScript tarafında ek filtreleme gerekmez.
   const { data } = await supabase
     .from("listings")
     .select(`
@@ -74,9 +56,7 @@ export default async function FreeStuffPage() {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  // Completed olan ürünleri filtrele
-  const filteredData = (data || []).filter((listing: any) => !completedListingIds.has(listing.id));
-  const listingsData = filteredData as any[];
+  const listingsData = (data || []) as any[];
   const listings: FeaturedListing[] = listingsData.map((listing: any) => ({
     id: listing.id,
     title: listing.title,

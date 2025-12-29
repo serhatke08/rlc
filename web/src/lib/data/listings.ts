@@ -145,70 +145,10 @@ export async function getFeaturedListings(options?: {
     return [];
   }
 
-  // ÖNEMLİ: item_transactions'da completed olan TÜM ürünleri çek (TÜM kullanıcıların given ve received'ı)
-  // Bu sayede hiçbir kullanıcının given/received'ındaki ürünler anasayfada görünmez
-  // Bu filtreleme MUTLAKA yapılmalı - aksi halde completed ürünler görünür
-  let completedListingIds = new Set<string>();
-  
-  try {
-    // TÜM completed transactions'ları çek - hiçbir filtre yok, hepsini al
-    const { data: completedTransactions, error: transactionsError } = await supabase
-      .from("item_transactions")
-      .select("listing_id")
-      .eq("status", "completed");
-
-    if (transactionsError) {
-      console.error("[getFeaturedListings] CRITICAL: Error loading completed transactions:", transactionsError);
-      throw new Error(`Failed to load completed transactions: ${transactionsError.message}`);
-    }
-
-    // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
-    // TÜM kullanıcıların given/received'ındaki ürünler bu Set'e eklenir
-    if (completedTransactions && Array.isArray(completedTransactions)) {
-      let addedCount = 0;
-      completedTransactions.forEach((t) => {
-        // listing_id null veya undefined olabilir, kontrol et
-        if (t?.listing_id && typeof t.listing_id === 'string' && t.listing_id.trim() !== '') {
-          completedListingIds.add(t.listing_id.trim());
-          addedCount++;
-        }
-      });
-      console.log(`[getFeaturedListings] Loaded ${completedTransactions.length} completed transactions, added ${addedCount} to filter set`);
-    } else {
-      console.warn("[getFeaturedListings] No completed transactions found or invalid data format");
-    }
-
-    // Debug: Kaç tane completed transaction var
-    if (completedListingIds.size > 0) {
-      console.log(`[getFeaturedListings] Will filter out ${completedListingIds.size} listings that are in completed transactions`);
-    } else {
-      console.warn("[getFeaturedListings] WARNING: No completed listing IDs to filter - all listings will be shown!");
-    }
-  } catch (error) {
-    console.error("[getFeaturedListings] CRITICAL: Exception while loading completed transactions:", error);
-    // Hata durumunda tüm ürünleri göster ama logla
-    console.warn("[getFeaturedListings] WARNING: Continuing without filtering due to error - some completed listings may be shown!");
-  }
-
-  // Completed olan ürünleri filtrele - TÜM kullanıcıların given/received'ındaki ürünler filtrelenir
-  // Bu sayede hiçbir kullanıcının given/received'ındaki ürünler anasayfada görünmez
-  const beforeFilterCount = data.length;
-  const filteredData = data.filter((listing) => {
-    // Eğer listing_id completed transactions'da varsa, bu ürünü filtrele
-    const shouldExclude = completedListingIds.has(listing.id);
-    if (shouldExclude) {
-      console.log(`[getFeaturedListings] FILTERING OUT listing "${listing.title}" (ID: ${listing.id}) - it's in completed transactions`);
-    }
-    return !shouldExclude;
-  });
-  
-  const afterFilterCount = filteredData.length;
-  const filteredCount = beforeFilterCount - afterFilterCount;
-  if (filteredCount > 0) {
-    console.log(`[getFeaturedListings] Successfully filtered ${filteredCount} listings (${beforeFilterCount} -> ${afterFilterCount})`);
-  } else if (completedListingIds.size > 0) {
-    console.warn(`[getFeaturedListings] WARNING: Found ${completedListingIds.size} completed transactions but filtered 0 listings - possible ID mismatch!`);
-  }
+  // NOT: Completed transactions filtrelemesi artık RLS (Row Level Security) policy'si ile
+  // database seviyesinde yapılıyor. JavaScript tarafında ek filtreleme gerekmez.
+  // RLS policy: supabasesql/44_filter_completed_transactions_rls.sql
+  const filteredData = data;
 
   const lifecycleMap: Record<string, ListingLifecycle> = {
     active: "available",
