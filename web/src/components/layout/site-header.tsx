@@ -181,9 +181,9 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-white/60 bg-white/90 backdrop-blur-lg">
       {/* Desktop layout */}
       <div className="mx-auto hidden w-full max-w-6xl flex-col gap-4 px-6 py-4 lg:flex">
-        <div className="flex items-center justify-between">
+        <div className="relative flex items-center justify-center">
           <Logo size="lg" />
-          <div className="flex items-center gap-3 text-sm font-semibold">
+          <div className="absolute right-0 flex items-center gap-3 text-sm font-semibold">
             {loading ? (
               <div className="h-10 w-20 animate-pulse rounded-2xl bg-zinc-200" />
             ) : user ? (
@@ -254,7 +254,9 @@ export function SiteHeader() {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <Logo />
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <Logo />
+        </div>
         <div className="flex items-center gap-2">
           {user && <NotificationBell />}
           {loading ? (
