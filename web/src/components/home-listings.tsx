@@ -7,7 +7,7 @@ import { ListingFilterPills } from "@/components/listings/filter-pills";
 import { ListingCard } from "@/components/listing-card";
 import { CategoriesMenu } from "@/components/categories-menu";
 import { LocationMenu } from "@/components/location-menu";
-import { InArticleAd, DisplayAdCard } from "@/components/ads/google-adsense";
+import { InArticleAd } from "@/components/ads/google-adsense";
 import type { FeaturedListing } from "@/types/listing";
 import type { Category } from "@/lib/types/category";
 import type { Country, Region, City } from "@/lib/types/location";
