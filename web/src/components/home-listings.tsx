@@ -149,13 +149,13 @@ export function HomeListings({ listings, categories = [], country = null, region
                     For non-authenticated users: 3 items + 1 ad (4th card) */}
                 <div className={`grid gap-2 ${
                   !isAuthenticated 
-                    ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-4' 
-                    : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-4'
+                    ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-5' 
+                    : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-5'
                 }`}>
                   {!isAuthenticated ? (
-                    /* Non-authenticated users: 3 products + 1 ad (4th card) */
+                    /* Non-authenticated users: all products */
                     <>
-                      {filteredListings.slice(0, 3).map((listing, index) => (
+                      {filteredListings.map((listing, index) => (
                         <Link
                           key={listing.id}
                           href={`/listing/${listing.id}`}
@@ -189,7 +189,6 @@ export function HomeListings({ listings, categories = [], country = null, region
                         </div>
                         </Link>
                       ))}
-                      <DisplayAdCard />
                     </>
                   ) : (
                     /* Authenticated users: all products */
@@ -237,16 +236,15 @@ export function HomeListings({ listings, categories = [], country = null, region
                     PC view: 2 cards per row (grid-cols-2) */}
                 <div className={`grid gap-4 ${
                   !isAuthenticated 
-                    ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-2' 
-                    : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-2'
+                    ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-5' 
+                    : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-5'
                 }`}>
                   {!isAuthenticated ? (
-                    /* Non-authenticated users: 3 products + 1 ad (4th card) */
+                    /* Non-authenticated users: all products */
                     <>
-                      {filteredListings.slice(0, 3).map((listing) => (
+                      {filteredListings.map((listing) => (
                         <ListingCard key={listing.id} listing={listing} />
                       ))}
-                      <DisplayAdCard />
                     </>
                   ) : (
                     /* Authenticated users: all products */
