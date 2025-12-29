@@ -18,13 +18,6 @@ export default function CategoriesPage() {
       try {
         const supabase = createSupabaseBrowserClient();
         
-        // Giriş kontrolü - giriş yapmamış kullanıcıları yönlendir
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          router.push("/auth/login?redirect=/categories");
-          return;
-        }
-        
         setCheckingAuth(false);
         
         // EN BASIT SORGU - sadece gerekli alanlar
