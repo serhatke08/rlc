@@ -71,17 +71,6 @@ export async function getFeaturedListings(options?: {
     // Don't log - this is expected for anonymous users
   }
 
-  // item_transactions'da completed olan ürünleri çek (given ve received)
-  const { data: completedTransactions } = await supabase
-    .from("item_transactions")
-    .select("listing_id")
-    .eq("status", "completed");
-
-  // Completed olan listing_id'leri topla
-  const completedListingIds = completedTransactions
-    ?.map((t) => t.listing_id)
-    .filter((id): id is string => id !== null) || [];
-
   // Sorgu oluştur
   let query = supabase
     .from("listings")
@@ -121,14 +110,6 @@ export async function getFeaturedListings(options?: {
     )
     .eq("status", "active");
 
-  // Completed olan ürünleri exclude et
-  if (completedListingIds.length > 0) {
-    // Supabase'de .not() ile .in() kullanımı - her bir id için ayrı filter
-    completedListingIds.forEach((id) => {
-      query = query.neq("id", id);
-    });
-  }
-
   // Kategori filtresi (en öncelikli - diğer filtrelerle birlikte çalışabilir)
   if (options?.categoryId && options.categoryId.trim() !== '' && options.categoryId !== 'null' && options.categoryId !== 'undefined') {
     query = query.eq("category_id", options.categoryId);
@@ -162,6 +143,22 @@ export async function getFeaturedListings(options?: {
     // Hata yok ama veri yok, bu normal olabilir
     return [];
   }
+
+  // item_transactions'da completed olan ürünleri çek (given ve received)
+  const { data: completedTransactions } = await supabase
+    .from("item_transactions")
+    .select("listing_id")
+    .eq("status", "completed");
+
+  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
+  const completedListingIds = new Set(
+    completedTransactions
+      ?.map((t) => t.listing_id)
+      .filter((id): id is string => id !== null) || []
+  );
+
+  // Completed olan ürünleri filtrele
+  const filteredData = data.filter((listing) => !completedListingIds.has(listing.id));
 
   const lifecycleMap: Record<string, ListingLifecycle> = {
     active: "available",
@@ -214,7 +211,7 @@ export async function getFeaturedListings(options?: {
     return "sell"; // Ücretli
   };
 
-  return (data as (RawListing & { price: string })[]).map<FeaturedListing>((listing) => {
+  return (filteredData as (RawListing & { price: string })[]).map<FeaturedListing>((listing) => {
     const metadata = listing.metadata ?? {};
 
     return {
