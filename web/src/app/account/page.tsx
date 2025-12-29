@@ -7,6 +7,7 @@ import { DeleteListingButton } from "@/components/delete-listing-button";
 import { EditListingButton } from "@/components/edit-listing-button";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { LogoutButton } from "@/components/logout-button";
+import { ProfileTabs } from "@/components/account/profile-tabs";
 
 export default async function AccountPage() {
   const supabase = await createSupabaseServerClient();
@@ -36,7 +37,7 @@ export default async function AccountPage() {
     console.error("Error loading profile:", profileError);
   }
 
-  // Kullanıcının ilanlarını çek
+  // MY ITEMS: Kullanıcının aktif ilanlarını çek
   const { data: listings, error: listingsError } = await supabase
     .from("listings")
     .select("*")
@@ -48,9 +49,40 @@ export default async function AccountPage() {
     console.error("Error loading listings:", listingsError);
   }
 
+  // GIVEN: Kullanıcının verdiği ürünler (item_transactions)
+  const { data: givenTransactions, error: givenError } = await supabase
+    .from("item_transactions")
+    .select(`
+      *,
+      listing:listings(*)
+    `)
+    .eq("seller_id", user.id)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false });
+
+  if (givenError) {
+    console.error("Error loading given transactions:", givenError);
+  }
+
+  // RECEIVED: Kullanıcının aldığı ürünler (item_transactions)
+  const { data: receivedTransactions, error: receivedError } = await supabase
+    .from("item_transactions")
+    .select(`
+      *,
+      listing:listings(*)
+    `)
+    .eq("buyer_id", user.id)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false });
+
+  if (receivedError) {
+    console.error("Error loading received transactions:", receivedError);
+  }
 
   // Ülke bilgisini formatla
   const listingsData = (listings || []) as any[];
+  const givenData = (givenTransactions || []) as any[];
+  const receivedData = (receivedTransactions || []) as any[];
 
   // Profil yoksa veya hata varsa bilgi göster
   if (!profile) {
@@ -164,80 +196,18 @@ export default async function AccountPage() {
         </div>
       </div>
 
-      {/* Paylaştığım Ürünler */}
+      {/* Items, Given, Received Tabs */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-zinc-700" />
-          <h2 className="text-xl font-semibold text-zinc-900">
-            My Listings
-            <span className="ml-2 text-base font-normal text-zinc-500">
-              ({listingsData?.length || 0})
-            </span>
-          </h2>
+          <h2 className="text-xl font-semibold text-zinc-900">My Items</h2>
         </div>
 
-        {/* Ürün Listesi */}
-        {listingsData && listingsData.length > 0 ? (
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-            {listingsData.map((listing: any) => (
-              <div
-                key={listing.id}
-                className="group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md"
-              >
-                <Link href={`/listing/${listing.id}`} className="block">
-                  {/* Ürün Görseli */}
-                  <div className="relative aspect-square bg-zinc-100">
-                    {listing.thumbnail_url || listing.images?.[0] ? (
-                      <img
-                        src={listing.thumbnail_url || listing.images[0]}
-                        alt={listing.title}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <Package className="h-12 w-12 text-zinc-300" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Ürün Bilgileri */}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-zinc-900 line-clamp-2">
-                      {listing.title}
-                    </h3>
-                    <p className="mt-1 text-sm text-zinc-500">
-                      {listing.city_name}
-                    </p>
-                    <p className="mt-2 text-lg font-bold text-emerald-600">
-                      {listing.listing_type === 'free' || listing.price === "0" || listing.price === 0 
-                        ? "Free" 
-                        : listing.listing_type === 'exchange' 
-                          ? "Swap" 
-                          : listing.listing_type === 'need'
-                            ? "I Need"
-                            : listing.listing_type === 'ownership'
-                              ? "Adoption"
-                              : `£${listing.price}`}
-                    </p>
-                  </div>
-                </Link>
-                
-                {/* Butonlar - Sağ Üst Köşe */}
-                <div className="absolute right-2 top-2 z-10 flex gap-2">
-                  <EditListingButton listingId={listing.id} />
-                  <DeleteListingButton listingId={listing.id} />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-12 text-center">
-            <Package className="mx-auto h-12 w-12 text-zinc-400" />
-            <p className="mt-4 text-sm text-zinc-600">
-              You haven't shared any items yet
-            </p>
-          </div>
-        )}
+        <ProfileTabs 
+          items={listingsData}
+          given={givenData}
+          received={receivedData}
+        />
       </div>
     </div>
   );

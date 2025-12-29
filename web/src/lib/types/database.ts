@@ -230,6 +230,27 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Row"]>;
       };
+      item_transactions: {
+        Row: {
+          id: string;
+          listing_id: string;
+          seller_id: string;
+          buyer_id: string;
+          status: "completed" | "cancelled" | "pending";
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          listing_id: string;
+          seller_id: string;
+          buyer_id: string;
+          status?: "completed" | "cancelled" | "pending";
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["item_transactions"]["Row"]>;
+      };
     };
   };
 }
