@@ -40,6 +40,7 @@ export async function getFeaturedListings(options?: {
   cityId?: string | null;
   categoryId?: string | null;
 }): Promise<FeaturedListing[]> {
+  // Cache'i devre dışı bırak - her zaman fresh data çek
   const supabase = await createSupabaseServerClient();
 
   // Kullanıcının ülkesini al
@@ -150,6 +151,7 @@ export async function getFeaturedListings(options?: {
   let completedListingIds = new Set<string>();
   
   try {
+    // TÜM completed transactions'ları çek - hiçbir filtre yok, hepsini al
     const { data: completedTransactions, error: transactionsError } = await supabase
       .from("item_transactions")
       .select("listing_id")
@@ -157,27 +159,35 @@ export async function getFeaturedListings(options?: {
 
     if (transactionsError) {
       console.error("[getFeaturedListings] CRITICAL: Error loading completed transactions:", transactionsError);
-      // Hata olsa bile devam et - ama logla
+      throw new Error(`Failed to load completed transactions: ${transactionsError.message}`);
     }
 
     // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
     // TÜM kullanıcıların given/received'ındaki ürünler bu Set'e eklenir
     if (completedTransactions && Array.isArray(completedTransactions)) {
+      let addedCount = 0;
       completedTransactions.forEach((t) => {
         // listing_id null veya undefined olabilir, kontrol et
         if (t?.listing_id && typeof t.listing_id === 'string' && t.listing_id.trim() !== '') {
           completedListingIds.add(t.listing_id.trim());
+          addedCount++;
         }
       });
+      console.log(`[getFeaturedListings] Loaded ${completedTransactions.length} completed transactions, added ${addedCount} to filter set`);
+    } else {
+      console.warn("[getFeaturedListings] No completed transactions found or invalid data format");
     }
 
     // Debug: Kaç tane completed transaction var
     if (completedListingIds.size > 0) {
-      console.log(`[getFeaturedListings] Found ${completedListingIds.size} completed transactions to filter`);
+      console.log(`[getFeaturedListings] Will filter out ${completedListingIds.size} listings that are in completed transactions`);
+    } else {
+      console.warn("[getFeaturedListings] WARNING: No completed listing IDs to filter - all listings will be shown!");
     }
   } catch (error) {
     console.error("[getFeaturedListings] CRITICAL: Exception while loading completed transactions:", error);
-    // Hata olsa bile devam et - ama logla
+    // Hata durumunda tüm ürünleri göster ama logla
+    console.warn("[getFeaturedListings] WARNING: Continuing without filtering due to error - some completed listings may be shown!");
   }
 
   // Completed olan ürünleri filtrele - TÜM kullanıcıların given/received'ındaki ürünler filtrelenir
@@ -187,14 +197,17 @@ export async function getFeaturedListings(options?: {
     // Eğer listing_id completed transactions'da varsa, bu ürünü filtrele
     const shouldExclude = completedListingIds.has(listing.id);
     if (shouldExclude) {
-      console.log(`[getFeaturedListings] FILTERING OUT listing ${listing.id} - it's in completed transactions`);
+      console.log(`[getFeaturedListings] FILTERING OUT listing "${listing.title}" (ID: ${listing.id}) - it's in completed transactions`);
     }
     return !shouldExclude;
   });
   
   const afterFilterCount = filteredData.length;
-  if (beforeFilterCount !== afterFilterCount) {
-    console.log(`[getFeaturedListings] Filtered ${beforeFilterCount - afterFilterCount} listings (${beforeFilterCount} -> ${afterFilterCount})`);
+  const filteredCount = beforeFilterCount - afterFilterCount;
+  if (filteredCount > 0) {
+    console.log(`[getFeaturedListings] Successfully filtered ${filteredCount} listings (${beforeFilterCount} -> ${afterFilterCount})`);
+  } else if (completedListingIds.size > 0) {
+    console.warn(`[getFeaturedListings] WARNING: Found ${completedListingIds.size} completed transactions but filtered 0 listings - possible ID mismatch!`);
   }
 
   const lifecycleMap: Record<string, ListingLifecycle> = {
