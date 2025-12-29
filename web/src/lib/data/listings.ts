@@ -151,23 +151,29 @@ export async function getFeaturedListings(options?: {
     .select("listing_id")
     .eq("status", "completed");
 
-  // Hata varsa logla ama devam et
+  // Hata varsa logla ama devam et - filtreleme yapılamazsa tüm ürünler gösterilir
   if (transactionsError) {
-    console.error("Error loading completed transactions:", transactionsError);
+    console.error("[getFeaturedListings] Error loading completed transactions:", transactionsError);
   }
 
   // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
+  // TÜM kullanıcıların given/received'ındaki ürünler bu Set'e eklenir
   const completedListingIds = new Set<string>();
   if (completedTransactions && Array.isArray(completedTransactions)) {
     completedTransactions.forEach((t) => {
-      if (t.listing_id) {
+      // listing_id null veya undefined olabilir, kontrol et
+      if (t?.listing_id && typeof t.listing_id === 'string' && t.listing_id.trim() !== '') {
         completedListingIds.add(t.listing_id);
       }
     });
   }
 
   // Completed olan ürünleri filtrele - TÜM kullanıcıların given/received'ındaki ürünler filtrelenir
-  const filteredData = data.filter((listing) => !completedListingIds.has(listing.id));
+  // Bu sayede hiçbir kullanıcının given/received'ındaki ürünler anasayfada görünmez
+  const filteredData = data.filter((listing) => {
+    // Eğer listing_id completed transactions'da varsa, bu ürünü filtrele
+    return !completedListingIds.has(listing.id);
+  });
 
   const lifecycleMap: Record<string, ListingLifecycle> = {
     active: "available",

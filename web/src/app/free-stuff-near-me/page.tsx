@@ -28,6 +28,26 @@ export const metadata: Metadata = {
 export default async function FreeStuffPage() {
   const supabase = await createSupabaseServerClient();
 
+  // item_transactions'da completed olan TÜM ürünleri çek (TÜM kullanıcıların given ve received'ı)
+  const { data: completedTransactions, error: transactionsError } = await supabase
+    .from("item_transactions")
+    .select("listing_id")
+    .eq("status", "completed");
+
+  if (transactionsError) {
+    console.error("Error loading completed transactions:", transactionsError);
+  }
+
+  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
+  const completedListingIds = new Set<string>();
+  if (completedTransactions && Array.isArray(completedTransactions) && completedTransactions.length > 0) {
+    completedTransactions.forEach((t) => {
+      if (t && t.listing_id && typeof t.listing_id === 'string') {
+        completedListingIds.add(t.listing_id);
+      }
+    });
+  }
+
   // Fetch free listings
   const { data } = await supabase
     .from("listings")
@@ -52,9 +72,11 @@ export default async function FreeStuffPage() {
     .eq("status", "active")
     .or("listing_type.eq.free,price.eq.0")
     .order("created_at", { ascending: false })
-    .limit(24);
+    .limit(100);
 
-  const listingsData = (data || []) as any[];
+  // Completed olan ürünleri filtrele
+  const filteredData = (data || []).filter((listing: any) => !completedListingIds.has(listing.id));
+  const listingsData = filteredData as any[];
   const listings: FeaturedListing[] = listingsData.map((listing: any) => ({
     id: listing.id,
     title: listing.title,
