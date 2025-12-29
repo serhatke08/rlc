@@ -144,36 +144,58 @@ export async function getFeaturedListings(options?: {
     return [];
   }
 
-  // item_transactions'da completed olan TÜM ürünleri çek (TÜM kullanıcıların given ve received'ı)
+  // ÖNEMLİ: item_transactions'da completed olan TÜM ürünleri çek (TÜM kullanıcıların given ve received'ı)
   // Bu sayede hiçbir kullanıcının given/received'ındaki ürünler anasayfada görünmez
-  const { data: completedTransactions, error: transactionsError } = await supabase
-    .from("item_transactions")
-    .select("listing_id")
-    .eq("status", "completed");
+  // Bu filtreleme MUTLAKA yapılmalı - aksi halde completed ürünler görünür
+  let completedListingIds = new Set<string>();
+  
+  try {
+    const { data: completedTransactions, error: transactionsError } = await supabase
+      .from("item_transactions")
+      .select("listing_id")
+      .eq("status", "completed");
 
-  // Hata varsa logla ama devam et - filtreleme yapılamazsa tüm ürünler gösterilir
-  if (transactionsError) {
-    console.error("[getFeaturedListings] Error loading completed transactions:", transactionsError);
-  }
+    if (transactionsError) {
+      console.error("[getFeaturedListings] CRITICAL: Error loading completed transactions:", transactionsError);
+      // Hata olsa bile devam et - ama logla
+    }
 
-  // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
-  // TÜM kullanıcıların given/received'ındaki ürünler bu Set'e eklenir
-  const completedListingIds = new Set<string>();
-  if (completedTransactions && Array.isArray(completedTransactions)) {
-    completedTransactions.forEach((t) => {
-      // listing_id null veya undefined olabilir, kontrol et
-      if (t?.listing_id && typeof t.listing_id === 'string' && t.listing_id.trim() !== '') {
-        completedListingIds.add(t.listing_id);
-      }
-    });
+    // Completed olan listing_id'leri topla (Set kullanarak hızlı lookup)
+    // TÜM kullanıcıların given/received'ındaki ürünler bu Set'e eklenir
+    if (completedTransactions && Array.isArray(completedTransactions)) {
+      completedTransactions.forEach((t) => {
+        // listing_id null veya undefined olabilir, kontrol et
+        if (t?.listing_id && typeof t.listing_id === 'string' && t.listing_id.trim() !== '') {
+          completedListingIds.add(t.listing_id.trim());
+        }
+      });
+    }
+
+    // Debug: Kaç tane completed transaction var
+    if (completedListingIds.size > 0) {
+      console.log(`[getFeaturedListings] Found ${completedListingIds.size} completed transactions to filter`);
+    }
+  } catch (error) {
+    console.error("[getFeaturedListings] CRITICAL: Exception while loading completed transactions:", error);
+    // Hata olsa bile devam et - ama logla
   }
 
   // Completed olan ürünleri filtrele - TÜM kullanıcıların given/received'ındaki ürünler filtrelenir
   // Bu sayede hiçbir kullanıcının given/received'ındaki ürünler anasayfada görünmez
+  const beforeFilterCount = data.length;
   const filteredData = data.filter((listing) => {
     // Eğer listing_id completed transactions'da varsa, bu ürünü filtrele
-    return !completedListingIds.has(listing.id);
+    const shouldExclude = completedListingIds.has(listing.id);
+    if (shouldExclude) {
+      console.log(`[getFeaturedListings] FILTERING OUT listing ${listing.id} - it's in completed transactions`);
+    }
+    return !shouldExclude;
   });
+  
+  const afterFilterCount = filteredData.length;
+  if (beforeFilterCount !== afterFilterCount) {
+    console.log(`[getFeaturedListings] Filtered ${beforeFilterCount - afterFilterCount} listings (${beforeFilterCount} -> ${afterFilterCount})`);
+  }
 
   const lifecycleMap: Record<string, ListingLifecycle> = {
     active: "available",
