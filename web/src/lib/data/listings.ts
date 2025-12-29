@@ -71,6 +71,17 @@ export async function getFeaturedListings(options?: {
     // Don't log - this is expected for anonymous users
   }
 
+  // item_transactions'da completed olan ürünleri çek (given ve received)
+  const { data: completedTransactions } = await supabase
+    .from("item_transactions")
+    .select("listing_id")
+    .eq("status", "completed");
+
+  // Completed olan listing_id'leri topla
+  const completedListingIds = completedTransactions
+    ?.map((t) => t.listing_id)
+    .filter((id): id is string => id !== null) || [];
+
   // Sorgu oluştur
   let query = supabase
     .from("listings")
@@ -109,6 +120,14 @@ export async function getFeaturedListings(options?: {
       `
     )
     .eq("status", "active");
+
+  // Completed olan ürünleri exclude et
+  if (completedListingIds.length > 0) {
+    // Supabase'de .not() ile .in() kullanımı - her bir id için ayrı filter
+    completedListingIds.forEach((id) => {
+      query = query.neq("id", id);
+    });
+  }
 
   // Kategori filtresi (en öncelikli - diğer filtrelerle birlikte çalışabilir)
   if (options?.categoryId && options.categoryId.trim() !== '' && options.categoryId !== 'null' && options.categoryId !== 'undefined') {

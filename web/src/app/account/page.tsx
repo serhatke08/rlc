@@ -37,12 +37,33 @@ export default async function AccountPage() {
     console.error("Error loading profile:", profileError);
   }
 
-  // MY ITEMS: Kullanıcının aktif ilanlarını çek
-  const { data: listings, error: listingsError } = await supabase
+  // item_transactions'da completed olan listing_id'leri çek (given ve received)
+  const { data: completedTransactions } = await supabase
+    .from("item_transactions")
+    .select("listing_id")
+    .eq("status", "completed");
+
+  // Completed olan listing_id'leri topla
+  const completedListingIds = completedTransactions
+    ?.map((t) => t.listing_id)
+    .filter((id): id is string => id !== null) || [];
+
+  // MY ITEMS: Kullanıcının aktif ilanlarını çek (completed olanları exclude et)
+  let listingsQuery = supabase
     .from("listings")
     .select("*")
     .eq("seller_id", user.id)
-    .eq("status", "active")
+    .eq("status", "active");
+
+  // Completed olan ürünleri exclude et
+  if (completedListingIds.length > 0) {
+    // Supabase'de .neq() kullanarak her bir id için ayrı filter
+    completedListingIds.forEach((id) => {
+      listingsQuery = listingsQuery.neq("id", id);
+    });
+  }
+
+  const { data: listings, error: listingsError } = await listingsQuery
     .order("created_at", { ascending: false });
 
   if (listingsError) {
