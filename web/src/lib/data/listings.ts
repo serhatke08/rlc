@@ -152,7 +152,7 @@ export async function getFeaturedListings(options?: {
       .eq("status", "completed");
     
     if (completedTransactions) {
-      completedTransactions.forEach((t) => {
+      (completedTransactions as any[]).forEach((t) => {
         if (t?.listing_id) {
           completedListingIds.add(t.listing_id);
         }
@@ -161,7 +161,7 @@ export async function getFeaturedListings(options?: {
   }
 
   // Completed olanları filtrele
-  const filteredData = data.filter(
+  const filteredData = (data as any[]).filter(
     (listing) => !completedListingIds.has(listing.id)
   );
 
