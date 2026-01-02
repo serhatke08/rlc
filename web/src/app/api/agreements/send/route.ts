@@ -102,10 +102,10 @@ export async function POST(request: Request) {
         .select()
         .single();
 
-      if (insertError) {
+      if (insertError || !newRequest) {
         console.error('Error creating verification request:', insertError);
         return NextResponse.json(
-          { error: insertError.message || 'Failed to send agreement' },
+          { error: insertError?.message || 'Failed to send agreement' },
           { status: 500 }
         );
       }
@@ -153,10 +153,10 @@ export async function POST(request: Request) {
         .select()
         .single();
 
-      if (insertError) {
+      if (insertError || !newLink) {
         console.error('Error creating item link:', insertError);
         return NextResponse.json(
-          { error: insertError.message || 'Failed to send agreement' },
+          { error: insertError?.message || 'Failed to send agreement' },
           { status: 500 }
         );
       }
