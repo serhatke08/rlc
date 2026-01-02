@@ -68,28 +68,31 @@ export function SiteHeader() {
         
         // Profil bilgilerini çek
         setProfileLoading(true);
-        try {
-          const { data, error: profileError } = await supabase
-            .from("profiles")
-            .select("username, display_name, avatar_url")
-            .eq("id", user.id)
-            .single();
-          
-          if (!mounted) return;
-          
-          if (profileError) {
-            console.error("[SiteHeader] Error loading profile:", profileError);
-            setProfile(null);
-          } else {
-            console.log("[SiteHeader] Profile loaded:", data);
-            setProfile(data);
+        const fetchProfile = async () => {
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .single();
+            
+            if (!mounted) return;
+            
+            if (profileError) {
+              console.error("[SiteHeader] Profile error:", profileError);
+              setProfile(null);
+            } else {
+              setProfile(profile);
+            }
+          } catch (err) {
+            console.error("[SiteHeader] Profile fetch error:", err);
+            if (mounted) setProfile(null);
+          } finally {
+            if (mounted) setProfileLoading(false);
           }
-        } catch (err) {
-          console.error("[SiteHeader] Error fetching profile:", err);
-          if (mounted) setProfile(null);
-        } finally {
-          if (mounted) setProfileLoading(false);
-        }
+        };
+        
+        fetchProfile();
       } catch (err) {
         console.error("Error in checkUser:", err);
         if (mounted) {
@@ -112,33 +115,37 @@ export function SiteHeader() {
       // SIGNED_IN ve TOKEN_REFRESHED event'lerinde user'ı güncelle
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
+          console.log("[SiteHeader] Auth change - user signed in:", session.user.id);
           setUser(session.user);
           setLoading(false);
           
           // Profil bilgilerini çek
           setProfileLoading(true);
-          try {
-            const { data, error: profileError } = await supabase
-              .from("profiles")
-              .select("username, display_name, avatar_url")
-              .eq("id", session.user.id)
-              .single();
-            
-            if (!mounted) return;
-            
-            if (!profileError && data) {
-              console.log("[SiteHeader] Profile loaded from auth change:", data);
-              setProfile(data);
-            } else {
-              console.error("[SiteHeader] Profile error from auth change:", profileError);
-              setProfile(null);
+          const fetchProfile = async () => {
+            try {
+              const { data: profile, error: profileError } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", session.user.id)
+                .single();
+              
+              if (!mounted) return;
+              
+              if (profileError) {
+                console.error("[SiteHeader] Profile error:", profileError);
+                setProfile(null);
+              } else {
+                setProfile(profile);
+              }
+            } catch (err) {
+              console.error("[SiteHeader] Profile fetch error:", err);
+              if (mounted) setProfile(null);
+            } finally {
+              if (mounted) setProfileLoading(false);
             }
-          } catch (err) {
-            console.error("[SiteHeader] Error loading profile from auth change:", err);
-            if (mounted) setProfile(null);
-          } finally {
-            if (mounted) setProfileLoading(false);
-          }
+          };
+          
+          fetchProfile();
         } else {
           setUser(null);
           setProfile(null);
@@ -175,31 +182,7 @@ export function SiteHeader() {
             ) : user ? (
               <>
                 <NotificationBell />
-                {profileLoading ? (
-                  <div className="h-10 w-24 animate-pulse rounded-2xl bg-zinc-200" />
-                ) : (
-                  <Link
-                    href="/account"
-                    className="flex items-center gap-2 rounded-2xl border border-zinc-200 px-4 py-2 transition hover:border-emerald-200"
-                  >
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={profile.display_name || profile.username || "User"}
-                        className="h-6 w-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                        <span className="text-xs font-semibold text-white">
-                          {(profile?.display_name || profile?.username || user?.email?.[0] || "U")[0]?.toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                    <span className="text-zinc-700">
-                      {profile?.display_name || profile?.username || user?.email?.split("@")[0] || "Profile"}
-                    </span>
-                  </Link>
-                )}
+                <ProfileIndicator profile={profile} />
                 <AddProductButton />
               </>
             ) : (
@@ -233,32 +216,10 @@ export function SiteHeader() {
         </div>
         <div className="flex items-center gap-2">
           {user && <NotificationBell />}
-          {loading || (user && profileLoading) ? (
+          {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />
           ) : user ? (
-            <Link
-              href="/account"
-              className="inline-flex h-10 items-center gap-2 rounded-2xl border border-zinc-200 px-3"
-            >
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.display_name || profile.username || "User"}
-                  className="h-6 w-6 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                  <span className="text-[10px] font-semibold text-white">
-                    {(profile?.display_name || profile?.username || "U")[0]?.toUpperCase()}
-                  </span>
-                </div>
-              )}
-              {(profile?.display_name || profile?.username) && (
-                <span className="text-xs font-semibold text-zinc-700">
-                  {profile.display_name || profile.username}
-                </span>
-              )}
-            </Link>
+            <ProfileIndicator profile={profile} compact />
           ) : (
             <Link
               href="/auth/login"
@@ -298,6 +259,68 @@ function SearchBar() {
         className="ml-3 flex-1 border-none bg-transparent text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
       />
     </div>
+  );
+}
+
+function ProfileIndicator({ profile, compact }: { profile: any; compact?: boolean }) {
+  if (!profile) {
+    return (
+      <Link
+        href="/account"
+        className={cn(
+          "inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-zinc-700 transition hover:border-emerald-200 hover:bg-zinc-50",
+          compact && "px-2 py-1.5",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]",
+            compact ? "h-7 w-7" : "h-8 w-8",
+          )}
+        >
+          <User className={cn("text-white", compact ? "h-3.5 w-3.5" : "h-4 w-4")} />
+        </div>
+        {!compact && (
+          <span className="text-sm font-medium text-zinc-700">User</span>
+        )}
+      </Link>
+    );
+  }
+
+  const displayName = profile.display_name || profile.username || "User";
+  const avatarUrl = profile.avatar_url;
+
+  return (
+    <Link
+      href="/account"
+      className={cn(
+        "inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-zinc-700 transition hover:border-emerald-200 hover:bg-zinc-50",
+        compact && "px-2 py-1.5",
+      )}
+    >
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={displayName}
+          className={cn(
+            "rounded-full object-cover",
+            compact ? "h-7 w-7" : "h-8 w-8",
+          )}
+        />
+      ) : (
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]",
+            compact ? "h-7 w-7" : "h-8 w-8",
+          )}
+        >
+          <User className={cn("text-white", compact ? "h-3.5 w-3.5" : "h-4 w-4")} />
+        </div>
+      )}
+      {!compact && (
+        <span className="text-sm font-medium text-zinc-700">{displayName}</span>
+      )}
+    </Link>
   );
 }
 
