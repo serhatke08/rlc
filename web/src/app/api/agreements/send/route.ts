@@ -99,7 +99,7 @@ export async function POST(request: Request) {
           status: 'pending',
           created_at: new Date().toISOString(),
         } as any)
-        .select()
+        .select('id')
         .single();
 
       if (insertError || !newRequest) {
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ 
         success: true, 
-        agreementId: newRequest.id,
+        agreementId: (newRequest as { id: string }).id,
         type: 'verification_request'
       });
     } else if (agreementType === 'item_link') {
@@ -150,7 +150,7 @@ export async function POST(request: Request) {
           status: 'pending',
           created_at: new Date().toISOString(),
         } as any)
-        .select()
+        .select('id')
         .single();
 
       if (insertError || !newLink) {
@@ -163,7 +163,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ 
         success: true, 
-        agreementId: newLink.id,
+        agreementId: (newLink as { id: string }).id,
         type: 'item_link'
       });
     } else {
