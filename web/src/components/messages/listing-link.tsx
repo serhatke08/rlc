@@ -29,7 +29,7 @@ export function ListingLink({ listingId, title, thumbnailUrl, images }: ListingL
       {thumbnailUrl || images?.[0] ? (
         <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
           <Image
-            src={thumbnailUrl || images[0]}
+            src={thumbnailUrl || images?.[0] || ''}
             alt={title}
             fill
             className="object-cover"
