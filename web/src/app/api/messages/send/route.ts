@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Mesaj gönder
-    const { data: messageId, error: sendError } = await supabase.rpc(
+    const { data: messageId, error: sendError } = await (supabase.rpc as any)(
       'send_message',
       listingId 
         ? {
