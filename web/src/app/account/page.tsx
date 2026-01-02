@@ -8,6 +8,7 @@ import { EditListingButton } from "@/components/edit-listing-button";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { LogoutButton } from "@/components/logout-button";
 import { ProfileTabs } from "@/components/account/profile-tabs";
+import { AccountPageWrapper } from "@/components/account/account-page-wrapper";
 
 export default async function AccountPage() {
   const supabase = await createSupabaseServerClient();
@@ -173,7 +174,8 @@ export default async function AccountPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+    <AccountPageWrapper>
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       {/* Profil Başlık Kartı */}
       <div className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
         {/* Üst Gradient Banner */}
@@ -265,6 +267,7 @@ export default async function AccountPage() {
         />
       </div>
     </div>
+    </AccountPageWrapper>
   );
 }
 

@@ -60,7 +60,7 @@ export function MessageInput({ conversationId, receiverId, listingId }: MessageI
 
       if (!response.ok) {
         console.error("Failed to send message:", data);
-        alert(`Mesaj gönderilemedi: ${data.error || 'Unknown error'}`);
+        alert(`Failed to send message: ${data.error || 'Unknown error'}`);
         setLoading(false);
         return;
       }
@@ -68,15 +68,15 @@ export function MessageInput({ conversationId, receiverId, listingId }: MessageI
       if (data.success) {
         setMessage("");
         setLoading(false);
-        // Mesaj gönderildi, realtime subscription ile otomatik güncellenecek
-        // Sayfayı yenilemeye gerek yok
+        // Message sent, will be automatically updated via realtime subscription
+        // No need to refresh page
       } else {
-        alert("Mesaj gönderilemedi. Lütfen tekrar deneyin.");
+        alert("Failed to send message. Please try again.");
         setLoading(false);
       }
     } catch (error: any) {
       console.error("Error:", error);
-      alert(`Bir hata oluştu: ${error?.message || JSON.stringify(error)}`);
+      alert(`An error occurred: ${error?.message || JSON.stringify(error)}`);
       setLoading(false);
     }
   };

@@ -75,13 +75,13 @@ function LoginForm() {
       });
       
       if (signInError) {
-        // Kullanıcı dostu hata mesajları
+        // User-friendly error messages
         if (signInError.message.includes("Invalid login credentials") || signInError.message.includes("invalid_credentials")) {
-          setError("Email veya şifre hatalı. Lütfen tekrar deneyin.");
+          setError("Invalid email or password. Please try again.");
         } else if (signInError.message.includes("Email not confirmed")) {
-          setError("Email adresinizi doğrulamanız gerekiyor. Lütfen email'inizi kontrol edin.");
+          setError("Please verify your email address. Check your inbox.");
         } else {
-          setError(signInError.message || "Giriş yapılamadı. Lütfen tekrar deneyin.");
+          setError(signInError.message || "Failed to sign in. Please try again.");
         }
         setLoading(false);
         return;

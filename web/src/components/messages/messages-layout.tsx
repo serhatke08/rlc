@@ -185,7 +185,8 @@ export function MessagesLayout({
 
       if (error) {
         console.error('Delete conversation error:', error);
-        alert(`Failed to delete conversation: ${error.message}`);
+        const errorMessage = error.message || JSON.stringify(error) || 'Unknown error';
+        alert(`Failed to delete conversation: ${errorMessage}`);
         return;
       }
 

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 
 import { UIProvider } from "@/components/providers/ui-provider";
 import { LayoutWrapper } from "@/components/layout/layout-wrapper";
 import { generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo/schema";
 import { getSiteUrl } from "@/lib/env";
 import { getDomainIcon, getDomainFavicon, getHostnameFromSiteUrl } from "@/lib/domain-icons";
+import { AdSenseScript } from "@/components/ads/adsense-script";
 
 import "./globals.css";
 
@@ -124,18 +124,12 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <AdSenseScript />
         <UIProvider>
           <LayoutWrapper>
             {children}
           </LayoutWrapper>
         </UIProvider>
-        {/* Google AdSense Code */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6962376212093267"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );

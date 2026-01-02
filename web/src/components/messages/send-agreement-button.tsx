@@ -32,21 +32,21 @@ export function SendAgreementButton({ listingId, buyerId }: SendAgreementButtonP
       const data = await response.json();
 
       if (!response.ok) {
-        alert(`Anlaşma gönderilemedi: ${data.error || 'Unknown error'}`);
+        alert(`Failed to send agreement: ${data.error || 'Unknown error'}`);
         setLoading(false);
         return;
       }
 
       if (data.success) {
         setSent(true);
-        alert('Anlaşma başarıyla gönderildi!');
+        alert('Agreement sent successfully!');
       } else {
-        alert('Anlaşma gönderilemedi. Lütfen tekrar deneyin.');
+        alert('Failed to send agreement. Please try again.');
         setLoading(false);
       }
     } catch (error: any) {
       console.error("Error:", error);
-      alert(`Bir hata oluştu: ${error?.message || JSON.stringify(error)}`);
+      alert(`An error occurred: ${error?.message || JSON.stringify(error)}`);
       setLoading(false);
     }
   };
