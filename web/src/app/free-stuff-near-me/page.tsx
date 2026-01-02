@@ -29,8 +29,6 @@ export default async function FreeStuffPage() {
   const supabase = await createSupabaseServerClient();
 
   // Fetch free listings
-  // NOT: Completed transactions filtrelemesi artık RLS (Row Level Security) policy'si ile
-  // database seviyesinde yapılıyor. JavaScript tarafında ek filtreleme gerekmez.
   const { data } = await supabase
     .from("listings")
     .select(`
@@ -56,8 +54,30 @@ export default async function FreeStuffPage() {
     .order("created_at", { ascending: false })
     .limit(100);
 
+  // Completed transactions'da olan listing'leri filtrele
+  // Given ve Received durumundaki ürünler anasayfada görünmemeli
   const listingsData = (data || []) as any[];
-  const listings: FeaturedListing[] = listingsData.map((listing: any) => ({
+  let filteredListings = listingsData;
+  
+  if (listingsData.length > 0) {
+    const listingIds = listingsData.map((listing: any) => listing.id);
+    
+    const { data: completedTransactions } = await supabase
+      .from("item_transactions")
+      .select("listing_id")
+      .in("listing_id", listingIds)
+      .eq("status", "completed");
+    
+    if (completedTransactions && completedTransactions.length > 0) {
+      const completedListingIdsSet = new Set(
+        completedTransactions.map((t: any) => t.listing_id).filter(Boolean)
+      );
+      filteredListings = listingsData.filter(
+        (listing: any) => !completedListingIdsSet.has(listing.id)
+      );
+    }
+  }
+  const listings: FeaturedListing[] = filteredListings.map((listing: any) => ({
     id: listing.id,
     title: listing.title,
     description: listing.description,

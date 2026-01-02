@@ -47,20 +47,26 @@ export async function POST(request: Request) {
     }
 
     // Mesaj gönder
-    const { data: messageId, error: sendError } = await (supabase.rpc as any)(
+    const { data: messageId, error: sendError } = await supabase.rpc(
       'send_message',
-      {
-        p_sender_id: user.id,
-        p_receiver_id: receiverId,
-        p_content: sanitizedContent,
-        p_listing_id: listingId || null
-      }
+      listingId 
+        ? {
+            p_sender_id: user.id,
+            p_receiver_id: receiverId,
+            p_content: sanitizedContent,
+            p_listing_id: listingId
+          }
+        : {
+            p_sender_id: user.id,
+            p_receiver_id: receiverId,
+            p_content: sanitizedContent
+          }
     );
 
     if (sendError) {
       console.error("Failed to send message:", sendError);
       return NextResponse.json(
-        { error: sendError.message || 'Failed to send message' },
+        { error: sendError.message || 'Failed to send message', details: sendError },
         { status: 500 }
       );
     }

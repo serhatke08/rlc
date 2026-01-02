@@ -3,12 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   Plus,
   Search,
   User,
-  ChevronDown,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -21,10 +21,14 @@ const gradientButton =
 
 export function SiteHeader() {
   const { openMobileSidebar } = useUI();
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(undefined); // undefined = loading, null = not logged in
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  
+  // Mesajlar sayfasında search bar gösterme
+  const isMessagesPage = pathname === '/messages' || pathname?.startsWith('/messages/');
 
   useEffect(() => {
     let mounted = true;
@@ -43,6 +47,7 @@ export function SiteHeader() {
           setUser(null);
           setProfile(null);
           setLoading(false);
+          setProfileLoading(false);
           return;
         }
         
@@ -53,6 +58,7 @@ export function SiteHeader() {
           setUser(null);
           setProfile(null);
           setLoading(false);
+          setProfileLoading(false);
           return;
         }
         
@@ -61,24 +67,28 @@ export function SiteHeader() {
         setLoading(false);
         
         // Profil bilgilerini çek
+        setProfileLoading(true);
         try {
           const { data, error: profileError } = await supabase
             .from("profiles")
-            .select("username, avatar_url")
+            .select("username, display_name, avatar_url")
             .eq("id", user.id)
             .single();
           
           if (!mounted) return;
           
           if (profileError) {
-            console.error("Error loading profile:", profileError);
+            console.error("[SiteHeader] Error loading profile:", profileError);
             setProfile(null);
           } else {
+            console.log("[SiteHeader] Profile loaded:", data);
             setProfile(data);
           }
         } catch (err) {
-          console.error("Error fetching profile:", err);
+          console.error("[SiteHeader] Error fetching profile:", err);
           if (mounted) setProfile(null);
+        } finally {
+          if (mounted) setProfileLoading(false);
         }
       } catch (err) {
         console.error("Error in checkUser:", err);
@@ -86,6 +96,7 @@ export function SiteHeader() {
           setUser(null);
           setProfile(null);
           setLoading(false);
+          setProfileLoading(false);
         }
       }
     };
@@ -105,23 +116,28 @@ export function SiteHeader() {
           setLoading(false);
           
           // Profil bilgilerini çek
+          setProfileLoading(true);
           try {
             const { data, error: profileError } = await supabase
               .from("profiles")
-              .select("username, avatar_url")
+              .select("username, display_name, avatar_url")
               .eq("id", session.user.id)
               .single();
             
             if (!mounted) return;
             
             if (!profileError && data) {
+              console.log("[SiteHeader] Profile loaded from auth change:", data);
               setProfile(data);
             } else {
+              console.error("[SiteHeader] Profile error from auth change:", profileError);
               setProfile(null);
             }
           } catch (err) {
-            console.error("[SiteHeader] Error loading profile:", err);
+            console.error("[SiteHeader] Error loading profile from auth change:", err);
             if (mounted) setProfile(null);
+          } finally {
+            if (mounted) setProfileLoading(false);
           }
         } else {
           setUser(null);
@@ -135,6 +151,7 @@ export function SiteHeader() {
         setUser(null);
         setProfile(null);
         setLoading(false);
+        setProfileLoading(false);
       }
     });
 
@@ -145,22 +162,6 @@ export function SiteHeader() {
   }, []);
 
 
-  // Dropdown'u dışına tıklandığında kapat
-  useEffect(() => {
-    if (!dropdownOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.user-dropdown')) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownOpen]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/60 bg-white/90 backdrop-blur-lg">
@@ -174,38 +175,31 @@ export function SiteHeader() {
             ) : user ? (
               <>
                 <NotificationBell />
-                <div className="relative user-dropdown">
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                {profileLoading ? (
+                  <div className="h-10 w-24 animate-pulse rounded-2xl bg-zinc-200" />
+                ) : (
+                  <Link
+                    href="/account"
                     className="flex items-center gap-2 rounded-2xl border border-zinc-200 px-4 py-2 transition hover:border-emerald-200"
                   >
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}
-                        alt={profile.username || "User"}
+                        alt={profile.display_name || profile.username || "User"}
                         className="h-6 w-6 rounded-full object-cover"
                       />
                     ) : (
                       <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                        <User className="h-3 w-3 text-white" />
+                        <span className="text-xs font-semibold text-white">
+                          {(profile?.display_name || profile?.username || user?.email?.[0] || "U")[0]?.toUpperCase()}
+                        </span>
                       </div>
                     )}
-                    <span className="text-zinc-700">@{profile?.username || "Profile"}</span>
-                    <ChevronDown className="h-4 w-4 text-zinc-500" />
-                  </button>
-                  {dropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white shadow-lg z-50">
-                      <Link
-                        href="/account"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 rounded-2xl"
-                      >
-                        <User className="h-4 w-4" />
-                        My Account
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                    <span className="text-zinc-700">
+                      {profile?.display_name || profile?.username || user?.email?.split("@")[0] || "Profile"}
+                    </span>
+                  </Link>
+                )}
                 <AddProductButton />
               </>
             ) : (
@@ -218,9 +212,11 @@ export function SiteHeader() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <SearchBar />
-        </div>
+        {!isMessagesPage && (
+          <div className="flex items-center gap-4">
+            <SearchBar />
+          </div>
+        )}
       </div>
 
       {/* Mobile layout */}
@@ -237,41 +233,32 @@ export function SiteHeader() {
         </div>
         <div className="flex items-center gap-2">
           {user && <NotificationBell />}
-          {loading ? (
+          {loading || (user && profileLoading) ? (
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />
           ) : user ? (
-            <div className="relative user-dropdown">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-zinc-200 px-3"
-              >
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.username || "User"}
-                    className="h-6 w-6 rounded-full object-cover"
-                  />
-                ) : (
-                  <User className="h-4 w-4 text-zinc-700" />
-                )}
-                {profile?.username && (
-                  <span className="text-xs font-semibold text-zinc-700">@{profile.username}</span>
-                )}
-                <ChevronDown className="h-3 w-3 text-zinc-500" />
-              </button>
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-zinc-200 bg-white shadow-lg z-50">
-                  <Link
-                    href="/account"
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-2 px-4 py-3 text-sm text-zinc-700 transition hover:bg-zinc-50 rounded-2xl"
-                  >
-                    <User className="h-4 w-4" />
-                    My Account
-                  </Link>
+            <Link
+              href="/account"
+              className="inline-flex h-10 items-center gap-2 rounded-2xl border border-zinc-200 px-3"
+            >
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name || profile.username || "User"}
+                  className="h-6 w-6 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
+                  <span className="text-[10px] font-semibold text-white">
+                    {(profile?.display_name || profile?.username || "U")[0]?.toUpperCase()}
+                  </span>
                 </div>
               )}
-            </div>
+              {(profile?.display_name || profile?.username) && (
+                <span className="text-xs font-semibold text-zinc-700">
+                  {profile.display_name || profile.username}
+                </span>
+              )}
+            </Link>
           ) : (
             <Link
               href="/auth/login"

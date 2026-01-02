@@ -8,15 +8,20 @@
 -- 1. MEVCUT POLICY'YI GÜNCELLE
 -- ============================================
 
--- Mevcut "Listings are viewable by everyone" policy'sini kaldır
+-- Mevcut "Listings are viewable by everyone" policy'sini kaldır (idempotent)
 DROP POLICY IF EXISTS "Listings are viewable by everyone" ON listings;
 
 -- Yeni policy: Completed transactions'da olan listing'leri filtrele
+-- ÖNEMLİ: Completed transactions'daki listing'ler HİÇBİR anasayfada görünmemeli
+-- Account sayfasındaki "Items" tab'ı da sadece aktif ve completed olmayan listing'leri gösterir
+-- "Given" ve "Received" tab'ları transaction'ları gösterir (listings değil), bu yüzden etkilenmez
+-- NOT: DROP IF EXISTS ile önce sildiğimiz için bu CREATE POLICY tekrar tekrar çalıştırılabilir (idempotent)
 CREATE POLICY "Listings are viewable by everyone" ON listings
   FOR SELECT USING (
-    -- Aktif listing'ler veya kullanıcının kendi listing'leri
+    -- Aktif listing'ler veya kullanıcının kendi listing'leri (account sayfası için)
     (status = 'active' OR seller_id = auth.uid())
     -- VE completed transactions'da olmayan listing'ler
+    -- Bu filtre TÜM kullanıcılar için geçerlidir (anasayfada görünmesin diye)
     AND NOT EXISTS (
       SELECT 1 
       FROM item_transactions

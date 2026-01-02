@@ -56,7 +56,7 @@ export function HomeListings({ listings, categories = [], country = null, region
       <section className="relative overflow-hidden w-screen ml-[calc(-50vw+50%)] lg:hidden">
         <div className="relative w-full">
           <Image
-            src="/images/reloopcycleheromobil.png"
+            src="/images/newapoditon.png"
             alt="ReloopCycle - Circular Economy Marketplace"
             width={0}
             height={0}
@@ -70,7 +70,7 @@ export function HomeListings({ listings, categories = [], country = null, region
       {/* Desktop: Container width */}
       <section className="relative overflow-hidden hidden lg:block mx-auto max-w-6xl aspect-[3/1] min-h-[500px] px-6">
         <Image
-          src="/images/Reloopcycle.png"
+          src="/images/newapoditon.png"
           alt="ReloopCycle - Circular Economy Marketplace"
           fill
           className="object-contain object-left"

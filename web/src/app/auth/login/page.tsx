@@ -75,8 +75,14 @@ function LoginForm() {
       });
       
       if (signInError) {
-        console.error("Login error:", signInError);
-        setError(signInError.message);
+        // Kullanıcı dostu hata mesajları
+        if (signInError.message.includes("Invalid login credentials") || signInError.message.includes("invalid_credentials")) {
+          setError("Email veya şifre hatalı. Lütfen tekrar deneyin.");
+        } else if (signInError.message.includes("Email not confirmed")) {
+          setError("Email adresinizi doğrulamanız gerekiyor. Lütfen email'inizi kontrol edin.");
+        } else {
+          setError(signInError.message || "Giriş yapılamadı. Lütfen tekrar deneyin.");
+        }
         setLoading(false);
         return;
       }

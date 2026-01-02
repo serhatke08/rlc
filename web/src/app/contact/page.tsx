@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "Contact Us | ReloopCycle Support",
   description: "Get in touch with ReloopCycle. We're here to help with questions about our circular economy marketplace.",
   keywords: ["contact reloopcycle", "customer support", "help", "get in touch"],
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function ContactPage() {

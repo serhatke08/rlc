@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getServerUser } from "@/lib/supabase/server";
 import type {
   FeaturedListing,
   ListingCondition,
@@ -46,16 +46,9 @@ export async function getFeaturedListings(options?: {
   // Kullanıcının ülkesini al
   let userCountryId: string | null = null;
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const user = await getServerUser();
     
-    // Silently handle missing session (user not logged in) - this is normal
-    if (userError) {
-      // Only log unexpected errors, not session missing errors
-      if (userError.name !== "AuthSessionMissingError" && userError.status !== 400) {
-        console.error("Error getting user in getFeaturedListings:", userError);
-      }
-      // Continue without user country - show all countries
-    } else if (user) {
+    if (user) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("country_id")
@@ -145,10 +138,32 @@ export async function getFeaturedListings(options?: {
     return [];
   }
 
-  // NOT: Completed transactions filtrelemesi artık RLS (Row Level Security) policy'si ile
-  // database seviyesinde yapılıyor. JavaScript tarafında ek filtreleme gerekmez.
-  // RLS policy: supabasesql/44_filter_completed_transactions_rls.sql
-  const filteredData = data;
+  // Completed transactions'da olan listing'leri filtrele
+  // Given ve Received durumundaki ürünler anasayfada görünmemeli
+  const listingIds = data.map((listing) => listing.id);
+  const completedListingIds: Set<string> = new Set();
+  
+  if (listingIds.length > 0) {
+    // Sadece bu listing'ler için completed transaction kontrolü yap
+    const { data: completedTransactions } = await supabase
+      .from("item_transactions")
+      .select("listing_id")
+      .in("listing_id", listingIds)
+      .eq("status", "completed");
+    
+    if (completedTransactions) {
+      completedTransactions.forEach((t) => {
+        if (t?.listing_id) {
+          completedListingIds.add(t.listing_id);
+        }
+      });
+    }
+  }
+
+  // Completed olanları filtrele
+  const filteredData = data.filter(
+    (listing) => !completedListingIds.has(listing.id)
+  );
 
   const lifecycleMap: Record<string, ListingLifecycle> = {
     active: "available",

@@ -1,11 +1,13 @@
 import { redirect, notFound } from "next/navigation";
-import { MessageCircle, Send, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatRelativeTimeFromNow } from "@/lib/formatters";
 import { MessageInput } from "@/components/message-input";
+import { SendAgreementButton } from "@/components/messages/send-agreement-button";
+import { MessagesChatClient } from "@/components/messages/messages-chat-client";
+import { ListingLink } from "@/components/messages/listing-link";
 
 interface ConversationPageProps {
   params: Promise<{
@@ -33,7 +35,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
       user1_id,
       user2_id,
       listing_id,
-      listing:listings(id, title, thumbnail_url, images),
+      listing:listings(id, title, thumbnail_url, images, seller_id),
       user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
       user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url)
     `)
@@ -53,6 +55,11 @@ export default async function ConversationPage({ params }: ConversationPageProps
 
   // Karşı tarafı belirle
   const otherUser = conversationData.user1_id === user.id ? conversationData.user2 : conversationData.user1;
+  
+  // Bu konuşma kullanıcının kendi ürününe mi ait?
+  const isMyListing = conversationData.listing_id && conversationData.listing?.id 
+    ? conversationData.listing.seller_id === user.id 
+    : false;
 
   // Mesajları çek
   const { data: messages } = await supabase
@@ -81,10 +88,10 @@ export default async function ConversationPage({ params }: ConversationPageProps
   }
 
   return (
-    <div className="flex h-screen flex-col bg-zinc-50">
+    <div className="flex h-screen flex-col overflow-hidden bg-zinc-50">
       {/* Header */}
-      <div className="border-b border-zinc-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-4xl items-center gap-4">
+      <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-3 py-2.5">
+        <div className="mx-auto flex max-w-2xl items-center gap-3">
           <Link
             href="/messages"
             className="flex-shrink-0 text-zinc-600 transition hover:text-zinc-900"
@@ -102,7 +109,9 @@ export default async function ConversationPage({ params }: ConversationPageProps
                 />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                  <MessageCircle className="h-5 w-5 text-white" />
+                  <span className="text-lg font-semibold text-white">
+                    {(otherUser.display_name || otherUser.username)?.[0]?.toUpperCase()}
+                  </span>
                 </div>
               )}
               <div>
@@ -118,82 +127,42 @@ export default async function ConversationPage({ params }: ConversationPageProps
 
       {/* Ürün Bilgisi (varsa) */}
       {conversationData.listing && (
-        <div className="border-b border-zinc-200 bg-white px-4 py-3">
-          <div className="mx-auto max-w-4xl">
-            <Link 
-              href={`/listing/${conversationData.listing.id}`}
-              className="flex items-center gap-3 hover:opacity-80 transition"
-            >
-              {/* Ürün Görseli */}
-              {conversationData.listing.thumbnail_url || conversationData.listing.images?.[0] ? (
-                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-                  <Image
-                    src={conversationData.listing.thumbnail_url || conversationData.listing.images[0]}
-                    alt={conversationData.listing.title}
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                  />
-                </div>
-              ) : (
-                <div className="h-16 w-16 flex-shrink-0 rounded-lg border border-zinc-200 bg-zinc-100" />
-              )}
+        <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-3 py-2.5">
+          <div className="mx-auto max-w-2xl">
+            <div className="flex items-center justify-between gap-2">
+              <ListingLink
+                listingId={conversationData.listing.id}
+                title={conversationData.listing.title}
+                thumbnailUrl={conversationData.listing.thumbnail_url}
+                images={conversationData.listing.images}
+              />
               
-              {/* Ürün Bilgisi */}
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-zinc-500">About:</p>
-                <p className="font-medium text-zinc-900 line-clamp-2">{conversationData.listing.title}</p>
-              </div>
-            </Link>
+              {/* Anlaşma Gönder Butonu - Sadece kullanıcının kendi ürününe mesaj atıldıysa */}
+              {isMyListing && otherUser && (
+                <SendAgreementButton 
+                  listingId={conversationData.listing.id}
+                  buyerId={otherUser.id}
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Mesajlar */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="mx-auto max-w-4xl space-y-3">
-          {messagesData && messagesData.length > 0 ? (
-            messagesData.map((message: any) => {
-              const isOwn = message.sender_id === user.id;
-              return (
-                <div
-                  key={message.id}
-                  className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                      isOwn
-                        ? "bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] text-white"
-                        : "bg-white text-zinc-900 shadow-sm"
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                    <p
-                      className={`mt-1 text-[10px] ${
-                        isOwn ? "text-white/70" : "text-zinc-500"
-                      }`}
-                    >
-                      {formatRelativeTimeFromNow(message.created_at)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-zinc-500">No messages yet. Send the first message!</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Mesaj Input */}
-      <MessageInput 
-        conversationId={id} 
-        receiverId={otherUser?.id || ""} 
-        listingId={conversationData.listing_id}
+      {/* Mesajlar - Client component ile scroll to bottom */}
+      <MessagesChatClient 
+        messages={messagesData}
+        currentUserId={user.id}
       />
+
+      {/* Mesaj Input - Her zaman altta */}
+      <div className="flex-shrink-0">
+        <MessageInput 
+          conversationId={id} 
+          receiverId={otherUser?.id || ""} 
+          listingId={conversationData.listing_id}
+        />
+      </div>
     </div>
   );
 }
-

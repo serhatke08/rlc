@@ -12,24 +12,27 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUI } from "@/components/providers/ui-provider";
-import { SidebarAd } from "@/components/ads/google-adsense";
 
 const MAIN_LINKS = [
-  { label: "Home", href: "/", icon: Home },
+  { label: "Home", href: "/", icon: Home, bgColor: "bg-emerald-100", textColor: "text-emerald-700" },
   {
     label: "Messages",
     href: "/messages",
     icon: MessageSquare,
+    bgColor: "bg-blue-100",
+    textColor: "text-blue-700",
   },
   {
     label: "Favorites",
     href: "/favorites",
     icon: Heart,
+    bgColor: "bg-rose-100",
+    textColor: "text-rose-700",
   },
+  { label: "My Account", href: "/account", icon: User, bgColor: "bg-purple-100", textColor: "text-purple-700" },
 ];
 
 const BOTTOM_LINKS = [
-  { label: "My Account", href: "/account", icon: User },
   { label: "About", href: "/about", icon: Info },
   { label: "Contact", href: "/contact", icon: Phone },
 ];
@@ -85,14 +88,18 @@ function SidebarContent({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "group flex items-center rounded-2xl px-3 py-3 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-100",
+                "group flex items-center rounded-2xl px-3 py-3 text-sm font-semibold transition hover:opacity-80",
                 collapsed && "justify-center px-0",
               )}
             >
-              <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700">
+              <span className={cn(
+                "relative inline-flex h-10 w-10 items-center justify-center rounded-2xl",
+                item.bgColor || "bg-zinc-100",
+                item.textColor || "text-zinc-700"
+              )}>
                 <Icon className="h-5 w-5" />
               </span>
-              {!collapsed && <span className="ml-3">{item.label}</span>}
+              {!collapsed && <span className={cn("ml-3", item.textColor || "text-zinc-600")}>{item.label}</span>}
             </Link>
           );
         })}
@@ -118,14 +125,6 @@ function SidebarContent({
           );
         })}
       </div>
-
-      {/* Advertisement Section - Clearly labeled and separated from navigation */}
-      {!collapsed && (
-        <div className="mt-auto pt-4 border-t border-zinc-200">
-          <p className="mb-2 text-xs font-medium text-zinc-400 uppercase tracking-wide">Advertisement</p>
-          <SidebarAd />
-        </div>
-      )}
     </div>
   );
 }

@@ -44,7 +44,7 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
         <div className="relative aspect-square bg-zinc-100">
           {listing.thumbnail_url || listing.images?.[0] ? (
             <img
-              src={listing.thumbnail_url || listing.images[0]}
+              src={listing.thumbnail_url || listing.images?.[0]}
               alt={listing.title}
               className="h-full w-full object-cover"
             />

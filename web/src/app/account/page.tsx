@@ -55,11 +55,13 @@ export default async function AccountPage() {
   const filteredListings = listings || [];
 
   // GIVEN: Kullanıcının verdiği ürünler (item_transactions)
+  // RLS policy'si nedeniyle listing'leri direkt çekemeyebiliriz, bu yüzden listing_id'leri alıp ayrı sorgu yapalım
   const { data: givenTransactions, error: givenError } = await supabase
     .from("item_transactions")
     .select(`
-      *,
-      listing:listings(*)
+      id,
+      listing_id,
+      created_at
     `)
     .eq("seller_id", user.id)
     .eq("status", "completed")
@@ -69,12 +71,30 @@ export default async function AccountPage() {
     console.error("Error loading given transactions:", givenError);
   }
 
+  // Given transaction'ların listing'lerini çek
+  let givenListings: any[] = [];
+  if (givenTransactions && givenTransactions.length > 0) {
+    const givenListingIds = givenTransactions
+      .map(t => t.listing_id)
+      .filter(Boolean) as string[];
+    
+    if (givenListingIds.length > 0) {
+      const { data: listings } = await supabase
+        .from("listings")
+        .select("*")
+        .in("id", givenListingIds);
+      
+      givenListings = listings || [];
+    }
+  }
+
   // RECEIVED: Kullanıcının aldığı ürünler (item_transactions)
   const { data: receivedTransactions, error: receivedError } = await supabase
     .from("item_transactions")
     .select(`
-      *,
-      listing:listings(*)
+      id,
+      listing_id,
+      created_at
     `)
     .eq("buyer_id", user.id)
     .eq("status", "completed")
@@ -84,10 +104,40 @@ export default async function AccountPage() {
     console.error("Error loading received transactions:", receivedError);
   }
 
+  // Received transaction'ların listing'lerini çek
+  let receivedListings: any[] = [];
+  if (receivedTransactions && receivedTransactions.length > 0) {
+    const receivedListingIds = receivedTransactions
+      .map(t => t.listing_id)
+      .filter(Boolean) as string[];
+    
+    if (receivedListingIds.length > 0) {
+      const { data: listings } = await supabase
+        .from("listings")
+        .select("*")
+        .in("id", receivedListingIds);
+      
+      receivedListings = listings || [];
+    }
+  }
+
   // Ülke bilgisini formatla
   const listingsData = filteredListings as any[];
-  const givenData = (givenTransactions || []) as any[];
-  const receivedData = (receivedTransactions || []) as any[];
+  
+  // Given ve Received için transaction'ları listing'lerle eşleştir
+  const givenData = (givenTransactions || []).map(trans => ({
+    id: trans.id,
+    listing_id: trans.listing_id,
+    created_at: trans.created_at,
+    listing: givenListings.find(l => l.id === trans.listing_id) || null
+  }));
+  
+  const receivedData = (receivedTransactions || []).map(trans => ({
+    id: trans.id,
+    listing_id: trans.listing_id,
+    created_at: trans.created_at,
+    listing: receivedListings.find(l => l.id === trans.listing_id) || null
+  }));
 
   // Profil yoksa veya hata varsa bilgi göster
   if (!profile) {

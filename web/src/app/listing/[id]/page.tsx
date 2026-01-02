@@ -20,7 +20,6 @@ import { ListingBlockButton } from "@/components/listing-block-button";
 import { ListingViewTracker } from "@/components/listing-view-tracker";
 import { ListingFavoriteButton } from "@/components/listing-favorite-button";
 import { getSiteUrl } from "@/lib/env";
-import { InArticleAd } from "@/components/ads/google-adsense";
 
 interface ListingPageProps {
   params: Promise<{
@@ -216,12 +215,6 @@ export default async function ListingPage({ params }: ListingPageProps) {
         <div className="mb-6">
           <h1 className="mb-3 text-2xl font-bold text-zinc-900">{listingData.title}</h1>
           <p className="whitespace-pre-line text-zinc-700">{listingData.description}</p>
-        </div>
-
-        {/* Advertisement Section - Clearly labeled and separated from content */}
-        <div className="mb-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-          <p className="mb-2 text-xs font-medium text-zinc-400 uppercase tracking-wide text-center">Advertisement</p>
-          <InArticleAd />
         </div>
 
         {/* Lokasyon, Tarih ve İstatistikler - Tek Satır */}

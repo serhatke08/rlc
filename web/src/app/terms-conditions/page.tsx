@@ -4,6 +4,10 @@ export const metadata: Metadata = {
   title: "Terms & Conditions | ReloopCycle",
   description: "ReloopCycle Terms and Conditions. Read our terms of service for using the platform.",
   keywords: ["terms and conditions", "terms of service", "user agreement"],
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function TermsConditionsPage() {

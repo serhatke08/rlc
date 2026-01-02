@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "Subscription Plans | ReloopCycle Premium Features",
   description: "Unlock premium features with ReloopCycle subscriptions. Unlimited listings, priority support, and advanced analytics.",
   keywords: ["reloopcycle subscription", "premium features", "pricing", "plans"],
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function SubscriptionPage() {

@@ -3,10 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 
 import { UIProvider } from "@/components/providers/ui-provider";
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteSidebar } from "@/components/layout/site-sidebar";
-import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { LayoutWrapper } from "@/components/layout/layout-wrapper";
 import { generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo/schema";
 import { getSiteUrl } from "@/lib/env";
 import { getDomainIcon, getDomainFavicon, getHostnameFromSiteUrl } from "@/lib/domain-icons";
@@ -31,29 +28,34 @@ function getIconsForDomain() {
   try {
     const hostname = getHostnameFromSiteUrl(siteUrl);
     const iconPath = getDomainIcon(hostname);
+    const faviconPath = getDomainFavicon(hostname);
     
     return {
       icon: [
-        { url: '/favicon.ico', sizes: "any" }, // .ico file for Google (priority)
+        { url: faviconPath, sizes: "any" }, // .ico file for Google (priority)
+        { url: iconPath, sizes: "any" }, // Main icon
         { url: '/icon-32x32.png', sizes: "32x32", type: "image/png" },
         { url: '/icon-192x192.png', sizes: "192x192", type: "image/png" },
         { url: '/icon-512x512.png', sizes: "512x512", type: "image/png" },
       ],
       apple: [
+        { url: iconPath, sizes: "180x180", type: "image/png" },
         { url: '/icon-192x192.png', sizes: "180x180", type: "image/png" },
       ],
-      shortcut: '/favicon.ico', // .ico format for Google
+      shortcut: faviconPath, // .ico format for Google
     };
   } catch {
     // Fallback
     return {
       icon: [
         { url: '/favicon.ico', sizes: "any" },
+        { url: '/icon.png', sizes: "any" },
         { url: '/icon-32x32.png', sizes: "32x32", type: "image/png" },
         { url: '/icon-192x192.png', sizes: "192x192", type: "image/png" },
         { url: '/icon-512x512.png', sizes: "512x512", type: "image/png" },
       ],
       apple: [
+        { url: '/icon.png', sizes: "180x180", type: "image/png" },
         { url: '/icon-192x192.png', sizes: "180x180", type: "image/png" },
       ],
       shortcut: '/favicon.ico',
@@ -123,17 +125,9 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <UIProvider>
-          <div className="relative min-h-screen bg-white">
-            <SiteHeader />
-            <div className="mx-auto flex w-full max-w-[1600px] gap-6 px-4 pb-24 pt-1 lg:px-8">
-              <SiteSidebar />
-              <main className="flex-1 min-w-0 rounded-[32px] bg-white px-4 py-6 shadow-sm shadow-zinc-100">
-                {children}
-              </main>
-            </div>
-            <SiteFooter />
-            <MobileBottomNav />
-          </div>
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
         </UIProvider>
         {/* Google AdSense Code */}
         <Script

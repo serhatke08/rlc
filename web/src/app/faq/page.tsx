@@ -4,6 +4,10 @@ export const metadata: Metadata = {
   title: "FAQ | Frequently Asked Questions - ReloopCycle",
   description: "Find answers to common questions about ReloopCycle. Learn how to buy, sell, swap, and give away items on our platform.",
   keywords: ["faq", "help", "questions", "how to use reloopcycle"],
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function FAQPage() {

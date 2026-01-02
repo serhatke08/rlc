@@ -4,6 +4,10 @@ export const metadata: Metadata = {
   title: "Privacy Policy | ReloopCycle",
   description: "ReloopCycle Privacy Policy. Learn how we collect, use, and protect your personal information.",
   keywords: ["privacy policy", "data protection", "GDPR"],
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function PrivacyPolicyPage() {

@@ -4,6 +4,10 @@ export const metadata: Metadata = {
   title: "Refund Policy | ReloopCycle",
   description: "ReloopCycle Refund Policy. Learn about our refund terms for credits and subscriptions.",
   keywords: ["refund policy", "money back", "returns"],
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RefundPolicyPage() {

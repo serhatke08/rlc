@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 
 interface MessageInputProps {
@@ -12,6 +12,15 @@ interface MessageInputProps {
 export function MessageInput({ conversationId, receiverId, listingId }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [message]);
 
   const handleSend = async () => {
     // Input validation and sanitization
@@ -58,8 +67,9 @@ export function MessageInput({ conversationId, receiverId, listingId }: MessageI
 
       if (data.success) {
         setMessage("");
-        // Sayfayı yenile (mesajlar otomatik güncellenecek)
-        window.location.reload();
+        setLoading(false);
+        // Mesaj gönderildi, realtime subscription ile otomatik güncellenecek
+        // Sayfayı yenilemeye gerek yok
       } else {
         alert("Mesaj gönderilemedi. Lütfen tekrar deneyin.");
         setLoading(false);
@@ -79,20 +89,21 @@ export function MessageInput({ conversationId, receiverId, listingId }: MessageI
   };
 
   return (
-    <div className="border-t border-zinc-200 bg-white px-4 py-3">
-      <div className="mx-auto flex max-w-4xl items-end gap-2">
+    <div className="flex-shrink-0 border-t border-zinc-200 bg-white px-3 py-2.5">
+      <div className="mx-auto flex max-w-2xl items-end gap-2">
         <textarea
+          ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Mesaj yazın..."
+          placeholder="Type a message..."
           rows={1}
-          className="flex-1 resize-none rounded-2xl border border-zinc-200 px-4 py-2 text-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+          className="flex-1 resize-none overflow-y-auto rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm placeholder:text-zinc-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
         />
         <button
           onClick={handleSend}
           disabled={!message.trim() || loading}
-          className="flex-shrink-0 rounded-full bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] p-3 text-white transition hover:scale-105 disabled:opacity-50"
+          className="flex-shrink-0 rounded-full bg-gradient-to-r from-[#9c6cfe] to-[#0ad2dd] p-3 text-white shadow-sm transition hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
           <Send className="h-5 w-5" />
         </button>
