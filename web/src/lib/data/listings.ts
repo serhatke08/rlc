@@ -140,7 +140,7 @@ export async function getFeaturedListings(options?: {
 
   // Completed transactions'da olan listing'leri filtrele
   // Given ve Received durumundaki ürünler anasayfada görünmemeli
-  const listingIds = data.map((listing) => listing.id);
+  const listingIds = (data as any[]).map((listing) => listing.id);
   const completedListingIds: Set<string> = new Set();
   
   if (listingIds.length > 0) {
