@@ -58,7 +58,7 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
           <h3 className="font-semibold text-zinc-900 line-clamp-2">{listing.title}</h3>
           <p className="mt-1 text-sm text-zinc-500">{listing.city_name}</p>
           <p className="mt-2 text-lg font-bold text-emerald-600">
-            {listing.listing_type === 'free' || listing.price === "0" || listing.price === 0
+            {listing.listing_type === 'free' || listing.price === "0" || listing.price === "0.00"
               ? "Free"
               : listing.listing_type === 'exchange'
                 ? "Swap"
