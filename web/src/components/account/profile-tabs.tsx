@@ -21,7 +21,7 @@ interface Listing {
 
 interface Transaction {
   id: string;
-  listing_id: string;
+  listing_id: string | null;
   created_at: string;
   listing: Listing | null;
 }
