@@ -44,7 +44,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (listing.seller_id !== user.id) {
+    const listingData = listing as { id: string; seller_id: string; status: string };
+
+    if (listingData.seller_id !== user.id) {
       return NextResponse.json(
         { error: 'You can only send agreements for your own listings' },
         { status: 403 }
@@ -52,7 +54,7 @@ export async function POST(request: Request) {
     }
 
     // Listing'in aktif olduğunu kontrol et
-    if (listing.status !== 'active') {
+    if (listingData.status !== 'active') {
       return NextResponse.json(
         { error: 'Can only send agreements for active listings' },
         { status: 400 }
