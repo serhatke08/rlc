@@ -177,11 +177,11 @@ export function MessagesLayout({
       
       console.log('Deleting conversation:', { conversationId, isUser1, updateData, currentUserId, user1_id: conversation.user1_id, user2_id: conversation.user2_id });
       
-      const { data, error } = await (supabase
+      // Update without select - SELECT policy filters hidden rows so we can't select after update
+      const { error } = await (supabase
         .from('conversations') as any)
         .update(updateData)
-        .eq('id', conversationId)
-        .select('id, hidden_by_user1, hidden_by_user2');
+        .eq('id', conversationId);
 
       if (error) {
         console.error('Delete conversation error:', error);
@@ -190,15 +190,7 @@ export function MessagesLayout({
         return;
       }
 
-      if (!data || data.length === 0) {
-        console.error('No rows updated - conversation not found or permission denied');
-        alert('Failed to delete conversation. Conversation not found or you do not have permission.');
-        return;
-      }
-
-      console.log('Conversation hidden successfully:', data[0]);
-
-      // Güncelleme başarılı - state'den kaldır
+      // Update successful - remove from state
       setConversations(prev => prev.filter(c => c.id !== conversationId));
       
       // Eğer silinen konuşma seçiliyse, seçimi temizle
