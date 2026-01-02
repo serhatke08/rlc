@@ -177,8 +177,8 @@ export function MessagesLayout({
       
       console.log('Deleting conversation:', { conversationId, isUser1, updateData, currentUserId, user1_id: conversation.user1_id, user2_id: conversation.user2_id });
       
-      const { data, error } = await supabase
-        .from('conversations')
+      const { data, error } = await (supabase
+        .from('conversations') as any)
         .update(updateData)
         .eq('id', conversationId)
         .select('id, hidden_by_user1, hidden_by_user2');
