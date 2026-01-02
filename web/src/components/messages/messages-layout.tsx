@@ -395,7 +395,7 @@ export function MessagesLayout({
                         {/* Ürün Resmi (varsa) */}
                         {conversation.listing && (conversation.listing.thumbnail_url || conversation.listing.images?.[0]) && (
                           <img
-                            src={conversation.listing.thumbnail_url || conversation.listing.images[0]}
+                            src={conversation.listing.thumbnail_url || conversation.listing.images?.[0] || ''}
                             alt={conversation.listing.title}
                             className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
                           />
