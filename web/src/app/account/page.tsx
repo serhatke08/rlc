@@ -74,7 +74,7 @@ export default async function AccountPage() {
   // Given transaction'ların listing'lerini çek
   let givenListings: any[] = [];
   if (givenTransactions && givenTransactions.length > 0) {
-    const givenListingIds = givenTransactions
+    const givenListingIds = (givenTransactions as Array<{ id: string; listing_id: string | null; created_at: string }>)
       .map(t => t.listing_id)
       .filter(Boolean) as string[];
     
@@ -107,7 +107,7 @@ export default async function AccountPage() {
   // Received transaction'ların listing'lerini çek
   let receivedListings: any[] = [];
   if (receivedTransactions && receivedTransactions.length > 0) {
-    const receivedListingIds = receivedTransactions
+    const receivedListingIds = (receivedTransactions as Array<{ id: string; listing_id: string | null; created_at: string }>)
       .map(t => t.listing_id)
       .filter(Boolean) as string[];
     
@@ -125,14 +125,14 @@ export default async function AccountPage() {
   const listingsData = filteredListings as any[];
   
   // Given ve Received için transaction'ları listing'lerle eşleştir
-  const givenData = (givenTransactions || []).map(trans => ({
+  const givenData = ((givenTransactions || []) as Array<{ id: string; listing_id: string | null; created_at: string }>).map(trans => ({
     id: trans.id,
     listing_id: trans.listing_id,
     created_at: trans.created_at,
     listing: givenListings.find(l => l.id === trans.listing_id) || null
   }));
   
-  const receivedData = (receivedTransactions || []).map(trans => ({
+  const receivedData = ((receivedTransactions || []) as Array<{ id: string; listing_id: string | null; created_at: string }>).map(trans => ({
     id: trans.id,
     listing_id: trans.listing_id,
     created_at: trans.created_at,
