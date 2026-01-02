@@ -98,7 +98,7 @@ export async function POST(request: Request) {
           seller_id: user.id,
           status: 'pending',
           created_at: new Date().toISOString(),
-        })
+        } as any)
         .select()
         .single();
 
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
           sender_id: user.id,
           status: 'pending',
           created_at: new Date().toISOString(),
-        })
+        } as any)
         .select()
         .single();
 
