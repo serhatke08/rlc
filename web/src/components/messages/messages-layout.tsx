@@ -168,7 +168,7 @@ export function MessagesLayout({
               // 404 hatası normal (conversation henüz görünmüyor olabilir - RLS nedeniyle)
               // Conversation zaten oluşturulmuş, sadece henüz görünmüyor
               // Minimal conversation objesi oluştur ve state'e ekle
-              if (response.status === 404 && sellerId) {
+              if (response.status === 404 && sellerId && conversationId) {
                 console.log('Conversation not found yet (RLS), creating minimal conversation object');
                 
                 // Seller ve listing bilgilerini fetch et
@@ -235,6 +235,8 @@ export function MessagesLayout({
                 } catch (sellerErr) {
                   console.error('Error fetching seller profile or listing:', sellerErr);
                   // Seller ve listing bilgisi olmadan da devam et - minimal conversation oluştur
+                  if (!conversationId) return;
+                  
                   const minimalConversation: Conversation = {
                     id: conversationId,
                     user1_id: currentUserId,
