@@ -28,10 +28,10 @@ export function HomeListings({ listings, categories = [], country = null, region
   const [activeFilter, setActiveFilter] = useState("all");
   // Default grid (with descriptions) for non-authenticated users, gallery for authenticated users
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>(isAuthenticated ? 'gallery' : 'grid');
-  const [gridColumns, setGridColumns] = useState<2 | 3 | 4 | 5>(2);
+  const [gridColumns, setGridColumns] = useState<2 | 3 | 4 | 5>(5); // PC'de başlangıçta 5x5
   
   // Mobile columns (only 2 or 3)
-  const [mobileColumns, setMobileColumns] = useState<2 | 3>(2);
+  const [mobileColumns, setMobileColumns] = useState<2 | 3>(2); // Mobilde başlangıçta 2x2
   const [columnsDropdownOpen, setColumnsDropdownOpen] = useState(false);
   const columnsDropdownRef = useRef<HTMLDivElement>(null);
 

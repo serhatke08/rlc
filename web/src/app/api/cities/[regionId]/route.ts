@@ -47,6 +47,7 @@ export async function GET(
     country_id: c.country_id,
   }));
 
-  return NextResponse.json({ cities });
+  // Return direct array (not wrapped in object) - create-listing expects array
+  return NextResponse.json(cities);
 }
 
