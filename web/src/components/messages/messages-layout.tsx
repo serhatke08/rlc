@@ -303,7 +303,9 @@ export function MessagesLayout({
             });
 
             // Seç
-            setSelectedId(conversationId);
+            if (conversationId) {
+              setSelectedId(conversationId);
+            }
           } catch (err) {
             console.error('Error fetching conversation:', err);
           }
