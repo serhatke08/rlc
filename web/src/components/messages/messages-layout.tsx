@@ -177,8 +177,11 @@ export function MessagesLayout({
               return;
             }
 
+            // Type assertion - Supabase'den gelen data'yı Conversation tipine cast et
+            const conversation = convData as any as Conversation;
+
             // Kullanıcının bu conversation'a erişimi var mı kontrol et
-            if (convData.user1_id !== currentUserId && convData.user2_id !== currentUserId) {
+            if (conversation.user1_id !== currentUserId && conversation.user2_id !== currentUserId) {
               console.error('User does not have access to this conversation');
               return;
             }
@@ -189,7 +192,7 @@ export function MessagesLayout({
               if (prev.find(c => c.id === conversationId)) {
                 return prev;
               }
-              return [...prev, convData as Conversation];
+              return [...prev, conversation];
             });
 
             // Seç
