@@ -58,11 +58,16 @@ export async function getFeaturedListings(options?: {
       const profileData = profile as { country_id?: string } | null;
       if (profileData?.country_id) {
         userCountryId = profileData.country_id;
+        // Debug: Log country_id to verify it's being fetched correctly
+        console.log("[getFeaturedListings] User country_id:", userCountryId);
+      } else {
+        console.log("[getFeaturedListings] User has no country_id in profile");
       }
     }
   } catch (error) {
     // Kullanıcı giriş yapmamışsa veya profil yoksa devam et
     // Don't log - this is expected for anonymous users
+    console.log("[getFeaturedListings] Error fetching user country:", error);
   }
 
   // Sorgu oluştur

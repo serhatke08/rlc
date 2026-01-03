@@ -215,13 +215,13 @@ export default async function AccountPage() {
 
   return (
     <AccountPageWrapper>
-      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+      <div className="mx-auto max-w-5xl space-y-6 px-3 sm:px-4 py-4 sm:py-8">
       {/* Profil Başlık Kartı */}
-      <div className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200 bg-white shadow-sm">
         {/* Üst Gradient Banner */}
-        <div className="relative h-32 bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd]">
+        <div className="relative h-24 sm:h-32 bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd]">
           {/* Avatar */}
-          <div className="absolute bottom-0 left-6 translate-y-1/2 z-20">
+          <div className="absolute bottom-0 left-3 sm:left-6 translate-y-1/2 z-20">
             <AvatarUpload 
               currentAvatarUrl={safeProfileData?.avatar_url} 
               userId={user.id}
@@ -231,19 +231,19 @@ export default async function AccountPage() {
         </div>
         
         {/* Profil Bilgileri */}
-        <div className="relative px-6 pb-6">
+        <div className="relative px-3 sm:px-6 pb-4 sm:pb-6">
 
           {/* İsim ve Kullanıcı Adı */}
-          <div className="mt-20 space-y-3">
+          <div className="mt-16 sm:mt-20 space-y-2 sm:space-y-3">
             <div>
-              <h1 className="text-2xl font-bold text-zinc-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-zinc-900">
                 {safeProfileData.display_name}
               </h1>
-              <p className="text-base text-zinc-500">@{safeProfileData.username}</p>
+              <p className="text-sm sm:text-base text-zinc-500">@{safeProfileData.username}</p>
             </div>
 
             {/* İstatistikler */}
-            <div className="flex items-center gap-6 text-sm">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm">
               {/* Takipçi */}
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-zinc-900">
