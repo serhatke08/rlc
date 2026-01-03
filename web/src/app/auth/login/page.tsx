@@ -131,6 +131,14 @@ function LoginForm() {
 
   return (
     <div className="space-y-6">
+      {message === "check-email" && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <p className="text-sm font-semibold text-emerald-900">Please check your email</p>
+          <p className="mt-1 text-sm text-emerald-700">
+            We've sent you a confirmation email. Please click the link in the email to verify your account before signing in.
+          </p>
+        </div>
+      )}
       <div className="space-y-2 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
         <h1 className="text-2xl font-semibold text-zinc-900">Sign in to your account</h1>
