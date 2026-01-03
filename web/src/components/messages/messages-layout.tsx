@@ -190,10 +190,10 @@ export function MessagesLayout({
       console.log('Deleting conversation:', { conversationId, isUser1, currentUserId, user1_id: conversation.user1_id, user2_id: conversation.user2_id });
       
       // Use RPC function to hide conversation (bypasses RLS policy issues)
-      const { data, error } = await supabase.rpc('hide_conversation', {
+      const { data, error } = await (supabase.rpc('hide_conversation', {
         p_conversation_id: conversationId,
         p_user_id: currentUserId
-      });
+      }) as any);
 
       if (error) {
         console.error('Delete conversation error:', error);
