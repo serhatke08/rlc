@@ -106,7 +106,7 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
         <button
           onClick={() => setActiveTab('given')}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 text-sm font-semibold transition border-b-2 -mb-[1px]",
+            "hidden md:flex items-center gap-2 px-4 py-3 text-sm font-semibold transition border-b-2 -mb-[1px]",
             activeTab === 'given'
               ? "border-emerald-600 text-emerald-600"
               : "border-transparent text-zinc-500 hover:text-zinc-700"
@@ -119,7 +119,7 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
         <button
           onClick={() => setActiveTab('received')}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 text-sm font-semibold transition border-b-2 -mb-[1px]",
+            "hidden md:flex items-center gap-2 px-4 py-3 text-sm font-semibold transition border-b-2 -mb-[1px]",
             activeTab === 'received'
               ? "border-emerald-600 text-emerald-600"
               : "border-transparent text-zinc-500 hover:text-zinc-700"
@@ -146,7 +146,7 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
         )}
 
         {activeTab === 'given' && (
-          <div>
+          <div className="hidden md:block">
             {given.length > 0 ? (
               (() => {
                 const validListings = given.filter(transaction => transaction.listing !== null);
@@ -169,7 +169,7 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
         )}
 
         {activeTab === 'received' && (
-          <div>
+          <div className="hidden md:block">
             {received.length > 0 ? (
               (() => {
                 const validListings = received.filter(transaction => transaction.listing !== null);

@@ -62,7 +62,7 @@ export function MobileBottomNav() {
   });
   
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 px-4 py-2 shadow-2xl shadow-black/10 backdrop-blur lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-[9999] border-t border-zinc-200 bg-white/95 px-4 py-2 shadow-2xl shadow-black/10 backdrop-blur lg:hidden" style={{ transform: 'translateY(0)', willChange: 'transform' }}>
       <ul className="flex items-center justify-between">
         {visibleItems.map((item) => {
           const Icon = item.icon;

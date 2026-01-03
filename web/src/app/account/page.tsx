@@ -215,7 +215,7 @@ export default async function AccountPage() {
 
   return (
     <AccountPageWrapper>
-      <div className="mx-auto max-w-5xl space-y-6 px-3 sm:px-4 py-4 sm:py-8">
+      <div className="mx-auto max-w-5xl space-y-6 px-3 sm:px-4 py-4 sm:py-8 overflow-x-hidden">
       {/* Profil Başlık Kartı */}
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200 bg-white shadow-sm">
         {/* Üst Gradient Banner */}
@@ -275,7 +275,7 @@ export default async function AccountPage() {
               <div className="flex items-center gap-2 text-sm text-zinc-600">
                 <MapPin className="h-4 w-4" />
                 <span>
-                  {profileData.country.name} {profileData.country.flag_emoji || ''}
+                  {profileData.country.name} {profileData.country.code ? `(${profileData.country.code})` : ''} {profileData.country.flag_emoji || ''}
                 </span>
               </div>
             )}
