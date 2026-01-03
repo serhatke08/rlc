@@ -149,35 +149,24 @@ export function MessagesLayout({
         // Conversation bulunamadı, fetch et (yeni oluşturulan conversation olabilir)
         const fetchConversation = async () => {
           try {
-            const supabase = createSupabaseBrowserClient();
-            const { data: convData, error } = await supabase
-              .from('conversations')
-              .select(`
-                id,
-                user1_id,
-                user2_id,
-                listing_id,
-                updated_at,
-                listing:listings(id, title, thumbnail_url, images, seller_id),
-                user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
-                user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url),
-                messages(
-                  id,
-                  content,
-                  sender_id,
-                  is_read,
-                  created_at
-                )
-              `)
-              .eq('id', conversationId)
-              .single();
+            // API route kullan (server-side, RLS bypass)
+            const response = await fetch(`/api/conversations/${conversationId}`, {
+              cache: 'no-store',
+            });
 
-            if (error || !convData) {
-              console.error('Failed to fetch conversation:', error);
+            if (!response.ok) {
+              console.error('Failed to fetch conversation:', response.status);
               return;
             }
 
-            // Type assertion - Supabase'den gelen data'yı Conversation tipine cast et
+            const convData = await response.json();
+
+            if (!convData || !convData.id) {
+              console.error('Invalid conversation data');
+              return;
+            }
+
+            // Type assertion - API'den gelen data'yı Conversation tipine cast et
             const conversation = convData as any as Conversation;
 
             // Kullanıcının bu conversation'a erişimi var mı kontrol et
