@@ -183,7 +183,7 @@ export function MessagesLayout({
                     .single();
                   
                   // Listing bilgilerini fetch et (eğer listingId varsa)
-                  let listingData = null;
+                  let listingData: any = null;
                   if (listingId) {
                     const { data: listing } = await supabase
                       .from('listings')
@@ -193,6 +193,9 @@ export function MessagesLayout({
                     listingData = listing;
                   }
                   
+                  // Type assertion for sellerProfile
+                  const seller = sellerProfile as { username?: string; display_name?: string | null; avatar_url?: string | null } | null;
+                  
                   // Minimal conversation objesi oluştur (sadece chat açılabilmesi için)
                   const minimalConversation: Conversation = {
                     id: conversationId,
@@ -201,11 +204,11 @@ export function MessagesLayout({
                     listing_id: listingId || null,
                     updated_at: new Date().toISOString(),
                     messages: [],
-                    user2: sellerProfile ? {
+                    user2: seller ? {
                       id: sellerId,
-                      username: sellerProfile.username || 'user',
-                      display_name: sellerProfile.display_name || sellerProfile.username || 'User',
-                      avatar_url: sellerProfile.avatar_url || null,
+                      username: seller.username || 'user',
+                      display_name: seller.display_name || seller.username || 'User',
+                      avatar_url: seller.avatar_url || null,
                     } : {
                       id: sellerId,
                       username: 'user',
