@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { MessageCircle, User, Trash2 } from "lucide-react";
 import { formatRelativeTimeFromNow } from "@/lib/formatters";
 import { MessagesChatView } from "./messages-chat-view";
@@ -66,6 +66,7 @@ export function MessagesLayout({
   currentUserId
 }: MessagesLayoutProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('received');
   const [isMobile, setIsMobile] = useState(false);
@@ -104,27 +105,29 @@ export function MessagesLayout({
   }, [conversations, currentUserId]);
 
   // Mesaj atanlar (kullanıcıya mesaj atanlar) - useMemo ile optimize et
+  // Sadece mesajı olan conversation'ları göster
   const receivedConversations = useMemo(() => {
     return conversationsWithDetails.filter((conv) => {
-      // İlk mesajı kim attı kontrol et
+      // Mesaj yoksa gösterme
       const firstMessage = conv.messages?.[0];
       if (!firstMessage) {
-        // Mesaj yoksa, conversation'ı başlatan kullanıcı değilse "Received" tab'ında göster
-        // (user1_id currentUserId ise kullanıcı başlattı, değilse başkası başlattı)
-        return conv.user1_id !== currentUserId;
+        return false;
       }
+      // İlk mesajı kim attı kontrol et
       return firstMessage.sender_id !== currentUserId;
     });
   }, [conversationsWithDetails, currentUserId]);
 
   // Benim mesaj attıklarım (kullanıcının mesaj attığı) - useMemo ile optimize et
+  // Sadece mesajı olan conversation'ları göster
   const sentConversations = useMemo(() => {
     return conversationsWithDetails.filter((conv) => {
+      // Mesaj yoksa gösterme
       const firstMessage = conv.messages?.[0];
       if (!firstMessage) {
-        // Mesaj yoksa, conversation'ı kullanıcı başlattıysa "My Messages" tab'ında göster
-        return conv.user1_id === currentUserId;
+        return false;
       }
+      // İlk mesajı kullanıcı attı mı kontrol et
       return firstMessage.sender_id === currentUserId;
     });
   }, [conversationsWithDetails, currentUserId]);
@@ -136,18 +139,25 @@ export function MessagesLayout({
     });
   }, [conversationsWithDetails, receivedConversations]);
 
-  // Query parameter'dan conversation ID'yi oku ve seç
+  // Query parameter'dan conversation ID'yi oku ve seç (sadece ilk yönlendirme için)
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
-    if (conversationId && !selectedId) {
-      // Conversation'ı bul
+    const sellerId = searchParams.get('sellerId');
+    const listingId = searchParams.get('listingId');
+    
+    if (conversationId && selectedId !== conversationId) {
+      // Hem mobilde hem desktop'ta aynı şekilde çalış: conversation'ı bul ve seç
       const conversation = conversations.find(c => c.id === conversationId);
       if (conversation) {
         // Conversation bulundu, seç
         setSelectedId(conversationId);
       } else {
         // Conversation bulunamadı, fetch et (yeni oluşturulan conversation olabilir)
-        const fetchConversation = async () => {
+        fetchConversation();
+      }
+
+      function fetchConversation() {
+        const fetchConv = async () => {
           try {
             // API route kullan (server-side, RLS bypass)
             const response = await fetch(`/api/conversations/${conversationId}`, {
@@ -155,6 +165,109 @@ export function MessagesLayout({
             });
 
             if (!response.ok) {
+              // 404 hatası normal (conversation henüz görünmüyor olabilir - RLS nedeniyle)
+              // Conversation zaten oluşturulmuş, sadece henüz görünmüyor
+              // Minimal conversation objesi oluştur ve state'e ekle
+              if (response.status === 404 && sellerId) {
+                console.log('Conversation not found yet (RLS), creating minimal conversation object');
+                
+                // Seller ve listing bilgilerini fetch et
+                try {
+                  const supabase = createSupabaseBrowserClient();
+                  
+                  // Seller bilgilerini fetch et
+                  const { data: sellerProfile } = await supabase
+                    .from('profiles')
+                    .select('id, username, display_name, avatar_url')
+                    .eq('id', sellerId)
+                    .single();
+                  
+                  // Listing bilgilerini fetch et (eğer listingId varsa)
+                  let listingData = null;
+                  if (listingId) {
+                    const { data: listing } = await supabase
+                      .from('listings')
+                      .select('id, title, thumbnail_url, images, seller_id')
+                      .eq('id', listingId)
+                      .single();
+                    listingData = listing;
+                  }
+                  
+                  // Minimal conversation objesi oluştur (sadece chat açılabilmesi için)
+                  const minimalConversation: Conversation = {
+                    id: conversationId,
+                    user1_id: currentUserId,
+                    user2_id: sellerId,
+                    listing_id: listingId || null,
+                    updated_at: new Date().toISOString(),
+                    messages: [],
+                    user2: sellerProfile ? {
+                      id: sellerId,
+                      username: sellerProfile.username || 'user',
+                      display_name: sellerProfile.display_name || sellerProfile.username || 'User',
+                      avatar_url: sellerProfile.avatar_url || null,
+                    } : {
+                      id: sellerId,
+                      username: 'user',
+                      display_name: 'User',
+                      avatar_url: null,
+                    },
+                    listing: listingData ? {
+                      id: listingData.id,
+                      title: listingData.title,
+                      thumbnail_url: listingData.thumbnail_url,
+                      images: listingData.images,
+                      seller_id: listingData.seller_id,
+                    } : null,
+                  };
+
+                  // Conversation'ı state'e ekle
+                  setConversations(prev => {
+                    if (prev.find(c => c.id === conversationId)) {
+                      return prev;
+                    }
+                    return [...prev, minimalConversation];
+                  });
+
+                  // Seç
+                  setSelectedId(conversationId);
+                  return;
+                } catch (sellerErr) {
+                  console.error('Error fetching seller profile or listing:', sellerErr);
+                  // Seller ve listing bilgisi olmadan da devam et - minimal conversation oluştur
+                  const minimalConversation: Conversation = {
+                    id: conversationId,
+                    user1_id: currentUserId,
+                    user2_id: sellerId,
+                    listing_id: listingId || null,
+                    updated_at: new Date().toISOString(),
+                    messages: [],
+                    user2: {
+                      id: sellerId,
+                      username: 'user',
+                      display_name: 'User',
+                      avatar_url: null,
+                    },
+                    listing: listingId ? {
+                      id: listingId,
+                      title: '',
+                      thumbnail_url: null,
+                      images: null,
+                      seller_id: sellerId,
+                    } : null,
+                  };
+
+                  setConversations(prev => {
+                    if (prev.find(c => c.id === conversationId)) {
+                      return prev;
+                    }
+                    return [...prev, minimalConversation];
+                  });
+
+                  setSelectedId(conversationId);
+                  return;
+                }
+              }
               console.error('Failed to fetch conversation:', response.status);
               return;
             }
@@ -191,10 +304,43 @@ export function MessagesLayout({
           }
         };
 
-        fetchConversation();
+        fetchConv();
       }
     }
-  }, [searchParams, conversations, selectedId, currentUserId]);
+  }, [searchParams, conversations, selectedId, currentUserId, isMobile, router]);
+
+  // Seçili conversation değiştiğinde, eğer o conversation mevcut tab'da yoksa tab'ı değiştir
+  // Ama sadece conversation bulunamazsa, yoksa kullanıcı tab'ı kontrol etsin
+  useEffect(() => {
+    if (!selectedId) return;
+
+    // conversationsWithDetails'dan seçili conversation'ı bul
+    const selectedConv = conversationsWithDetails.find(c => c.id === selectedId);
+    if (!selectedConv) return;
+
+    // Conversation'ın hangi tab'da olması gerektiğini belirle
+    const firstMessage = selectedConv.messages?.[0];
+    const shouldBeInSent = firstMessage 
+      ? firstMessage.sender_id === currentUserId
+      : selectedConv.user1_id === currentUserId;
+
+    // Mevcut tab'da bu conversation var mı kontrol et
+    const conversationsToShow = activeTab === 'sent' 
+      ? sentConversations 
+      : (isMobile ? receivedOnMyListings : receivedConversations);
+    
+    const isInCurrentTab = conversationsToShow.some(c => c.id === selectedId);
+    
+    // Eğer seçili conversation mevcut tab'da yoksa ve tab değişmesi gerekiyorsa, tab'ı değiştir
+    if (!isInCurrentTab) {
+      if (shouldBeInSent && activeTab !== 'sent') {
+        setActiveTab('sent');
+      } else if (!shouldBeInSent && activeTab !== 'received') {
+        setActiveTab('received');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, currentUserId]);
 
   // Desktop'ta ilk konuşmayı otomatik seç (query parameter yoksa)
   useEffect(() => {
@@ -207,14 +353,16 @@ export function MessagesLayout({
       ? sentConversations 
       : receivedConversations;
     
-    // Eğer seçili konuşma yeni tab'da yoksa, seçimi sıfırla
-    if (selectedId && !conversationsToShow.find(c => c.id === selectedId)) {
-      setSelectedId(undefined);
+    // Eğer seçili konuşma yeni tab'da varsa, seçili kalsın
+    if (selectedId && conversationsToShow.find(c => c.id === selectedId)) {
+      return; // Seçili conversation bu tab'da, değiştirme
     }
     
-    // Eğer seçili konuşma yoksa, ilk konuşmayı seç
-    if (!selectedId && conversationsToShow.length > 0) {
+    // Eğer seçili konuşma yeni tab'da yoksa, ilk konuşmayı seç
+    if (conversationsToShow.length > 0) {
       setSelectedId(conversationsToShow[0].id);
+    } else {
+      setSelectedId(undefined);
     }
   }, [isDesktop, selectedId, activeTab, sentConversations, receivedConversations, searchParams]);
 
@@ -272,8 +420,8 @@ export function MessagesLayout({
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-zinc-50 xl:flex-row">
-      {/* Sol Panel - Konuşma Listesi */}
-      <div className="flex flex-col overflow-hidden border-r border-zinc-200 bg-white xl:w-96 xl:flex-shrink-0">
+      {/* Sol Panel - Konuşma Listesi (Mobilde: selectedId varsa gizle) */}
+      <div className={`flex flex-col overflow-hidden border-r border-zinc-200 bg-white xl:w-96 xl:flex-shrink-0 ${isMobile && selectedId ? 'hidden' : ''}`}>
         {/* Header */}
         <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-4 py-3.5">
           <h1 className="text-lg font-bold text-zinc-900">Messages</h1>
@@ -375,6 +523,8 @@ export function MessagesLayout({
                       return; // Mobilde Link çalışacak
                     }
                     e.preventDefault();
+                    
+                    // Sadece conversation'ı seç - tab değiştirme, kullanıcı tab'ı kontrol etsin
                     setSelectedId(conversation.id);
                   };
 
@@ -466,9 +616,13 @@ export function MessagesLayout({
 
                   if (isMobile) {
                     return (
-                      <Link key={conversation.id} href={`/messages/${conversation.id}`}>
+                      <div 
+                        key={conversation.id}
+                        onClick={() => setSelectedId(conversation.id)}
+                        className="cursor-pointer"
+                      >
                         {content}
-                      </Link>
+                      </div>
                     );
                   }
 
@@ -484,11 +638,14 @@ export function MessagesLayout({
         </div>
       </div>
 
-      {/* Sağ Panel - Chat (SADECE PC'de - xl: 1280px+) */}
-      <div className="hidden flex-1 overflow-hidden xl:flex xl:flex-col xl:bg-zinc-50">
+      {/* Sağ Panel - Chat (PC'de: xl: 1280px+, Mobilde: selectedId varsa göster) */}
+      <div className={`${isMobile && !selectedId ? 'hidden' : ''} flex-1 overflow-hidden xl:flex xl:flex-col xl:bg-zinc-50`}>
         {selectedId ? (() => {
-          // Seçili conversation'ı bul
-          const selectedConv = conversationsWithDetails.find(c => c.id === selectedId);
+          // Seçili conversation'ı bul - önce conversationsWithDetails'da, yoksa conversations'da ara
+          let selectedConv = conversationsWithDetails.find(c => c.id === selectedId);
+          if (!selectedConv) {
+            selectedConv = conversations.find(c => c.id === selectedId) as any;
+          }
           if (!selectedConv) return null;
           
           // Conversation data'sını hazırla
@@ -519,6 +676,10 @@ export function MessagesLayout({
               currentUserId={currentUserId}
               initialConversation={convData}
               initialMessages={convMessages}
+              onBack={isMobile ? () => {
+                // Mobilde direkt messages sayfasına git - tek seferde
+                window.location.href = '/messages';
+              } : undefined}
             />
           );
         })() : (

@@ -563,17 +563,6 @@ export default function CreateListingPage() {
       <h1 className="mb-8 text-3xl font-bold text-zinc-900">Add Product</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="rounded-lg bg-zinc-100 p-4 text-xs">
-            <div>Categories: {categories.length} | Loading: {loadingCategories ? 'Yes' : 'No'}</div>
-            <div>Countries: {countries.length} | Loading: {loadingCountries ? 'Yes' : 'No'}</div>
-            <div>Regions: {regions.length} | Loading: {loadingRegions ? 'Yes' : 'No'}</div>
-            <div>Cities: {cities.length} | Loading: {loadingCities ? 'Yes' : 'No'}</div>
-            <div>Subcategories: {subcategories.length} | Loading: {loadingSubcategories ? 'Yes' : 'No'}</div>
-          </div>
-        )}
-
         {/* Category */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-zinc-900">

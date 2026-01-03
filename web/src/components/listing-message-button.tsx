@@ -67,8 +67,10 @@ export function MessageButton({ listingId, sellerId, currentUserId, isOwner }: M
       }
 
       console.log("Redirecting to conversation:", data.conversationId);
-      // Mesajlar sayfasına yönlendir - query parameter ile conversation ID'yi geçir
-      router.push(`/messages?conversation=${data.conversationId}`);
+      
+      // Hem mobilde hem desktop'ta aynı route kullan (PC gibi çalışsın)
+      // sellerId ve listingId'yi de query parameter'a ekle (minimal conversation oluşturmak için)
+      router.push(`/messages?conversation=${data.conversationId}&sellerId=${sellerId}&listingId=${listingId}`);
     } catch (error: any) {
       console.error("Error:", error);
       alert(`An error occurred: ${error?.message || JSON.stringify(error)}`);

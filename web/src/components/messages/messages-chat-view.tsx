@@ -67,8 +67,8 @@ export function MessagesChatView({ conversationId, currentUserId, onBack, initia
     
     const loadConversation = async () => {
       try {
-        // Konuşmayı çek
-        const { data: conv, error } = await supabase
+        // Konuşmayı çek - .single() yerine array kullan (RLS sorunlarını önlemek için)
+        const { data: convArray, error } = await supabase
           .from("conversations")
           .select(`
             id,
@@ -80,7 +80,9 @@ export function MessagesChatView({ conversationId, currentUserId, onBack, initia
             user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url)
           `)
           .eq("id", conversationId)
-          .single();
+          .limit(1);
+        
+        const conv = convArray && convArray.length > 0 ? convArray[0] : null;
 
         if (!mounted) return;
 
@@ -215,7 +217,11 @@ export function MessagesChatView({ conversationId, currentUserId, onBack, initia
         <div className="flex items-center gap-3">
           {onBack && (
             <button
-              onClick={onBack}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onBack();
+              }}
               className="flex-shrink-0 text-zinc-600 transition hover:text-zinc-900"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -248,9 +254,9 @@ export function MessagesChatView({ conversationId, currentUserId, onBack, initia
         </div>
       </div>
 
-      {/* Ürün Bilgisi (varsa) */}
+      {/* Ürün Bilgisi (varsa) - Küçük yatay görünüm */}
       {conversation.listing && (
-        <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-3 py-2.5">
+        <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-3 py-2">
           <div className="flex items-center justify-between gap-2">
             <ListingLink
               listingId={conversation.listing.id}

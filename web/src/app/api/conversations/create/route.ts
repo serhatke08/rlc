@@ -49,7 +49,39 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ conversationId });
+    // Conversation bilgisini de fetch et ve döndür (fetch etmeye gerek kalmaması için)
+    const { data: conversation, error: fetchError } = await supabase
+      .from('conversations')
+      .select(`
+        id,
+        user1_id,
+        user2_id,
+        listing_id,
+        updated_at,
+        listing:listings(id, title, thumbnail_url, images, seller_id),
+        user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
+        user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url),
+        messages(
+          id,
+          content,
+          sender_id,
+          is_read,
+          created_at
+        )
+      `)
+      .eq('id', conversationId)
+      .single();
+
+    if (fetchError || !conversation) {
+      // Conversation fetch edilemedi ama ID var, sadece ID döndür
+      console.error('Failed to fetch conversation after creation:', fetchError);
+      return NextResponse.json({ conversationId });
+    }
+
+    return NextResponse.json({ 
+      conversationId,
+      conversation: conversation as any
+    });
   } catch (error: any) {
     console.error('Error in create conversation API:', error);
     return NextResponse.json(

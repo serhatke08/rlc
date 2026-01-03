@@ -1,21 +1,16 @@
 import { redirect, notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { formatRelativeTimeFromNow } from "@/lib/formatters";
-import { MessageInput } from "@/components/message-input";
-import { SendAgreementButton } from "@/components/messages/send-agreement-button";
-import { MessagesChatClient } from "@/components/messages/messages-chat-client";
-import { ListingLink } from "@/components/messages/listing-link";
+import { MessagesChatView } from "@/components/messages/messages-chat-view";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
-interface ConversationPageProps {
+interface MessagesDetailPageProps {
   params: Promise<{
     id: string;
   }>;
 }
 
-export default async function ConversationPage({ params }: ConversationPageProps) {
+export default async function MessagesDetailPage({ params }: MessagesDetailPageProps) {
   const { id } = await params;
   const supabase = await createSupabaseServerClient();
   
@@ -27,151 +22,149 @@ export default async function ConversationPage({ params }: ConversationPageProps
     redirect("/auth/login");
   }
 
-  // Konuşmayı çek - RLS policy nedeniyle conversation bulunamazsa /messages'a yönlendir
-  const { data: conversation, error } = await supabase
+  // Conversation'ı fetch et - RLS ile çalışacak şekilde
+  const { data: conversations, error } = await supabase
     .from("conversations")
     .select(`
       id,
       user1_id,
       user2_id,
       listing_id,
-      hidden_by_user1,
-      hidden_by_user2,
+      updated_at,
       listing:listings(id, title, thumbnail_url, images, seller_id),
       user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
-      user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url)
+      user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url),
+      messages(
+        id,
+        content,
+        sender_id,
+        is_read,
+        created_at
+      )
     `)
     .eq("id", id)
-    .single();
+    .limit(1);
 
-  // RLS policy veya başka bir nedenden conversation bulunamazsa /messages'a yönlendir
-  // Yeni oluşturulan conversation'lar için bu durum normal olabilir (RLS policy gecikmesi)
-  if (error || !conversation) {
-    redirect("/messages");
-  }
+  // Eğer RLS nedeniyle fetch edilemezse, API route kullan
+  if (error || !conversations || conversations.length === 0) {
+    // API route ile tekrar dene
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const cookieHeader = cookieStore.toString();
+      
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      const response = await fetch(`${baseUrl}/api/conversations/${id}`, {
+        cache: 'no-store',
+        headers: {
+          'Cookie': cookieHeader,
+        },
+      });
 
-  // RLS policy kontrolü: Kullanıcının bu conversation'a erişimi var mı?
-  const conversationData = conversation as any;
-  const isUser1 = conversationData.user1_id === user.id;
-  const isUser2 = conversationData.user2_id === user.id;
-  const isHidden = (isUser1 && conversationData.hidden_by_user1) || (isUser2 && conversationData.hidden_by_user2);
-
-  if (!isUser1 && !isUser2) {
-    redirect("/messages");
-  }
-
-  if (isHidden) {
-    redirect("/messages");
-  }
-
-  // Karşı tarafı belirle
-  const otherUser = conversationData.user1_id === user.id ? conversationData.user2 : conversationData.user1;
-  
-  // Bu konuşma kullanıcının kendi ürününe mi ait?
-  const isMyListing = conversationData.listing_id && conversationData.listing?.id 
-    ? conversationData.listing.seller_id === user.id 
-    : false;
-
-  // Mesajları çek
-  const { data: messages } = await supabase
-    .from("messages")
-    .select(`
-      id,
-      sender_id,
-      receiver_id,
-      content,
-      is_read,
-      created_at
-    `)
-    .eq("conversation_id", id)
-    .order("created_at", { ascending: true });
-
-  const messagesData = (messages || []) as any[];
-
-  // Okunmamış mesajları işaretle
-  if (messagesData && messagesData.length > 0) {
-    await (supabase
-      .from("messages") as any)
-      .update({ is_read: true })
-      .eq("conversation_id", id)
-      .eq("receiver_id", user.id)
-      .eq("is_read", false);
-  }
-
-  return (
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-50">
-      {/* Header */}
-      <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-3 py-2.5">
-        <div className="mx-auto flex max-w-2xl items-center gap-3">
-          <Link
-            href="/messages"
-            className="flex-shrink-0 text-zinc-600 transition hover:text-zinc-900"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.id) {
+          const convData = data;
           
-          {otherUser && (
-            <div className="flex flex-1 items-center gap-3">
-              {otherUser.avatar_url ? (
-                <img
-                  src={otherUser.avatar_url}
-                  alt={otherUser.display_name || otherUser.username}
-                  className="h-10 w-10 rounded-full object-cover"
+          // Conversation data'sını hazırla
+          const conversationData = {
+            id: convData.id,
+            user1_id: convData.user1_id,
+            user2_id: convData.user2_id,
+            listing_id: convData.listing_id,
+            listing: convData.listing,
+            user1: convData.user1,
+            user2: convData.user2,
+          };
+
+          // Messages'ı hazırla
+          const messages = (convData.messages || []).map((msg: any) => ({
+            id: msg.id,
+            sender_id: msg.sender_id,
+            receiver_id: convData.user1_id === msg.sender_id ? convData.user2_id : convData.user1_id,
+            content: msg.content,
+            is_read: msg.is_read,
+            created_at: msg.created_at,
+          }));
+
+          return (
+            <div className="flex h-screen flex-col bg-zinc-50">
+              <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-4 py-3">
+                <Link
+                  href="/messages"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Messages
+                </Link>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <MessagesChatView
+                  conversationId={id}
+                  currentUserId={user.id}
+                  initialConversation={conversationData}
+                  initialMessages={messages}
                 />
-              ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd]">
-                  <span className="text-lg font-semibold text-white">
-                    {(otherUser.display_name || otherUser.username)?.[0]?.toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div>
-                <p className="font-semibold text-zinc-900">
-                  {otherUser.display_name || otherUser.username}
-                </p>
-                <p className="text-xs text-zinc-500">@{otherUser.username}</p>
               </div>
             </div>
-          )}
-        </div>
+          );
+        }
+      }
+    } catch (apiErr) {
+      console.error('API route fetch error:', apiErr);
+    }
+    
+    notFound();
+  }
+
+  const convData = conversations[0] as any;
+
+  // Kullanıcının erişimi var mı kontrol et
+  if (convData.user1_id !== user.id && convData.user2_id !== user.id) {
+    notFound();
+  }
+
+  // Conversation data'sını hazırla
+  const conversationData = {
+    id: convData.id,
+    user1_id: convData.user1_id,
+    user2_id: convData.user2_id,
+    listing_id: convData.listing_id,
+    listing: convData.listing,
+    user1: convData.user1,
+    user2: convData.user2,
+  };
+
+  // Messages'ı hazırla
+  const messages = (convData.messages || []).map((msg: any) => ({
+    id: msg.id,
+    sender_id: msg.sender_id,
+    receiver_id: convData.user1_id === msg.sender_id ? convData.user2_id : convData.user1_id,
+    content: msg.content,
+    is_read: msg.is_read,
+    created_at: msg.created_at,
+  }));
+
+  return (
+    <div className="flex h-screen flex-col bg-zinc-50">
+      {/* Mobile Header */}
+      <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-4 py-3">
+        <Link
+          href="/messages"
+          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Messages
+        </Link>
       </div>
 
-      {/* Ürün Bilgisi (varsa) */}
-      {conversationData.listing && (
-        <div className="flex-shrink-0 border-b border-zinc-200 bg-white px-3 py-2.5">
-          <div className="mx-auto max-w-2xl">
-            <div className="flex items-center justify-between gap-2">
-              <ListingLink
-                listingId={conversationData.listing.id}
-                title={conversationData.listing.title}
-                thumbnailUrl={conversationData.listing.thumbnail_url}
-                images={conversationData.listing.images}
-              />
-              
-              {/* Anlaşma Gönder Butonu - Sadece kullanıcının kendi ürününe mesaj atıldıysa */}
-              {isMyListing && otherUser && (
-                <SendAgreementButton 
-                  listingId={conversationData.listing.id}
-                  buyerId={otherUser.id}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mesajlar - Client component ile scroll to bottom */}
-      <MessagesChatClient 
-        messages={messagesData}
-        currentUserId={user.id}
-      />
-
-      {/* Mesaj Input - Her zaman altta */}
-      <div className="flex-shrink-0">
-        <MessageInput 
-          conversationId={id} 
-          receiverId={otherUser?.id || ""} 
-          listingId={conversationData.listing_id}
+      {/* Chat View */}
+      <div className="flex-1 overflow-hidden">
+        <MessagesChatView
+          conversationId={id}
+          currentUserId={user.id}
+          initialConversation={conversationData}
+          initialMessages={messages}
         />
       </div>
     </div>

@@ -26,7 +26,8 @@ export async function GET(
     }
 
     // Fetch conversation with all related data
-    const { data: convData, error } = await supabase
+    // .single() yerine array kullan çünkü .or() ile birlikte sorun yaratabilir
+    const { data: convDataArray, error } = await supabase
       .from('conversations')
       .select(`
         id,
@@ -46,23 +47,27 @@ export async function GET(
         )
       `)
       .eq('id', conversationId)
-      .or(`user1_id.eq."${user.id}",user2_id.eq."${user.id}"`)
-      .single();
+      .limit(1);
 
     if (error) {
       console.error('Failed to fetch conversation:', error);
+      console.error('Conversation ID:', conversationId);
+      console.error('User ID:', user.id);
       return NextResponse.json(
-        { error: error.message || 'Failed to fetch conversation' },
+        { error: error.message || 'Failed to fetch conversation', details: error },
         { status: 500 }
       );
     }
 
-    if (!convData) {
+    if (!convDataArray || convDataArray.length === 0) {
+      console.error('Conversation not found:', { conversationId, userId: user.id });
       return NextResponse.json(
         { error: 'Conversation not found' },
         { status: 404 }
       );
     }
+
+    const convData = convDataArray[0];
 
     // Type assertion - Supabase'den gelen data'yı any olarak cast et
     const conversation = convData as any;
