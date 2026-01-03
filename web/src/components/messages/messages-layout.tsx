@@ -108,7 +108,11 @@ export function MessagesLayout({
     return conversationsWithDetails.filter((conv) => {
       // İlk mesajı kim attı kontrol et
       const firstMessage = conv.messages?.[0];
-      if (!firstMessage) return false;
+      if (!firstMessage) {
+        // Mesaj yoksa, conversation'ı başlatan kullanıcı değilse "Received" tab'ında göster
+        // (user1_id currentUserId ise kullanıcı başlattı, değilse başkası başlattı)
+        return conv.user1_id !== currentUserId;
+      }
       return firstMessage.sender_id !== currentUserId;
     });
   }, [conversationsWithDetails, currentUserId]);
@@ -117,7 +121,10 @@ export function MessagesLayout({
   const sentConversations = useMemo(() => {
     return conversationsWithDetails.filter((conv) => {
       const firstMessage = conv.messages?.[0];
-      if (!firstMessage) return false;
+      if (!firstMessage) {
+        // Mesaj yoksa, conversation'ı kullanıcı başlattıysa "My Messages" tab'ında göster
+        return conv.user1_id === currentUserId;
+      }
       return firstMessage.sender_id === currentUserId;
     });
   }, [conversationsWithDetails, currentUserId]);
@@ -133,13 +140,69 @@ export function MessagesLayout({
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
     if (conversationId && !selectedId) {
-      // Conversation'ı bul ve seç
+      // Conversation'ı bul
       const conversation = conversations.find(c => c.id === conversationId);
       if (conversation) {
+        // Conversation bulundu, seç
         setSelectedId(conversationId);
+      } else {
+        // Conversation bulunamadı, fetch et (yeni oluşturulan conversation olabilir)
+        const fetchConversation = async () => {
+          try {
+            const supabase = createSupabaseBrowserClient();
+            const { data: convData, error } = await supabase
+              .from('conversations')
+              .select(`
+                id,
+                user1_id,
+                user2_id,
+                listing_id,
+                updated_at,
+                listing:listings(id, title, thumbnail_url, images, seller_id),
+                user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
+                user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url),
+                messages(
+                  id,
+                  content,
+                  sender_id,
+                  is_read,
+                  created_at
+                )
+              `)
+              .eq('id', conversationId)
+              .single();
+
+            if (error || !convData) {
+              console.error('Failed to fetch conversation:', error);
+              return;
+            }
+
+            // Kullanıcının bu conversation'a erişimi var mı kontrol et
+            if (convData.user1_id !== currentUserId && convData.user2_id !== currentUserId) {
+              console.error('User does not have access to this conversation');
+              return;
+            }
+
+            // Conversation'ı state'e ekle
+            setConversations(prev => {
+              // Zaten varsa ekleme
+              if (prev.find(c => c.id === conversationId)) {
+                return prev;
+              }
+              return [...prev, convData as Conversation];
+            });
+
+            // Seç
+            setSelectedId(conversationId);
+          } catch (err) {
+            console.error('Error fetching conversation:', err);
+          }
+        };
+
+        fetchConversation();
       }
     }
-  }, [searchParams, conversations, selectedId]);
+  }, [searchParams, conversations, selectedId, currentUserId]);
 
   // Desktop'ta ilk konuşmayı otomatik seç (query parameter yoksa)
   useEffect(() => {
