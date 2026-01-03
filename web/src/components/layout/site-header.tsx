@@ -81,7 +81,7 @@ export function SiteHeader() {
             if (profileError) {
               console.error("[SiteHeader] Profile error:", profileError);
               setProfile(null);
-            } else {
+            } else if (profile) {
               // Merge auth user metadata with profile data
               const userMetadata = user.user_metadata || {};
               const authDisplayName = userMetadata.display_name || userMetadata.displayName;
@@ -140,7 +140,7 @@ export function SiteHeader() {
               if (profileError) {
                 console.error("[SiteHeader] Profile error:", profileError);
                 setProfile(null);
-              } else {
+              } else if (profile) {
                 // Merge auth user metadata with profile data
                 const userMetadata = session.user.user_metadata || {};
                 const authDisplayName = userMetadata.display_name || userMetadata.displayName;
