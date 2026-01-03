@@ -64,15 +64,18 @@ export async function GET(
       );
     }
 
+    // Type assertion - Supabase'den gelen data'yı any olarak cast et
+    const conversation = convData as any;
+
     // Verify user has access (double check)
-    if (convData.user1_id !== user.id && convData.user2_id !== user.id) {
+    if (conversation.user1_id !== user.id && conversation.user2_id !== user.id) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
       );
     }
 
-    return NextResponse.json(convData);
+    return NextResponse.json(conversation);
   } catch (error: any) {
     console.error('Error in get conversation API:', error);
     return NextResponse.json(
