@@ -149,10 +149,13 @@ export default function RegisterPage() {
         return;
       }
 
-      // Profil oluşturulduktan sonra country_id'yi güncelle
+      // Profil oluşturulduktan sonra country_id ve display_name'i güncelle
       const { error: updateError } = await (supabase
         .from("profiles") as any)
-        .update({ country_id: form.countryId })
+        .update({ 
+          country_id: form.countryId,
+          display_name: form.displayName || form.username
+        })
         .eq("id", authData.user.id);
 
       if (updateError) {
