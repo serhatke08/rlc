@@ -82,7 +82,13 @@ export function SiteHeader() {
               console.error("[SiteHeader] Profile error:", profileError);
               setProfile(null);
             } else {
-              setProfile(profile);
+              // Merge auth user metadata with profile data
+              const userMetadata = user.user_metadata || {};
+              const authDisplayName = userMetadata.display_name || userMetadata.displayName;
+              setProfile({
+                ...profile,
+                display_name: authDisplayName || profile.display_name || profile.username || "User"
+              });
             }
           } catch (err) {
             console.error("[SiteHeader] Profile fetch error:", err);
@@ -135,7 +141,13 @@ export function SiteHeader() {
                 console.error("[SiteHeader] Profile error:", profileError);
                 setProfile(null);
               } else {
-                setProfile(profile);
+                // Merge auth user metadata with profile data
+                const userMetadata = session.user.user_metadata || {};
+                const authDisplayName = userMetadata.display_name || userMetadata.displayName;
+                setProfile({
+                  ...profile,
+                  display_name: authDisplayName || profile.display_name || profile.username || "User"
+                });
               }
             } catch (err) {
               console.error("[SiteHeader] Profile fetch error:", err);

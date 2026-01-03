@@ -27,7 +27,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [loadingCountries, setLoadingCountries] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   // Ülkeleri yükle
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     setError(null);
-    setSuccess(false);
+    setEmailSent(false);
     try {
       const supabase = createSupabaseBrowserClient();
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -144,8 +144,9 @@ export default function RegisterPage() {
 
       // Check if email confirmation is required
       if (!authData.user.email_confirmed_at) {
-        // Email confirmation required - redirect to login with message
-        router.push("/auth/login?message=check-email");
+        // Email confirmation required - show message box
+        setEmailSent(true);
+        setLoading(false);
         return;
       }
 
@@ -163,7 +164,6 @@ export default function RegisterPage() {
         // Hata olsa bile kayıt başarılı, sadece logla
       }
 
-      setSuccess(true);
       router.push("/account");
       router.refresh();
     } finally {
@@ -173,13 +173,55 @@ export default function RegisterPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Join the Community</h1>
-        <p className="text-sm text-zinc-500">Create your account for free sharing and swapping.</p>
-      </div>
+      {emailSent ? (
+        <div className="space-y-6">
+          <div className="space-y-2 text-center">
+            <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+            <h1 className="text-2xl font-semibold text-zinc-900">Check Your Email</h1>
+          </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 shadow-sm">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                    <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h2 className="text-lg font-semibold text-zinc-900">Please verify your email</h2>
+                  <p className="text-sm text-zinc-600">
+                    We've sent a confirmation email to <span className="font-semibold text-zinc-900">{form.email}</span>
+                  </p>
+                  <div className="space-y-2 text-sm text-zinc-600">
+                    <p>• Check your inbox and click the verification link</p>
+                    <p>• Don't forget to check your spam folder</p>
+                    <p>• If you didn't receive the email, please try again</p>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-emerald-200">
+                <Link
+                  href="/auth/login"
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd] px-4 py-3 text-base font-semibold text-white transition hover:opacity-90"
+                >
+                  Go to Sign In
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-2 text-center">
+            <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+            <h1 className="text-2xl font-semibold text-zinc-900">Join the Community</h1>
+            <p className="text-sm text-zinc-500">Create your account for free sharing and swapping.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
         <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
           Username *
           <input
@@ -267,23 +309,25 @@ export default function RegisterPage() {
           />
         </label>
 
-        {error ? <p className="text-sm text-rose-500">{error}</p> : null}
+            {error ? <p className="text-sm text-rose-500">{error}</p> : null}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd] px-4 py-3 text-base font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {loading ? "Creating account..." : "Create Account"}
-        </button>
-      </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd] px-4 py-3 text-base font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? "Creating account..." : "Create Account"}
+            </button>
+          </form>
 
-      <p className="text-center text-sm text-zinc-500">
-        Already have an account?{" "}
-        <Link href="/auth/login" className="font-semibold text-emerald-700 hover:text-emerald-500">
-          Sign in
-        </Link>
-      </p>
+          <p className="text-center text-sm text-zinc-500">
+            Already have an account?{" "}
+            <Link href="/auth/login" className="font-semibold text-emerald-700 hover:text-emerald-500">
+              Sign in
+            </Link>
+          </p>
+        </>
+      )}
     </div>
   );
 }

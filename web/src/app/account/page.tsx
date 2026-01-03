@@ -197,11 +197,15 @@ export default async function AccountPage() {
     // Bu durumda profil oluşturulması gerekebilir ama şimdilik default gösterelim
   }
 
+  // Get display_name from auth.users metadata first, then fallback to profiles table
+  const userMetadata = user.user_metadata || {};
+  const authDisplayName = userMetadata.display_name || userMetadata.displayName;
+  
   // Profil verilerini güvenli şekilde al
   const profileData = (profile || {}) as any;
   const safeProfileData = {
     ...profileData,
-    display_name: profileData?.display_name || profileData?.username || "User",
+    display_name: authDisplayName || profileData?.display_name || profileData?.username || "User",
     username: profileData?.username || "user",
     follower_count: profileData?.follower_count || 0,
     following_count: profileData?.following_count || 0,
