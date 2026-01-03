@@ -221,7 +221,7 @@ export function MessagesLayout({
                       thumbnail_url: listingData.thumbnail_url,
                       images: listingData.images,
                       seller_id: listingData.seller_id,
-                    } : null,
+                    } : undefined,
                   };
 
                   // Conversation'ı state'e ekle
@@ -259,7 +259,7 @@ export function MessagesLayout({
                       thumbnail_url: null,
                       images: null,
                       seller_id: sellerId,
-                    } : null,
+                    } : undefined,
                   };
 
                   setConversations(prev => {
