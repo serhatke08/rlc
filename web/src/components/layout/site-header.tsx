@@ -81,13 +81,14 @@ export function SiteHeader() {
             if (profileError) {
               console.error("[SiteHeader] Profile error:", profileError);
               setProfile(null);
-            } else if (profile) {
+            } else if (profile && typeof profile === 'object' && profile !== null) {
               // Merge auth user metadata with profile data
               const userMetadata = user.user_metadata || {};
               const authDisplayName = userMetadata.display_name || userMetadata.displayName;
+              const profileObj = profile as Record<string, any>;
               setProfile({
-                ...profile,
-                display_name: authDisplayName || profile.display_name || profile.username || "User"
+                ...profileObj,
+                display_name: authDisplayName || profileObj.display_name || profileObj.username || "User"
               });
             }
           } catch (err) {
@@ -140,13 +141,14 @@ export function SiteHeader() {
               if (profileError) {
                 console.error("[SiteHeader] Profile error:", profileError);
                 setProfile(null);
-              } else if (profile) {
+              } else if (profile && typeof profile === 'object' && profile !== null) {
                 // Merge auth user metadata with profile data
                 const userMetadata = session.user.user_metadata || {};
                 const authDisplayName = userMetadata.display_name || userMetadata.displayName;
+                const profileObj = profile as Record<string, any>;
                 setProfile({
-                  ...profile,
-                  display_name: authDisplayName || profile.display_name || profile.username || "User"
+                  ...profileObj,
+                  display_name: authDisplayName || profileObj.display_name || profileObj.username || "User"
                 });
               }
             } catch (err) {
