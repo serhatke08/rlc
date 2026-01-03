@@ -142,15 +142,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // Check if email confirmation is required
-      if (!authData.user.email_confirmed_at) {
-        // Email confirmation required - show message box
-        setEmailSent(true);
-        setLoading(false);
-        return;
-      }
-
       // Profil oluşturulduktan sonra country_id ve display_name'i güncelle
+      // Email confirmation gereksin veya gereksin, profil güncellemesi yap
       const { error: updateError } = await (supabase
         .from("profiles") as any)
         .update({ 
@@ -160,8 +153,16 @@ export default function RegisterPage() {
         .eq("id", authData.user.id);
 
       if (updateError) {
-        console.error("Error updating country_id:", updateError);
+        console.error("Error updating profile:", updateError);
         // Hata olsa bile kayıt başarılı, sadece logla
+      }
+
+      // Check if email confirmation is required
+      if (!authData.user.email_confirmed_at) {
+        // Email confirmation required - show message box
+        setEmailSent(true);
+        setLoading(false);
+        return;
       }
 
       router.push("/account");
