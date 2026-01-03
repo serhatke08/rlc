@@ -17,6 +17,7 @@ function LoginForm() {
   
   // Get redirect URL from query params
   const redirectUrl = searchParams.get("redirect") || "/account";
+  const message = searchParams.get("message");
 
   // Eğer kullanıcı zaten giriş yapmışsa account sayfasına yönlendir
   useEffect(() => {

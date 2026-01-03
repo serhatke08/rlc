@@ -144,10 +144,8 @@ export default function RegisterPage() {
 
       // Check if email confirmation is required
       if (!authData.user.email_confirmed_at) {
-        // Email confirmation required - show message
-        setSuccess(true);
-        setError(null);
-        // Don't redirect - show message on the page
+        // Email confirmation required - redirect to login with message
+        router.push("/auth/login?message=check-email");
         return;
       }
 
@@ -267,14 +265,6 @@ export default function RegisterPage() {
         </label>
 
         {error ? <p className="text-sm text-rose-500">{error}</p> : null}
-        {success ? (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm font-semibold text-emerald-900">Please check your email</p>
-            <p className="mt-1 text-sm text-emerald-700">
-              We've sent you a confirmation email. Please click the link in the email to verify your account before signing in.
-            </p>
-          </div>
-        ) : null}
 
         <button
           type="submit"
