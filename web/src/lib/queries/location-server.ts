@@ -67,12 +67,12 @@ export async function getRegionsByCountry(countryId: string): Promise<Region[]> 
   try {
     console.log("Fetching regions for country_id:", countryId);
 
-    // Database'de regions tablosunda country_id (UUID) var - direkt filtrele
+    // Use regions_full_info view to get regions with city counts
     const { data: regions, error } = await supabase
-      .from("regions")
-      .select("id, name, country_id, code")
+      .from("regions_full_info")
+      .select("region_id, region_name, region_code, country_id, cities_count")
       .eq("country_id", countryId)
-      .order("name", { ascending: true });
+      .order("region_name", { ascending: true });
 
     if (error) {
       console.error("Error fetching regions:", JSON.stringify(error, null, 2));
@@ -87,7 +87,14 @@ export async function getRegionsByCountry(countryId: string): Promise<Region[]> 
 
     console.log("Regions fetched:", regions?.length || 0, "regions");
 
-    return (regions || []) as Region[];
+    // Map view columns to Region interface
+    return (regions || []).map((r: any) => ({
+      id: r.region_id,
+      name: r.region_name,
+      code: r.region_code,
+      country_id: r.country_id,
+      cities_count: r.cities_count,
+    })) as Region[];
   } catch (err) {
     console.error("Unexpected error in getRegionsByCountry:", err);
     return [];
@@ -100,13 +107,12 @@ export async function getCitiesByRegion(regionId: string): Promise<City[]> {
   try {
     console.log("Fetching cities for region_id:", regionId);
 
-    // Cities tablosundan region_id'ye göre şehirleri çek
-    // Sadece database'de var olan field'ları select et
+    // Use cities_full_info view to get cities with full info
     const { data, error } = await supabase
-      .from("cities")
-      .select("id, name, region_id, country_code")
+      .from("cities_full_info")
+      .select("city_id, city_name, region_id, country_id")
       .eq("region_id", regionId)
-      .order("name", { ascending: true });
+      .order("city_name", { ascending: true });
 
     if (error) {
       console.error("Supabase error:", JSON.stringify(error, null, 2));
@@ -121,8 +127,13 @@ export async function getCitiesByRegion(regionId: string): Promise<City[]> {
 
     console.log("Cities fetched:", data?.length || 0, "cities for region", regionId);
 
-    // Direkt data döndür - mapping yok, type zaten doğru
-    return (data || []) as City[];
+    // Map view columns to City interface
+    return (data || []).map((c: any) => ({
+      id: c.city_id,
+      name: c.city_name,
+      region_id: c.region_id,
+      country_id: c.country_id,
+    })) as City[];
   } catch (err) {
     console.error("Unexpected error in getCitiesByRegion:", err);
     return [];

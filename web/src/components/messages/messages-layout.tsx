@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { MessageCircle, User, Trash2 } from "lucide-react";
 import { formatRelativeTimeFromNow } from "@/lib/formatters";
 import { MessagesChatView } from "./messages-chat-view";
@@ -64,6 +65,7 @@ export function MessagesLayout({
   initialConversations, 
   currentUserId
 }: MessagesLayoutProps) {
+  const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('received');
   const [isMobile, setIsMobile] = useState(false);
@@ -127,9 +129,24 @@ export function MessagesLayout({
     });
   }, [conversationsWithDetails, receivedConversations]);
 
-  // Desktop'ta ilk konuşmayı otomatik seç
+  // Query parameter'dan conversation ID'yi oku ve seç
+  useEffect(() => {
+    const conversationId = searchParams.get('conversation');
+    if (conversationId && !selectedId) {
+      // Conversation'ı bul ve seç
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation) {
+        setSelectedId(conversationId);
+      }
+    }
+  }, [searchParams, conversations, selectedId]);
+
+  // Desktop'ta ilk konuşmayı otomatik seç (query parameter yoksa)
   useEffect(() => {
     if (!isDesktop) return;
+    
+    const conversationId = searchParams.get('conversation');
+    if (conversationId) return; // Query parameter varsa bu effect'i atla
     
     const conversationsToShow = activeTab === 'sent' 
       ? sentConversations 
@@ -144,7 +161,7 @@ export function MessagesLayout({
     if (!selectedId && conversationsToShow.length > 0) {
       setSelectedId(conversationsToShow[0].id);
     }
-  }, [isDesktop, selectedId, activeTab, sentConversations, receivedConversations]);
+  }, [isDesktop, selectedId, activeTab, sentConversations, receivedConversations, searchParams]);
 
   // Sohbet silme fonksiyonu (soft delete - sadece kendi görünümünden kaldırır)
   const handleDeleteConversation = async (conversationId: string) => {

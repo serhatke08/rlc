@@ -27,7 +27,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
     redirect("/auth/login");
   }
 
-  // Konuşmayı çek
+  // Konuşmayı çek - RLS policy nedeniyle conversation bulunamazsa /messages'a yönlendir
   const { data: conversation, error } = await supabase
     .from("conversations")
     .select(`
@@ -35,6 +35,8 @@ export default async function ConversationPage({ params }: ConversationPageProps
       user1_id,
       user2_id,
       listing_id,
+      hidden_by_user1,
+      hidden_by_user2,
       listing:listings(id, title, thumbnail_url, images, seller_id),
       user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
       user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url)
@@ -42,14 +44,23 @@ export default async function ConversationPage({ params }: ConversationPageProps
     .eq("id", id)
     .single();
 
+  // RLS policy veya başka bir nedenden conversation bulunamazsa /messages'a yönlendir
+  // Yeni oluşturulan conversation'lar için bu durum normal olabilir (RLS policy gecikmesi)
   if (error || !conversation) {
-    notFound();
+    redirect("/messages");
   }
 
+  // RLS policy kontrolü: Kullanıcının bu conversation'a erişimi var mı?
   const conversationData = conversation as any;
+  const isUser1 = conversationData.user1_id === user.id;
+  const isUser2 = conversationData.user2_id === user.id;
+  const isHidden = (isUser1 && conversationData.hidden_by_user1) || (isUser2 && conversationData.hidden_by_user2);
 
-  // Kullanıcının bu konuşmaya erişim hakkı var mı kontrol et
-  if (conversationData.user1_id !== user.id && conversationData.user2_id !== user.id) {
+  if (!isUser1 && !isUser2) {
+    redirect("/messages");
+  }
+
+  if (isHidden) {
     redirect("/messages");
   }
 

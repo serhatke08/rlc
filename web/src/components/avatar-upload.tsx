@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Loader2, X, User } from 'lucide-react';
+import { Camera, Loader2, X, User, Pencil, Trash2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { useRouter } from 'next/navigation';
 
@@ -16,6 +16,7 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentAvatarUrl || null);
+  const [showMenu, setShowMenu] = useState(false);
 
   const sizeClasses = {
     sm: 'h-16 w-16',
@@ -236,31 +237,29 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
   };
 
   return (
-    <div className="relative inline-block group">
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploading}
-        className={`relative ${sizeClasses[size]} overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd] shadow-lg transition hover:opacity-90 disabled:opacity-50 cursor-pointer`}
-      >
-        {preview ? (
-          <img
-            src={preview}
-            alt="Avatar"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <User className="h-8 w-8 text-white opacity-50" />
-          </div>
-        )}
-        
-        {/* Overlay on hover/click - Upload prompt */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100 rounded-full">
-          {uploading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-white" />
+    <div className="relative inline-block">
+      <div className="relative group">
+        <button
+          type="button"
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          disabled={uploading}
+          className={`relative ${sizeClasses[size]} overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-[#9c6cfe] to-[#0ad2dd] shadow-lg transition hover:opacity-90 disabled:opacity-50 cursor-pointer`}
+        >
+          {preview ? (
+            <img
+              src={preview}
+              alt="Avatar"
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <>
+            <div className="flex h-full w-full items-center justify-center">
+              <User className="h-8 w-8 text-white opacity-50" />
+            </div>
+          )}
+          
+          {/* Overlay on hover/click - Upload prompt */}
+          {!uploading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100 rounded-full">
               {preview ? (
                 <User className="h-6 w-6 text-white mb-1" />
               ) : (
@@ -269,24 +268,74 @@ export function AvatarUpload({ currentAvatarUrl, userId, size = 'lg' }: AvatarUp
               <span className="text-[10px] font-semibold text-white text-center px-2">
                 {preview ? 'Change Photo' : 'Upload Photo'}
               </span>
-            </>
+            </div>
           )}
-        </div>
-      </button>
+          
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full">
+              <Loader2 className="h-6 w-6 animate-spin text-white" />
+            </div>
+          )}
+        </button>
+      </div>
 
-      {/* Remove button */}
-      {preview && !uploading && (
+      {/* Edit button - Always visible when not uploading */}
+      {!uploading && (
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            handleRemove();
+            setShowMenu(!showMenu);
           }}
-          className="absolute -bottom-1 -right-1 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition hover:bg-red-600 z-30"
-          title="Remove avatar"
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-zinc-700 p-2 text-white shadow-lg transition hover:bg-zinc-600 z-30"
+          title="Edit avatar"
         >
-          <X className="h-3 w-3" />
+          <Pencil className="h-3.5 w-3.5" />
         </button>
+      )}
+
+      {/* Menu - Delete Avatar and Change buttons */}
+      {showMenu && !uploading && (
+        <>
+          {/* Backdrop to close menu */}
+          <div
+            className="fixed inset-0 z-20"
+            onClick={() => setShowMenu(false)}
+          />
+          
+          {/* Menu */}
+          <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 z-30 flex flex-col gap-1 rounded-xl border border-zinc-200 bg-white p-1 shadow-lg">
+            {/* Change button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(false);
+                fileInputRef.current?.click();
+              }}
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
+            >
+              <Camera className="h-4 w-4" />
+              Change
+            </button>
+            
+            {/* Delete button - only show if avatar exists */}
+            {preview && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(false);
+                  handleRemove();
+                }}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Avatar
+              </button>
+            )}
+          </div>
+        </>
       )}
 
       <input

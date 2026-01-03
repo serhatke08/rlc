@@ -21,11 +21,12 @@ export async function GET(
 
   const supabase = await createSupabaseServerClient();
 
+  // Use cities_full_info view to get cities with full info
   const { data, error } = await supabase
-    .from("cities")
-    .select("id, name, region_id, country_id")
+    .from("cities_full_info")
+    .select("city_id, city_name, region_id, country_id")
     .eq("region_id", resolvedParams.regionId)
-    .order("name", { ascending: true })
+    .order("city_name", { ascending: true })
     .limit(100);
 
   if (error) {
@@ -37,6 +38,15 @@ export async function GET(
   }
 
   console.log("✅ Cities fetched:", data?.length || 0);
-  return NextResponse.json(data || []);
+
+  // Map view columns to City interface
+  const cities = (data || []).map((c: any) => ({
+    id: c.city_id,
+    name: c.city_name,
+    region_id: c.region_id,
+    country_id: c.country_id,
+  }));
+
+  return NextResponse.json({ cities });
 }
 

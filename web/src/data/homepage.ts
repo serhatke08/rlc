@@ -104,10 +104,10 @@ export const FEATURE_TAGS = [
 export const LISTING_FILTERS = [
   { key: "all", label: "All", color: "bg-zinc-100 text-zinc-700", icon: Layers },
   { key: "free", label: "Free", color: "bg-emerald-100 text-emerald-800", icon: Gift },
-  { key: "swap", label: "Swap", color: "bg-sky-100 text-sky-700", icon: Handshake },
   { key: "sale", label: "Sale", color: "bg-orange-100 text-orange-700", icon: DollarSign },
-  { key: "need", label: "I Need", color: "bg-purple-100 text-purple-700", icon: ShoppingBag },
   { key: "adoption", label: "Adoption", color: "bg-cyan-100 text-cyan-700", icon: Cat },
+  { key: "swap", label: "Swap", color: "bg-sky-100 text-sky-700", icon: Handshake },
+  { key: "need", label: "I Need", color: "bg-purple-100 text-purple-700", icon: ShoppingBag },
 ];
 
 export const UK_REGIONS = [

@@ -34,6 +34,25 @@ export default async function AccountPage() {
     .eq("id", user.id)
     .single();
 
+  // Ratings tablosundan trust_score çek (rated_id'ye göre rating'lerin ortalaması)
+  let trustScore: number | string = 0;
+  try {
+    const { data: ratings, error: ratingError } = await supabase
+      .from("ratings")
+      .select("rating")
+      .eq("rated_id", user.id);
+    
+    if (!ratingError && ratings && ratings.length > 0) {
+      const ratingsData = ratings as any[];
+      const sum = ratingsData.reduce((acc, r) => acc + (r.rating || 0), 0);
+      const average = sum / ratingsData.length;
+      // Eğer küsürat varsa (4.3 gibi) göster, yoksa (4.0 gibi) sadece 4 göster
+      trustScore = average % 1 === 0 ? average : parseFloat(average.toFixed(1));
+    }
+  } catch (err) {
+    // Ratings tablosu yoksa veya erişim yoksa sessizce geç
+  }
+
   if (profileError) {
     console.error("Error loading profile:", profileError);
   }
@@ -80,10 +99,17 @@ export default async function AccountPage() {
       .filter(Boolean) as string[];
     
     if (givenListingIds.length > 0) {
-      const { data: listings } = await supabase
+      // RLS policy'ye göre seller_id = auth.uid() olan listing'ler görünür (status ne olursa olsun)
+      // Bu yüzden status filtresi koymuyoruz
+      const { data: listings, error: listingError } = await supabase
         .from("listings")
         .select("*")
-        .in("id", givenListingIds);
+        .in("id", givenListingIds)
+        .eq("seller_id", user.id);
+      
+      if (listingError) {
+        console.error("Error loading given listings:", listingError);
+      }
       
       givenListings = listings || [];
     }
@@ -113,10 +139,19 @@ export default async function AccountPage() {
       .filter(Boolean) as string[];
     
     if (receivedListingIds.length > 0) {
-      const { data: listings } = await supabase
+      // Received listing'ler için status='active' veya seller_id kontrolü yok
+      // Ama RLS policy status='active' OR seller_id = auth.uid() gerektiriyor
+      // Received listing'ler başkasının listing'i, bu yüzden sadece status='active' olanlar görünür
+      // Ama completed transaction'larda listing'ler genelde sold olur, bu yüzden RLS policy'ye göre görünmez
+      // Bu durumda seller_id kontrolü olmadan çekmeye çalışalım (RLS policy kendi kontrol edecek)
+      const { data: listings, error: listingError } = await supabase
         .from("listings")
         .select("*")
         .in("id", receivedListingIds);
+      
+      if (listingError) {
+        console.error("Error loading received listings:", listingError);
+      }
       
       receivedListings = listings || [];
     }
@@ -171,6 +206,7 @@ export default async function AccountPage() {
     follower_count: profileData?.follower_count || 0,
     following_count: profileData?.following_count || 0,
     reputation: profileData?.reputation || 0,
+    trust_score: trustScore, // ratings tablosundan çekilen trust_score
   };
 
   return (
@@ -220,13 +256,13 @@ export default async function AccountPage() {
                 <span className="text-zinc-500">Following</span>
               </div>
 
-              {/* Güvenilirlik Puanı */}
+              {/* Trust Score */}
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 <span className="font-semibold text-zinc-900">
-                  {safeProfileData.reputation}
+                  {safeProfileData.trust_score || 0}
                 </span>
-                <span className="text-zinc-500">Points</span>
+                <span className="text-zinc-500">Trust Score</span>
               </div>
             </div>
 

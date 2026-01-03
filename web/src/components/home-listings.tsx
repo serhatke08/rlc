@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { ListingFilterPills } from "@/components/listings/filter-pills";
 import { ListingCard } from "@/components/listing-card";
 import { CategoriesMenu } from "@/components/categories-menu";
 import { LocationMenu } from "@/components/location-menu";
 import { InArticleAd } from "@/components/ads/google-adsense";
+import { cn } from "@/lib/utils";
 import type { FeaturedListing } from "@/types/listing";
 import type { Category } from "@/lib/types/category";
 import type { Country, Region, City } from "@/lib/types/location";
@@ -26,6 +28,12 @@ export function HomeListings({ listings, categories = [], country = null, region
   const [activeFilter, setActiveFilter] = useState("all");
   // Default grid (with descriptions) for non-authenticated users, gallery for authenticated users
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>(isAuthenticated ? 'gallery' : 'grid');
+  const [gridColumns, setGridColumns] = useState<2 | 3 | 4 | 5>(2);
+  
+  // Mobile columns (only 2 or 3)
+  const [mobileColumns, setMobileColumns] = useState<2 | 3>(2);
+  const [columnsDropdownOpen, setColumnsDropdownOpen] = useState(false);
+  const columnsDropdownRef = useRef<HTMLDivElement>(null);
 
   // Filtered listings (only type - region/city is handled server-side)
   const filteredListings = useMemo(() => {
@@ -48,6 +56,25 @@ export function HomeListings({ listings, categories = [], country = null, region
       return true;
     });
   }, [listings, activeFilter]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (columnsDropdownRef.current && !columnsDropdownRef.current.contains(event.target as Node)) {
+        setColumnsDropdownOpen(false);
+      }
+    };
+
+    if (columnsDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [columnsDropdownOpen]);
+
+  // Grid columns classes - all must be present for Tailwind JIT to detect them
 
   return (
     <>
@@ -103,10 +130,10 @@ export function HomeListings({ listings, categories = [], country = null, region
             />
           )}
           {/* View Mode Toggle - right side */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <button
               onClick={() => setViewMode('grid')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              className={`rounded-lg px-2 py-1 text-[10px] font-medium transition md:px-3 md:py-1.5 md:text-sm ${
                 viewMode === 'grid'
                   ? 'bg-emerald-100 text-emerald-700'
                   : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
@@ -116,7 +143,7 @@ export function HomeListings({ listings, categories = [], country = null, region
             </button>
             <button
               onClick={() => setViewMode('gallery')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              className={`rounded-lg px-2 py-1 text-[10px] font-medium transition md:px-3 md:py-1.5 md:text-sm ${
                 viewMode === 'gallery'
                   ? 'bg-emerald-100 text-emerald-700'
                   : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
@@ -124,6 +151,65 @@ export function HomeListings({ listings, categories = [], country = null, region
             >
               Gallery
             </button>
+            {/* Grid Columns Dropdown - Show in both grid and gallery view */}
+            <div className="relative" ref={columnsDropdownRef}>
+              <button
+                onClick={() => setColumnsDropdownOpen(!columnsDropdownOpen)}
+                className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[10px] font-medium text-zinc-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 md:gap-1.5 md:px-2.5 md:py-1 md:text-xs"
+              >
+                <span className="md:hidden">{mobileColumns}×{mobileColumns}</span>
+                <span className="hidden md:inline">{gridColumns}×{gridColumns}</span>
+                <ChevronDown className={cn("h-3 w-3 transition-transform md:h-3.5 md:w-3.5", columnsDropdownOpen && "rotate-180")} />
+              </button>
+              {columnsDropdownOpen && (
+                <>
+                  {/* Mobile dropdown - only 2x2 and 3x3 */}
+                  <div className="absolute right-0 top-full z-50 mt-1 w-20 rounded-lg border border-zinc-200 bg-white shadow-lg md:hidden">
+                    <div className="py-1">
+                      {[2, 3].map((cols) => (
+                        <button
+                          key={cols}
+                          onClick={() => {
+                            setMobileColumns(cols as 2 | 3);
+                            setColumnsDropdownOpen(false);
+                          }}
+                          className={cn(
+                            "w-full px-3 py-1.5 text-left text-[10px] font-medium transition",
+                            mobileColumns === cols
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "text-zinc-700 hover:bg-zinc-50"
+                          )}
+                        >
+                          {cols}×{cols}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Desktop dropdown - 2, 3, 4, 5 */}
+                  <div className="absolute right-0 top-full z-50 mt-1 hidden w-20 rounded-lg border border-zinc-200 bg-white shadow-lg md:block">
+                    <div className="py-1">
+                      {[2, 3, 4, 5].map((cols) => (
+                        <button
+                          key={cols}
+                          onClick={() => {
+                            setGridColumns(cols as 2 | 3 | 4 | 5);
+                            setColumnsDropdownOpen(false);
+                          }}
+                          className={cn(
+                            "w-full px-3 py-1.5 text-left text-xs font-medium transition",
+                            gridColumns === cols
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "text-zinc-700 hover:bg-zinc-50"
+                          )}
+                        >
+                          {cols}×{cols}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -147,11 +233,19 @@ export function HomeListings({ listings, categories = [], country = null, region
               <>
                 {/* Gallery View - Images only
                     For non-authenticated users: 3 items + 1 ad (4th card) */}
-                <div className={`grid gap-2 ${
+                <div className={cn(
+                  "grid gap-2",
                   !isAuthenticated 
                     ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-5' 
-                    : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-5'
-                }`}>
+                    : cn(
+                        mobileColumns === 2 && 'grid-cols-2',
+                        mobileColumns === 3 && 'grid-cols-3',
+                        gridColumns === 2 && 'md:grid-cols-2',
+                        gridColumns === 3 && 'md:grid-cols-3',
+                        gridColumns === 4 && 'md:grid-cols-4',
+                        gridColumns === 5 && 'md:grid-cols-5'
+                      )
+                )}>
                   {!isAuthenticated ? (
                     /* Non-authenticated users: all products */
                     <>
@@ -233,12 +327,20 @@ export function HomeListings({ listings, categories = [], country = null, region
               <>
                 {/* Grid View - Normal cards
                     For non-authenticated users: 3 items + 1 ad (4th card)
-                    PC view: 2 cards per row (grid-cols-2) */}
-                <div className={`grid gap-4 ${
+                    PC view: Dynamic columns based on user selection */}
+                <div className={cn(
+                  "grid gap-4",
                   !isAuthenticated 
                     ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-5' 
-                    : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-5'
-                }`}>
+                    : cn(
+                        mobileColumns === 2 && 'grid-cols-2',
+                        mobileColumns === 3 && 'grid-cols-3',
+                        gridColumns === 2 && 'md:grid-cols-2',
+                        gridColumns === 3 && 'md:grid-cols-3',
+                        gridColumns === 4 && 'md:grid-cols-4',
+                        gridColumns === 5 && 'md:grid-cols-5'
+                      )
+                )}>
                   {!isAuthenticated ? (
                     /* Non-authenticated users: all products */
                     <>

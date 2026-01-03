@@ -148,12 +148,20 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
         {activeTab === 'given' && (
           <div>
             {given.length > 0 ? (
-              <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-                {given.map((transaction) => {
-                  if (!transaction.listing) return null;
-                  return renderListingCard(transaction.listing);
-                })}
-              </div>
+              (() => {
+                const validListings = given.filter(transaction => transaction.listing !== null);
+                if (validListings.length === 0) {
+                  return renderEmptyState("You haven't given any items yet");
+                }
+                return (
+                  <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                    {validListings.map((transaction) => {
+                      if (!transaction.listing) return null;
+                      return renderListingCard(transaction.listing);
+                    })}
+                  </div>
+                );
+              })()
             ) : (
               renderEmptyState("You haven't given any items yet")
             )}
@@ -163,12 +171,20 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
         {activeTab === 'received' && (
           <div>
             {received.length > 0 ? (
-              <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-                {received.map((transaction) => {
-                  if (!transaction.listing) return null;
-                  return renderListingCard(transaction.listing);
-                })}
-              </div>
+              (() => {
+                const validListings = received.filter(transaction => transaction.listing !== null);
+                if (validListings.length === 0) {
+                  return renderEmptyState("You haven't received any items yet");
+                }
+                return (
+                  <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                    {validListings.map((transaction) => {
+                      if (!transaction.listing) return null;
+                      return renderListingCard(transaction.listing);
+                    })}
+                  </div>
+                );
+              })()
             ) : (
               renderEmptyState("You haven't received any items yet")
             )}

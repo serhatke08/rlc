@@ -88,13 +88,14 @@ function SidebarContent({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "group flex items-center rounded-2xl px-3 py-3 text-sm font-semibold transition hover:opacity-80",
+                "group flex items-center rounded-lg px-3 py-3 text-sm font-semibold transition hover:opacity-80",
+                item.bgColor || "bg-zinc-100",
+                item.textColor || "text-zinc-700",
                 collapsed && "justify-center px-0",
               )}
             >
               <span className={cn(
-                "relative inline-flex h-10 w-10 items-center justify-center rounded-2xl",
-                item.bgColor || "bg-zinc-100",
+                "relative inline-flex h-5 w-5 items-center justify-center",
                 item.textColor || "text-zinc-700"
               )}>
                 <Icon className="h-5 w-5" />

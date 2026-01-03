@@ -11,6 +11,7 @@ export interface Region {
   name: string;
   country_id: string;
   code: string | null;
+  cities_count?: number; // From regions_full_info view
 }
 
 // City type - Database'deki gerçek yapıya göre

@@ -75,7 +75,7 @@ export function ListingCard({ listing }: ListingCardProps) {
               {seller.avatar_url ? (
                 <img
                   src={seller.avatar_url}
-                  alt={seller.display_name || seller.username}
+                  alt={seller.username}
                   className="h-6 w-6 rounded-full object-cover"
                 />
               ) : (
@@ -84,7 +84,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                 </div>
               )}
               <span className="text-xs font-medium text-zinc-700">
-                {seller.display_name || seller.username}
+                {seller.username}
               </span>
             </div>
           )}
