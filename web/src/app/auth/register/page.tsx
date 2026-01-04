@@ -121,10 +121,28 @@ export default function RegisterPage() {
     setEmailSent(false);
     try {
       const supabase = createSupabaseBrowserClient();
+      
+      // Email confirmation redirect URL'ini belirle
+      // Query parameter'dan veya User-Agent'tan kontrol edilebilir
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectSource = urlParams.get('source'); // ?source=app veya ?source=web
+      
+      // Mobil uygulamadan geliyorsa deep link, web'den geliyorsa web URL'i kullan
+      const isMobileApp = redirectSource === 'app' || 
+                         /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent);
+      
+      // Email confirmation redirect URL'i
+      // Web için: https://reloopcycle.co.uk/auth/callback
+      // Mobil için: reloopcycle://auth/callback (deep link)
+      const emailRedirectTo = isMobileApp 
+        ? 'reloopcycle://auth/callback' // Mobil uygulama deep link
+        : `${window.location.origin}/auth/callback`; // Web URL
+      
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
+          emailRedirectTo: emailRedirectTo,
           data: {
             username: form.username,
             display_name: form.displayName || form.username,
