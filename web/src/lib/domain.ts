@@ -11,13 +11,17 @@ export async function getCurrentDomain(): Promise<string> {
     
     if (host) {
       // www'yi kaldır
-      return host.replace(/^www\./, "");
+      const domain = host.replace(/^www\./, "");
+      console.log("[getCurrentDomain] Detected domain from headers:", domain);
+      return domain;
     }
   } catch (error) {
     // headers() sadece server component/route handler'da çalışır
+    console.log("[getCurrentDomain] Error getting headers:", error);
   }
   
   // Fallback: Environment variable veya default
+  console.log("[getCurrentDomain] Using fallback domain: reloopcycle.com");
   return "reloopcycle.com";
 }
 
@@ -28,7 +32,9 @@ export async function getCurrentDomain(): Promise<string> {
  */
 export async function shouldFilterByDomain(): Promise<boolean> {
   const domain = await getCurrentDomain();
-  return domain === "reloopcycle.co.uk";
+  const shouldFilter = domain === "reloopcycle.co.uk" || domain.includes("reloopcycle.co.uk");
+  console.log("[shouldFilterByDomain] Domain:", domain, "Should filter:", shouldFilter);
+  return shouldFilter;
 }
 
 /**
