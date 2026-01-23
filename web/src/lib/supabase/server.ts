@@ -35,24 +35,25 @@ export async function createSupabaseServerClient() {
 
 /**
  * Güvenli şekilde kullanıcı bilgisini alır
- * getUser() kullanarak auth server'dan doğrulanmış kullanıcı bilgisini alır
+ * Önce getSession() ile kontrol eder, refresh token hatasından kaçınır
  */
 export async function getServerUser() {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
     
-    if (error) {
-      // Auth hatası
+    // Önce session kontrolü yap - refresh token gerektirmez
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    // Session yoksa veya hata varsa direkt null döndür
+    if (sessionError || !session || !session.user) {
       return null;
     }
     
-    return user ?? null;
+    // Session geçerliyse, user'ı session'dan al (getUser() çağırmaya gerek yok)
+    return session.user;
   } catch (error: any) {
-    // Refresh token hatası veya başka bir hata
-    if (error?.message?.includes('refresh') || error?.message?.includes('token')) {
-      return null;
-    }
+    // Herhangi bir hata durumunda sessizce null döndür
+    // Refresh token, network veya diğer hataları ignore et
     return null;
   }
 }

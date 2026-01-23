@@ -26,9 +26,24 @@ export function SiteHeader() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [domainCountry, setDomainCountry] = useState<string | null>(null);
   
   // Mesajlar sayfasında search bar gösterme
   const isMessagesPage = pathname === '/messages' || pathname?.startsWith('/messages/');
+
+  // Domain bazlı ülke göstergesi
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname.replace(/^www\./, '');
+      if (hostname === 'reloopcycle.com') {
+        setDomainCountry('Worldwide');
+      } else if (hostname === 'reloopcycle.co.uk') {
+        setDomainCountry('England');
+      } else {
+        setDomainCountry(null);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -190,6 +205,12 @@ export function SiteHeader() {
       <div className="mx-auto hidden w-full max-w-6xl flex-col gap-4 px-6 py-4 lg:flex">
         <div className="relative flex items-center justify-center">
           <Logo size="lg" />
+          {domainCountry && (
+            <div className="absolute left-0 flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700">
+              <span className="text-zinc-500">📍</span>
+              <span>{domainCountry}</span>
+            </div>
+          )}
           <div className="absolute right-0 flex items-center gap-3 text-sm font-semibold">
             {loading ? (
               <div className="h-10 w-20 animate-pulse rounded-2xl bg-zinc-200" />
@@ -225,8 +246,14 @@ export function SiteHeader() {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="absolute left-1/2 -translate-x-1/2">
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
           <Logo />
+          {domainCountry && (
+            <div className="flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-600">
+              <span>📍</span>
+              <span>{domainCountry}</span>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {user && <NotificationBell />}

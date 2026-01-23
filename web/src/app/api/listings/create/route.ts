@@ -19,6 +19,8 @@ export async function POST(request: Request) {
     const subcategoryId = formData.get('subcategoryId') as string;
     const listingType = formData.get('listingType') as string;
     const condition = formData.get('condition') as string;
+    const priceStr = formData.get('price') as string;
+    const price = listingType === 'sale' && priceStr ? parseFloat(priceStr) : 0;
     const regionId = formData.get('regionId') as string;
     const cityId = formData.get('cityId') as string;
     const cityName = formData.get('cityName') as string;
@@ -88,7 +90,7 @@ export async function POST(request: Request) {
         district_name: districtName || null,
         images: uploadedUrls,
         thumbnail_url: uploadedUrls[0],
-        price: 0,
+        price: price.toString(),
         currency: 'GBP',
         status: 'active',
       })

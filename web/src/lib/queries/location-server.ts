@@ -184,3 +184,50 @@ export async function getCityById(cityId: string): Promise<City | null> {
   }
 }
 
+
+
+/**
+ * England region'ını bulur (GB country'sine ait)
+ * Domain bazlı filtreleme için kullanılır
+ */
+export async function getEnglandRegion(): Promise<Region | null> {
+  const supabase = await createSupabaseServerClient();
+
+  try {
+    // Önce GB country'sini bul
+    const { data: country, error: countryError } = await supabase
+      .from("countries")
+      .select("id")
+      .eq("code", "GB")
+      .single();
+
+    if (countryError || !country) {
+      console.error("Error fetching GB country:", countryError);
+      return null;
+    }
+
+    // Type assertion for country
+    const countryData = country as { id: string } | null;
+    if (!countryData?.id) {
+      return null;
+    }
+
+    // GB country'sine ait England region'ını bul
+    const { data: region, error: regionError } = await supabase
+      .from("regions")
+      .select("id, name, country_id, code")
+      .eq("country_id", countryData.id)
+      .eq("name", "England")
+      .single();
+
+    if (regionError) {
+      console.error("Error fetching England region:", regionError);
+      return null;
+    }
+
+    return region as Region | null;
+  } catch (err) {
+    console.error("Unexpected error in getEnglandRegion:", err);
+    return null;
+  }
+}

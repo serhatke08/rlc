@@ -66,6 +66,7 @@ export default function CreateListingPage() {
   const [description, setDescription] = useState('');
   const [listingType, setListingType] = useState<string>('');
   const [condition, setCondition] = useState<string>('used');
+  const [price, setPrice] = useState<string>('');
   const [countryId, setCountryId] = useState<string>('');
   const [regionId, setRegionId] = useState<string>('');
   const [cityId, setCityId] = useState<string>('');
@@ -507,6 +508,12 @@ export default function CreateListingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting || photos.length === 0) return;
+    
+    // Validate price for sale listings
+    if (listingType === 'sale' && (!price || parseFloat(price) <= 0)) {
+      alert('Please enter a valid price for sale listings');
+      return;
+    }
 
     setSubmitting(true);
 
@@ -523,6 +530,12 @@ export default function CreateListingPage() {
       formData.append('subcategoryId', subcategoryId);
       formData.append('listingType', listingType);
       formData.append('condition', condition);
+      // Add price if sale type is selected
+      if (listingType === 'sale') {
+        formData.append('price', price || '0');
+      } else {
+        formData.append('price', '0');
+      }
       formData.append('countryId', countryId);
       formData.append('regionId', regionId);
       formData.append('cityId', cityId);
@@ -650,7 +663,13 @@ export default function CreateListingPage() {
               <button
                 key={type.value}
                 type="button"
-                onClick={() => setListingType(type.value)}
+                onClick={() => {
+                  setListingType(type.value);
+                  // Reset price when switching away from sale
+                  if (type.value !== 'sale') {
+                    setPrice('');
+                  }
+                }}
                 className={`rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
                   listingType === type.value
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
@@ -662,6 +681,37 @@ export default function CreateListingPage() {
             ))}
           </div>
         </div>
+
+        {/* Price - Only show for Sale */}
+        {listingType === 'sale' && (
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-zinc-900">
+              Price (GBP) *
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">£</span>
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Only allow positive numbers with up to 2 decimal places
+                  if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                    setPrice(value);
+                  }
+                }}
+                placeholder="0.00"
+                required
+                min="0"
+                step="0.01"
+                className="w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">
+              Enter the price in British Pounds (GBP)
+            </p>
+          </div>
+        )}
 
         {/* Condition */}
         <div>
