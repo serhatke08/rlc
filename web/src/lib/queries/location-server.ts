@@ -184,8 +184,6 @@ export async function getCityById(cityId: string): Promise<City | null> {
   }
 }
 
-
-
 /**
  * England region'ını bulur (GB country'sine ait)
  * Domain bazlı filtreleme için kullanılır
@@ -202,29 +200,65 @@ export async function getEnglandRegion(): Promise<Region | null> {
       .single();
 
     if (countryError || !country) {
-      console.error("Error fetching GB country:", countryError);
+      console.error("[getEnglandRegion] Error fetching GB country:", countryError);
       return null;
     }
 
     // Type assertion for country
     const countryData = country as { id: string } | null;
     if (!countryData?.id) {
+      console.error("[getEnglandRegion] GB country ID not found");
       return null;
     }
 
-    // GB country'sine ait England region'ını bul
-    const { data: region, error: regionError } = await supabase
+    console.log("[getEnglandRegion] GB country ID:", countryData.id);
+
+    // GB country'sine ait England region'ını bul - önce tam eşleşme dene
+    let { data: region, error: regionError } = await supabase
       .from("regions")
       .select("id, name, country_id, code")
       .eq("country_id", countryData.id)
       .eq("name", "England")
       .single();
 
+    // Eğer bulunamazsa, code ile dene
     if (regionError) {
-      console.error("Error fetching England region:", regionError);
+      console.log("[getEnglandRegion] England not found by name, trying by code...");
+      const { data: regionByCode, error: codeError } = await supabase
+        .from("regions")
+        .select("id, name, country_id, code")
+        .eq("country_id", countryData.id)
+        .eq("code", "ENG")
+        .single();
+      
+      if (codeError || !regionByCode) {
+        console.error("[getEnglandRegion] Error fetching England region by code:", codeError);
+        // Son çare: GB country'sine ait tüm region'ları listele
+        const { data: allRegions, error: allError } = await supabase
+          .from("regions")
+          .select("id, name, country_id, code")
+          .eq("country_id", countryData.id)
+          .limit(10);
+        
+        if (allError) {
+          console.error("[getEnglandRegion] Error fetching all regions:", allError);
+          return null;
+        }
+        
+        console.log("[getEnglandRegion] Available regions for GB:", allRegions);
+        return null;
+      }
+      
+      region = regionByCode;
+      regionError = null;
+    }
+
+    if (regionError) {
+      console.error("[getEnglandRegion] Error fetching England region:", regionError);
       return null;
     }
 
+    console.log("[getEnglandRegion] Found England region:", region);
     return region as Region | null;
   } catch (err) {
     console.error("Unexpected error in getEnglandRegion:", err);

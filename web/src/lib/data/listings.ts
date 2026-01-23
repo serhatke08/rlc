@@ -45,28 +45,11 @@ export async function getFeaturedListings(options?: {
   // Cache'i devre dışı bırak - her zaman fresh data çek
   const supabase = await createSupabaseServerClient();
 
-  // Domain bazlı filtreleme kontrolü
+  // Domain bazlı filtreleme kontrolü - SADECE GİRİŞ YAPMAMIŞ KULLANICILAR İÇİN
   const shouldFilterByDomainCountry = await shouldFilterByDomain();
   let englandRegionId: string | null = null;
   
-  if (shouldFilterByDomainCountry) {
-    const englandRegion = await getEnglandRegion();
-    if (englandRegion) {
-      englandRegionId = englandRegion.id;
-      console.log("[getFeaturedListings] Domain filter: England region_id:", englandRegionId);
-    } else {
-      console.warn("[getFeaturedListings] England region not found!");
-    }
-  }
-  
-  console.log("[getFeaturedListings] Domain filter check:", {
-    shouldFilterByDomainCountry,
-    englandRegionId,
-    hasCityFilter: !!(options?.cityId && options.cityId.trim() !== '' && options.cityId !== 'null' && options.cityId !== 'undefined'),
-    hasRegionFilter: !!(options?.regionId && options.regionId.trim() !== '' && options.regionId !== 'null' && options.regionId !== 'undefined' && options.regionId !== 'all'),
-  });
-
-  // Kullanıcının ülkesini al
+  // Önce kullanıcı kontrolü yap - eğer giriş yapmışsa domain filtresi uygulanmaz
   let userCountryId: string | null = null;
   try {
     const user = await getServerUser();
@@ -81,17 +64,33 @@ export async function getFeaturedListings(options?: {
       const profileData = profile as { country_id?: string } | null;
       if (profileData?.country_id) {
         userCountryId = profileData.country_id;
-        // Debug: Log country_id to verify it's being fetched correctly
-        console.log("[getFeaturedListings] User country_id:", userCountryId);
-      } else {
-        console.log("[getFeaturedListings] User has no country_id in profile");
+        console.log("[getFeaturedListings] User is logged in, country_id:", userCountryId);
       }
     }
   } catch (error) {
-    // Kullanıcı giriş yapmamışsa veya profil yoksa devam et
-    // Don't log - this is expected for anonymous users
-    console.log("[getFeaturedListings] Error fetching user country:", error);
+    // Kullanıcı giriş yapmamış - bu normal
   }
+  
+  // Sadece giriş yapmamış kullanıcılar için domain filtresi uygula
+  if (shouldFilterByDomainCountry && !userCountryId) {
+    const englandRegion = await getEnglandRegion();
+    if (englandRegion) {
+      englandRegionId = englandRegion.id;
+      console.log("[getFeaturedListings] Domain filter: England region_id:", englandRegionId, "(anonymous user on reloopcycle.co.uk)");
+    } else {
+      console.warn("[getFeaturedListings] England region not found! Domain filter will not be applied.");
+    }
+  }
+  
+  console.log("[getFeaturedListings] Filter check:", {
+    shouldFilterByDomainCountry,
+    englandRegionId,
+    userCountryId,
+    isAnonymous: !userCountryId,
+    hasCityFilter: !!(options?.cityId && options.cityId.trim() !== '' && options.cityId !== 'null' && options.cityId !== 'undefined'),
+    hasRegionFilter: !!(options?.regionId && options.regionId.trim() !== '' && options.regionId !== 'null' && options.regionId !== 'undefined' && options.regionId !== 'all'),
+  });
+
 
   // Sorgu oluştur
   let query = supabase
@@ -148,20 +147,24 @@ export async function getFeaturedListings(options?: {
     query = query.eq("region_id", options.regionId);
     console.log("[getFeaturedListings] Filtering by region_id:", options.regionId);
   }
-  // Domain bazlı filtreleme: reloopcycle.co.uk -> England (sadece giriş yapmayan kullanıcılar için, anasayfa için)
+  // Domain bazlı filtreleme: reloopcycle.co.uk -> England (SADECE giriş yapmayan kullanıcılar için, anasayfa için)
   // Bu filtre sadece region/city filtresi yoksa ve kullanıcı giriş yapmamışsa uygulanır
   else if (shouldFilterByDomainCountry && englandRegionId && !userCountryId) {
     query = query.eq("region_id", englandRegionId);
-    console.log("[getFeaturedListings] Applying domain filter: England region only (anonymous user on reloopcycle.co.uk)");
+    console.log("[getFeaturedListings] ✅ Applying domain filter: England region only (anonymous user on reloopcycle.co.uk)");
   }
   // Kullanıcının ülkesine göre filtrele (giriş yapmış kullanıcılar için, region/city filtresi yoksa)
   else if (userCountryId) {
     query = query.eq("country_id", userCountryId);
     console.log("[getFeaturedListings] Filtering by user country_id:", userCountryId);
   }
-  // reloopcycle.com için hiçbir filtre yok (tüm dünya gösterilir)
+  // reloopcycle.com için hiçbir filtre yok (tüm dünya gösterilir) - SADECE giriş yapmamış kullanıcılar için
+  else if (!userCountryId) {
+    console.log("[getFeaturedListings] ✅ No filter applied - showing all listings (reloopcycle.com - anonymous user)");
+  }
+  // Giriş yapmış kullanıcı için varsayılan olarak ülkesine göre filtrele (eğer yukarıdaki koşullar sağlanmadıysa)
   else {
-    console.log("[getFeaturedListings] No filter applied - showing all listings (reloopcycle.com or no domain filter)");
+    console.log("[getFeaturedListings] No specific filter - default behavior");
   }
 
   const { data, error } = await query
