@@ -44,41 +44,41 @@ export default function SubscriptionPage() {
         },
       });
     } else {
-      alert('Paddle yükleniyor, lütfen tekrar deneyin.');
+      alert('Payment system is loading, please try again in a moment.');
     }
   };
 
   const plans = [
     {
-      name: "Aylık Abonelik",
+      name: "Monthly Subscription",
       price: "149",
       currency: "₺",
-      period: "/ay",
+      period: "/month",
       icon: Zap,
       popular: true,
       paddlePriceId: "pri_01kk7gsjqc9bbr1wjsvex8mz7z",
       features: [
-        "Sınırsız ilan",
-        "Öncelikli destek",
-        "Öne çıkan ilanlar",
-        "Gelişmiş analitik",
-        "Reklamsız deneyim",
+        "Unlimited listings",
+        "Priority support",
+        "Featured listings",
+        "Advanced analytics",
+        "Ad-free experience",
       ],
     },
     {
-      name: "Yıllık Abonelik",
+      name: "Yearly Subscription",
       price: "1499",
       currency: "₺",
-      period: "/yıl",
+      period: "/year",
       icon: Crown,
       paddlePriceId: "pri_01kk7kz0rqe23p5xfab5kbhyqg",
       features: [
-        "Sınırsız ilan",
-        "Öncelikli destek",
-        "Öne çıkan ilanlar",
-        "Gelişmiş analitik",
-        "Reklamsız deneyim",
-        "2 ay ücretsiz (yıllık avantaj)",
+        "Unlimited listings",
+        "Priority support",
+        "Featured listings",
+        "Advanced analytics",
+        "Ad-free experience",
+        "2 months free (yearly discount)",
       ],
     },
   ];
@@ -88,10 +88,10 @@ export default function SubscriptionPage() {
       <section className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4 py-16">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-6 text-4xl font-bold text-zinc-900 lg:text-5xl">
-            Fiyatlandırma
+            Pricing
           </h1>
           <p className="text-lg text-zinc-600">
-            İhtiyacınıza uygun planı seçin. Aylık veya yıllık abonelik ile premium özelliklere erişin.
+            Choose the plan that fits your needs. Get access to premium features with monthly or yearly subscriptions.
           </p>
         </div>
       </section>
@@ -141,7 +141,7 @@ export default function SubscriptionPage() {
                       : "border border-zinc-200 text-zinc-900 hover:border-zinc-300"
                   }`}
                 >
-                  Abone Ol
+                  Subscribe Now
                 </button>
               </div>
             ))}
