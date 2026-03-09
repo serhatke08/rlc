@@ -1,56 +1,84 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+'use client';
+
+import { useEffect } from 'react';
 import { Check, Zap, Crown } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Subscription Plans | ReloopCycle Premium Features",
-  description: "Unlock premium features with ReloopCycle subscriptions. Unlimited listings, priority support, and advanced analytics.",
-  keywords: ["reloopcycle subscription", "premium features", "pricing", "plans"],
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+declare global {
+  interface Window {
+    Paddle: any;
+  }
+}
 
 export default function SubscriptionPage() {
+  useEffect(() => {
+    // Paddle script'ini yükle
+    const script = document.createElement('script');
+    script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.Paddle) {
+        // Paddle'ı initialize et (sandbox veya production key)
+        window.Paddle.Setup({
+          environment: 'sandbox', // Production'da 'production' yap
+          token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || '',
+        });
+      }
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const handleSubscribe = (priceId: string) => {
+    if (window.Paddle) {
+      window.Paddle.Checkout.open({
+        items: [{ priceId: priceId, quantity: 1 }],
+        settings: {
+          successUrl: `${window.location.origin}/account?success=true`,
+          theme: 'light',
+        },
+      });
+    } else {
+      alert('Paddle yükleniyor, lütfen tekrar deneyin.');
+    }
+  };
+
   const plans = [
     {
-      name: "Free",
-      price: "£0",
-      period: "forever",
-      icon: Check,
-      features: [
-        "5 active listings",
-        "Basic messaging",
-        "Community access",
-        "Mobile app access",
-      ],
-    },
-    {
-      name: "Pro",
-      price: "£4.99",
-      period: "/month",
+      name: "Aylık Abonelik",
+      price: "149",
+      currency: "₺",
+      period: "/ay",
       icon: Zap,
       popular: true,
+      paddlePriceId: "pri_01kk7gsjqc9bbr1wjsvex8mz7z",
       features: [
-        "Unlimited listings",
-        "Priority support",
-        "Featured listings",
-        "Advanced analytics",
-        "No advertisements",
+        "Sınırsız ilan",
+        "Öncelikli destek",
+        "Öne çıkan ilanlar",
+        "Gelişmiş analitik",
+        "Reklamsız deneyim",
       ],
     },
     {
-      name: "Business",
-      price: "£19.99",
-      period: "/month",
+      name: "Yıllık Abonelik",
+      price: "1499",
+      currency: "₺",
+      period: "/yıl",
       icon: Crown,
+      paddlePriceId: "pri_01kk7kz0rqe23p5xfab5kbhyqg",
       features: [
-        "Everything in Pro",
-        "Business profile",
-        "API access",
-        "Custom branding",
-        "Dedicated account manager",
+        "Sınırsız ilan",
+        "Öncelikli destek",
+        "Öne çıkan ilanlar",
+        "Gelişmiş analitik",
+        "Reklamsız deneyim",
+        "2 ay ücretsiz (yıllık avantaj)",
       ],
     },
   ];
@@ -60,17 +88,17 @@ export default function SubscriptionPage() {
       <section className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4 py-16">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-6 text-4xl font-bold text-zinc-900 lg:text-5xl">
-            Subscription Plans
+            Fiyatlandırma
           </h1>
           <p className="text-lg text-zinc-600">
-            Choose the perfect plan for your needs. Start free, upgrade anytime.
+            İhtiyacınıza uygun planı seçin. Aylık veya yıllık abonelik ile premium özelliklere erişin.
           </p>
         </div>
       </section>
 
       <section className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-2">
             {plans.map((plan) => (
               <div
                 key={plan.name}
@@ -93,7 +121,7 @@ export default function SubscriptionPage() {
                 <h3 className="mb-2 text-2xl font-bold text-zinc-900">{plan.name}</h3>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-zinc-900">{plan.price}</span>
-                  <span className="text-zinc-600">{plan.period}</span>
+                  <span className="text-zinc-600">{plan.currency} {plan.period}</span>
                 </div>
 
                 <ul className="mb-8 space-y-3">
@@ -105,16 +133,16 @@ export default function SubscriptionPage() {
                   ))}
                 </ul>
 
-                <Link
-                  href="/auth/register"
+                <button
+                  onClick={() => handleSubscribe(plan.paddlePriceId)}
                   className={`block w-full rounded-full py-3 text-center font-semibold transition ${
                     plan.popular
                       ? "bg-emerald-600 text-white hover:bg-emerald-700"
                       : "border border-zinc-200 text-zinc-900 hover:border-zinc-300"
                   }`}
                 >
-                  Get Started
-                </Link>
+                  Abone Ol
+                </button>
               </div>
             ))}
           </div>

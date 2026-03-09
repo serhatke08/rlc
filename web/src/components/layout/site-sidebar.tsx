@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Phone,
   User,
+  Tag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUI } from "@/components/providers/ui-provider";
@@ -33,6 +34,7 @@ const MAIN_LINKS = [
 ];
 
 const BOTTOM_LINKS = [
+  { label: "Price", href: "/subscription", icon: Tag },
   { label: "About", href: "/about", icon: Info },
   { label: "Contact", href: "/contact", icon: Phone },
 ];
