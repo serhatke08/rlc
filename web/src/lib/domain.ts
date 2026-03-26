@@ -39,8 +39,9 @@ export async function shouldFilterByDomain(): Promise<boolean> {
   const cookieName = "reloopcycle_country_mode";
   type CountryMode = "england" | "worldwide";
 
-  const getCookieMode = (): CountryMode | null => {
-    const c = cookies().get(cookieName)?.value;
+  const getCookieMode = async (): Promise<CountryMode | null> => {
+    const cookieStore = await cookies();
+    const c = cookieStore.get(cookieName)?.value;
     if (c === "england" || c === "worldwide") return c;
     return null;
   };
@@ -57,7 +58,7 @@ export async function shouldFilterByDomain(): Promise<boolean> {
     return false;
   }
 
-  const mode = getCookieMode() ?? "england"; // user request: com default England
+  const mode = (await getCookieMode()) ?? "england"; // user request: com default England
   const shouldFilter = mode === "england";
 
   console.log("[shouldFilterByDomain] Domain:", domain, "Mode:", mode, "Should filter (England only):", shouldFilter);
@@ -75,8 +76,9 @@ export async function getDomainCountryName(): Promise<string | null> {
   const cookieName = "reloopcycle_country_mode";
   type CountryMode = "england" | "worldwide";
 
-  const getCookieMode = (): CountryMode | null => {
-    const c = cookies().get(cookieName)?.value;
+  const getCookieMode = async (): Promise<CountryMode | null> => {
+    const cookieStore = await cookies();
+    const c = cookieStore.get(cookieName)?.value;
     if (c === "england" || c === "worldwide") return c;
     return null;
   };
@@ -87,6 +89,6 @@ export async function getDomainCountryName(): Promise<string | null> {
   const isComDomain = domain === "reloopcycle.com" || domain.includes("reloopcycle.com");
   if (!isComDomain) return null;
 
-  const mode = getCookieMode() ?? "england";
+  const mode = (await getCookieMode()) ?? "england";
   return mode === "england" ? "England" : "Worldwide";
 }
