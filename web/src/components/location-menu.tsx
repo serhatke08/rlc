@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, MapPin, Loader2 } from "lucide-react";
 import type { Country, Region, City } from "@/lib/types/location";
-import { fetchRegionsByCountry, fetchCitiesByRegion } from "@/lib/queries/location-client";
+import { fetchRegionsByCountry, fetchCitiesByRegion, fetchUkNationCountries } from "@/lib/queries/location-client";
 
 interface LocationMenuProps {
   initialCountry: Country | null;
@@ -23,14 +23,78 @@ export function LocationMenu({
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(selectedRegionProp?.id || null);
+  const [expandedRegionId, setExpandedRegionId] = useState<string | null>(selectedRegionProp?.id || null);
   const [regions, setRegions] = useState<Region[]>(initialRegions);
   const [cities, setCities] = useState<City[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [ukNationCountries, setUkNationCountries] = useState<Country[]>([]);
+  const [ukNationRegions, setUkNationRegions] = useState<Region[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const isUkCountry =
+    (initialCountry?.code || "").toUpperCase() === "GB" ||
+    (initialCountry?.name || "").toLowerCase() === "england" ||
+    (initialCountry?.name || "").toLowerCase().includes("united kingdom");
+
+  const ukNationCodes = new Set(["SCT", "WLS", "NIR"]);
+  const ukNationNames = new Set(["scotland", "wales", "northern ireland"]);
+
+  useEffect(() => {
+    if (!isUkCountry) return;
+
+    const loadUkNations = async () => {
+      const countries = await fetchUkNationCountries();
+      const filtered = countries.filter((c) => {
+        const code = (c.code || "").toUpperCase();
+        const name = (c.name || "").toLowerCase();
+
+        if (code === "ENG" || name === "england") return false;
+        if (code === "GB" || name.includes("united kingdom")) return false;
+
+        return (
+          code === "SCT" ||
+          code === "WLS" ||
+          code === "NIR" ||
+          name === "scotland" ||
+          name === "wales" ||
+          name === "northern ireland"
+        );
+      });
+
+      setUkNationCountries(filtered);
+
+      // Fetch real regions for Scotland/Wales/Northern Ireland so cities load correctly.
+      try {
+        const fetched = await Promise.all(
+          filtered.map(async (nation) => {
+            if (!nation.id) return [];
+            return fetchRegionsByCountry(nation.id);
+          }),
+        );
+        const merged = fetched.flat();
+
+        // Deduplicate by region id
+        const deduped = Array.from(new Map(merged.map((r) => [r.id, r])).values());
+        setUkNationRegions(deduped);
+      } catch (e) {
+        console.error("Error loading UK nation regions:", e);
+        setUkNationRegions([]);
+      }
+    };
+
+    loadUkNations();
+  }, [isUkCountry]);
+
+  const displayRegions = isUkCountry
+    ? Array.from(new Map([...regions, ...ukNationRegions].map((r) => [r.id, r])).values())
+    : regions;
+
+  const displayCountryName = isUkCountry ? "United Kingdom" : (initialCountry?.name || "Select location");
 
   // URL'den regionId/cityId oku
   const urlRegionId = searchParams.get("regionId");
   const urlCityId = searchParams.get("cityId");
+  const urlCountryId = searchParams.get("countryId");
 
   // Load regions if not provided initially
   useEffect(() => {
@@ -47,6 +111,7 @@ export function LocationMenu({
   useEffect(() => {
     if (urlRegionId && urlRegionId !== selectedRegionId) {
       setSelectedRegionId(urlRegionId);
+      setExpandedRegionId(urlRegionId);
       const loadCities = async () => {
         setLoadingCities(true);
         try {
@@ -60,10 +125,6 @@ export function LocationMenu({
         }
       };
       loadCities();
-    } else if (!urlRegionId && selectedRegionId) {
-      // URL'de regionId yoksa state'i temizle
-      setSelectedRegionId(null);
-      setCities([]);
     }
   }, [urlRegionId, selectedRegionId]);
 
@@ -92,27 +153,45 @@ export function LocationMenu({
     const params = new URLSearchParams(searchParams.toString());
     params.delete("regionId");
     params.delete("cityId");
+    params.delete("countryId");
+    router.push(`/?${params.toString()}`);
+    setExpandedRegionId(null);
+    setSelectedRegionId(null);
+    setCities([]);
+    setLoadingCities(false);
+  };
+
+  const handleCountryAsRegionSelect = (countryId: string) => {
+    setIsOpen(false);
+    setSelectedRegionId(null);
+    setExpandedRegionId(null);
+    setCities([]);
+    setLoadingCities(false);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("countryId", countryId);
+    params.delete("regionId");
+    params.delete("cityId");
     router.push(`/?${params.toString()}`);
   };
 
   // Handle region selection - Sayfa yenilemeden URL'i güncelle
   const handleRegionSelect = async (regionId: string) => {
+    // Always expand immediately on click (accordion behavior)
+    setExpandedRegionId(regionId);
+
     // Toggle: if same region clicked, close it and clear filter
-    if (selectedRegionId === regionId) {
+    if (expandedRegionId === regionId) {
       setSelectedRegionId(null);
+      setExpandedRegionId(null);
       setCities([]);
       setLoadingCities(false);
-      
-      // URL'den regionId'yi kaldır (sayfa yenilemeden)
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("regionId");
-      params.delete("cityId");
-      router.replace(`/?${params.toString()}`, { scroll: false });
       return;
     }
 
     // Set selected region and start loading
     setSelectedRegionId(regionId);
+    setExpandedRegionId(regionId);
     setLoadingCities(true);
     setCities([]);
 
@@ -125,12 +204,6 @@ export function LocationMenu({
     } finally {
       setLoadingCities(false);
     }
-
-    // URL'ye regionId ekle ve cityId'yi kaldır (sayfa yenilemeden)
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("regionId", regionId);
-    params.delete("cityId");
-    router.replace(`/?${params.toString()}`, { scroll: false });
   };
 
   // Handle city selection - URL'ye yönlendir
@@ -141,6 +214,7 @@ export function LocationMenu({
     const params = new URLSearchParams(searchParams.toString());
     params.set("cityId", cityId);
     params.set("regionId", regionId);
+    params.delete("countryId");
     router.push(`/?${params.toString()}`);
   };
 
@@ -152,14 +226,14 @@ export function LocationMenu({
     if (selectedRegionProp) {
       return selectedRegionProp.name;
     }
-    return initialCountry?.name || "Select location";
+    return displayCountryName;
   };
 
   if (!initialCountry) {
     return null;
   }
 
-  const isCountrySelected = !urlRegionId && !urlCityId;
+  const isCountrySelected = !urlRegionId && !urlCityId && !urlCountryId;
 
   return (
     <div className="relative" ref={menuRef}>
@@ -198,43 +272,51 @@ export function LocationMenu({
               >
                 <span className="flex items-center gap-1 md:gap-2">
                   {initialCountry.flag_emoji && <span className="text-xs md:text-base">{initialCountry.flag_emoji}</span>}
-                  <span>{initialCountry.name}</span>
+                  <span>{displayCountryName}</span>
                 </span>
               </button>
 
               {/* Regions List */}
-              {regions.length === 0 ? (
+              {displayRegions.length === 0 ? (
                 <div className="px-2 py-2 text-[10px] text-zinc-500 md:px-4 md:py-3 md:text-sm">
                   No regions found
                 </div>
               ) : (
-                regions.map((region) => {
-                  const isRegionSelected = selectedRegionId === region.id || selectedRegionProp?.id === region.id;
+                displayRegions.map((region) => {
+                  const isVirtualCountryRegion = region.id.startsWith("country::");
+                  const virtualCountryId = isVirtualCountryRegion ? region.id.replace("country::", "") : null;
+                  const isRegionExpanded = expandedRegionId === region.id;
                   
                   return (
                     <div key={region.id} className="space-y-0.5 md:space-y-1">
                       {/* Region Button */}
                       <button
                         type="button"
-                        onClick={() => handleRegionSelect(region.id)}
+                        onClick={() =>
+                          isVirtualCountryRegion && virtualCountryId
+                            ? handleCountryAsRegionSelect(virtualCountryId)
+                            : handleRegionSelect(region.id)
+                        }
                         className={`w-full rounded-lg px-2 py-2 text-left text-[10px] font-medium transition md:rounded-xl md:px-4 md:py-3 md:text-sm ${
-                          isRegionSelected
+                          isRegionExpanded
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : "hover:bg-zinc-50 text-zinc-700"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span>{region.name}</span>
-                          <ChevronDown
-                            className={`h-3 w-3 transition-transform md:h-4 md:w-4 ${
-                              isRegionSelected ? "rotate-180" : ""
-                            }`}
-                          />
+                          {!isVirtualCountryRegion && (
+                            <ChevronDown
+                              className={`h-3 w-3 transition-transform md:h-4 md:w-4 ${
+                                isRegionExpanded ? "rotate-180" : ""
+                              }`}
+                            />
+                          )}
                         </div>
                       </button>
 
                       {/* Cities List (shown when region is selected) */}
-                      {isRegionSelected && (
+                      {isRegionExpanded && !isVirtualCountryRegion && (
                         <div className="ml-2 space-y-0.5 border-l-2 border-emerald-200 pl-1.5 md:ml-4 md:space-y-1 md:pl-2">
                           {loadingCities ? (
                             <div className="flex items-center gap-1.5 px-2 py-1.5 text-[10px] text-zinc-500 md:gap-2 md:px-4 md:py-2 md:text-sm">

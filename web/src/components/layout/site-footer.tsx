@@ -107,7 +107,7 @@ export function SiteFooter() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-5">
             <h4 className="mb-2 font-semibold text-white">Credit System</h4>
             <p className="mb-3 text-xs text-zinc-400">
-              Purchase credits to feature listings, boost visibility, and access premium features.
+              Credits are optional. You can give away for free, swap, and sell pre-loved items—and use credits only to boost the listings you care about.
             </p>
             <Link href="/subscription" className="text-xs font-medium text-emerald-400 hover:text-emerald-300">
               Learn more →
@@ -117,7 +117,7 @@ export function SiteFooter() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-5">
             <h4 className="mb-2 font-semibold text-white">Subscription Plans</h4>
             <p className="mb-3 text-xs text-zinc-400">
-              Unlock unlimited listings, priority support, and advanced analytics with our plans.
+              The platform is free. Upgrade only if you want to boost your free give/swap/sale posts and get premium visibility.
             </p>
             <Link href="/subscription" className="text-xs font-medium text-emerald-400 hover:text-emerald-300">
               Learn more →

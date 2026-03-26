@@ -4,7 +4,7 @@ import { Leaf, Users, Sprout, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Zero Waste Community UK | Sustainable Living Platform",
-  description: "Join the UK's zero waste community. Share, swap, and give away items. Reduce your environmental impact and connect with like-minded people.",
+  description: "ReloopCycle is built for the community: give away for free, swap, and even sell pre-loved items. You can also post rehoming/adoption listings to help pets find new homes.",
   keywords: [
     "zero waste UK",
     "zero waste community",
@@ -126,16 +126,16 @@ export default function ZeroWastePage() {
             </div>
             
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-center">
-              <h3 className="mb-2 text-lg font-semibold text-zinc-900">Recycle</h3>
+              <h3 className="mb-2 text-lg font-semibold text-zinc-900">Swap & Share</h3>
               <p className="text-sm text-zinc-600">
-                Last resort for materials
+                Exchange items and keep them in the community instead of buying new
               </p>
             </div>
             
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-center">
-              <h3 className="mb-2 text-lg font-semibold text-zinc-900">Rot</h3>
+              <h3 className="mb-2 text-lg font-semibold text-zinc-900">Adopt & Rehome</h3>
               <p className="text-sm text-zinc-600">
-                Compost organic matter
+                Share adoption and rehoming posts to help animals find a safe new home
               </p>
             </div>
           </div>
@@ -167,30 +167,31 @@ export default function ZeroWastePage() {
       <section className="border-t border-zinc-200 bg-zinc-50 py-12">
         <div className="mx-auto max-w-4xl px-4">
           <article className="prose prose-zinc max-w-none">
-            <h2>Join the UK's Largest Zero Waste Community</h2>
+            <h2>Join the UK’s Reuse & Rehoming Community</h2>
             <p>
-              ReloopCycle is home to the UK's most active zero waste community. We're a group of 
-              individuals, families, and businesses committed to reducing waste and living sustainably.
+              ReloopCycle is a community built for people who want to reuse and help others. You can give items away for free,
+              swap with neighbors, or sell pre-loved items. And you can also share rehoming/adoption listings to help pets
+              find a new home.
             </p>
             
-            <h3>What is Zero Waste?</h3>
+            <h3>What We Do</h3>
             <p>
-              Zero waste is a philosophy that encourages redesigning resource life cycles so that 
-              all products are reused. The goal is for no trash to be sent to landfills or incinerators.
+              Our goal is simple: keep items in circulation for as long as possible. When you reuse instead of discarding,
+              you reduce the demand for new production and strengthen your local community.
             </p>
             
             <h3>How We Help</h3>
             <ul>
-              <li>Platform to share and swap items instead of buying new</li>
-              <li>Community of like-minded people for support and tips</li>
-              <li>Local connections to reduce transport emissions</li>
-              <li>Educational resources about sustainable living</li>
+              <li>Give away for free, swap, or sell pre-loved items locally</li>
+              <li>Community support to help you reuse with confidence</li>
+              <li>Safer local handovers and clear listing details</li>
+              <li>Rehoming & adoption posts for pets</li>
             </ul>
             
             <h3>Why It Matters</h3>
             <p>
-              The UK produces over 200 million tonnes of waste annually. By choosing to reuse and 
-              share items, we can significantly reduce this figure and create a more sustainable future.
+              Every item you keep in use helps reduce pressure on the system—and every rehoming post helps animals get
+              a second chance.
             </p>
           </article>
         </div>

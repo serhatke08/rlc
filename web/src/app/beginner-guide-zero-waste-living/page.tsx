@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Leaf, ArrowRight, CheckCircle2, Recycle, Sprout, Heart, Users, Package, ShoppingBag } from "lucide-react";
+import { Leaf, ArrowRight, CheckCircle2, Sprout, Heart, Users, Package, ShoppingBag } from "lucide-react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/listing-card";
@@ -115,12 +115,13 @@ export default async function BeginnerGuideZeroWastePage() {
           <div className="mb-12">
             <h2 className="mb-4 text-3xl font-bold text-zinc-900">What is Zero Waste Living?</h2>
             <p className="mb-4 text-lg text-zinc-600">
-              Zero waste living is about minimizing the amount of waste you send to landfill. It's not about 
-              producing absolutely zero waste (which is nearly impossible), but about making conscious choices 
-              to reduce, reuse, and recycle as much as possible.
+              Zero waste living is about keeping items in use and avoiding unnecessary waste. It is not about
+              producing absolutely zero waste (which is nearly impossible), but about making conscious choices
+              to reduce and reuse—by repairing, sharing, and using platforms like ReloopCycle to give away, swap,
+              and even sell pre-loved items within your community.
             </p>
             <div className="rounded-xl border-2 border-green-200 bg-green-50 p-6">
-              <h3 className="mb-3 font-semibold text-zinc-900">The 5 R's of Zero Waste</h3>
+              <h3 className="mb-3 font-semibold text-zinc-900">The 5 Actions of Circular Living</h3>
               <ol className="space-y-2 text-zinc-700">
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-green-700">1. Refuse</span>
@@ -135,12 +136,12 @@ export default async function BeginnerGuideZeroWastePage() {
                   <span>Use items multiple times, repair instead of replace, buy second-hand</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="font-semibold text-green-700">4. Recycle</span>
-                  <span>Properly recycle items that can't be reused</span>
+                  <span className="font-semibold text-green-700">4. Rehome</span>
+                  <span>Give away, swap, or share items—and help pets find a new home through adoption listings</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="font-semibold text-green-700">5. Rot</span>
-                  <span>Compost organic waste to return nutrients to the earth</span>
+                  <span className="font-semibold text-green-700">5. Resell</span>
+                  <span>Sell pre-loved items when they still have value, so they stay in circulation</span>
                 </li>
               </ol>
             </div>
@@ -246,11 +247,11 @@ export default async function BeginnerGuideZeroWastePage() {
             <p className="mb-4 text-zinc-600">
               The circular economy is about keeping products and materials in use for as long as possible. 
               Instead of the traditional "take, make, dispose" model, we aim to create a closed loop where 
-              items are reused, repaired, and recycled.
+              items are reused, repaired, swapped, and passed along through community sharing.
             </p>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="rounded-xl bg-white p-4">
-                <Recycle className="mb-2 h-6 w-6 text-emerald-600" />
+                <Users className="mb-2 h-6 w-6 text-emerald-600" />
                 <h3 className="mb-2 font-semibold text-zinc-900">Give Away</h3>
                 <p className="text-sm text-zinc-600">Give items you no longer need to others who can use them</p>
               </div>
@@ -285,11 +286,11 @@ export default async function BeginnerGuideZeroWastePage() {
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-6 w-6 flex-shrink-0 text-green-600" />
-                <span><strong>Learn about your local recycling:</strong> Different UK councils have different rules - know what can be recycled in your area.</span>
+                <span><strong>Share responsibly:</strong> Post with clear photos and details, coordinate safe handovers, and use adoption listings to help pets find a new home.</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-6 w-6 flex-shrink-0 text-green-600" />
-                <span><strong>Support circular economy platforms:</strong> Use platforms like ReloopCycle to give and receive items within your community.</span>
+                <span><strong>Support community reuse:</strong> Use ReloopCycle to give away for free, swap, sell pre-loved items, and connect with others who want to reuse.</span>
               </li>
             </ul>
           </div>
@@ -299,7 +300,7 @@ export default async function BeginnerGuideZeroWastePage() {
             <div className="mb-12">
               <h2 className="mb-6 text-3xl font-bold text-zinc-900">Join the Circular Economy Now</h2>
               <p className="mb-4 text-zinc-600">
-                Start your zero waste journey by browsing items available for free or swap in your area:
+                Start your journey by browsing items available for free, swap, or sale in your area. You can also find rehoming and adoption posts for pets:
               </p>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {listings.slice(0, 6).map((listing) => (

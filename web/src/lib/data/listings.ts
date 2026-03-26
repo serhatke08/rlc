@@ -38,6 +38,7 @@ type RawListing = {
 };
 
 export async function getFeaturedListings(options?: {
+  countryId?: string | null;
   regionId?: string | null;
   cityId?: string | null;
   categoryId?: string | null;
@@ -105,6 +106,7 @@ export async function getFeaturedListings(options?: {
     isAnonymous: !userCountryId,
     hasCityFilter: !!(options?.cityId && options.cityId.trim() !== '' && options.cityId !== 'null' && options.cityId !== 'undefined'),
     hasRegionFilter: !!(options?.regionId && options.regionId.trim() !== '' && options.regionId !== 'null' && options.regionId !== 'undefined' && options.regionId !== 'all'),
+    hasCountryFilter: !!(options?.countryId && options.countryId.trim() !== '' && options.countryId !== 'null' && options.countryId !== 'undefined'),
   });
 
 
@@ -156,6 +158,11 @@ export async function getFeaturedListings(options?: {
   if (options?.cityId && options.cityId.trim() !== '' && options.cityId !== 'null' && options.cityId !== 'undefined') {
     query = query.eq("city_id", options.cityId);
     console.log("[getFeaturedListings] Filtering by city_id:", options.cityId);
+  }
+  // Country filtresi (şehir yoksa, region filtresinden bir adım önce)
+  else if (options?.countryId && options.countryId.trim() !== '' && options.countryId !== 'null' && options.countryId !== 'undefined') {
+    query = query.eq("country_id", options.countryId);
+    console.log("[getFeaturedListings] Filtering by country_id:", options.countryId);
   }
   // Region filtresi (şehir yoksa, domain filtresini override eder)
   // "all" regionId = tüm ülke göster

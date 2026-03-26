@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 /**
  * Request header'larından domain'i alır
@@ -28,24 +28,65 @@ export async function getCurrentDomain(): Promise<string> {
 /**
  * Domain'e göre ülke filtreleme yapılıp yapılmayacağını belirler
  * reloopcycle.co.uk -> England'a özel (giriş yapmayan kullanıcılar için)
- * reloopcycle.com -> Tüm dünya
+ * reloopcycle.com -> Cookie'e göre England (default) veya Worldwide
  */
 export async function shouldFilterByDomain(): Promise<boolean> {
   const domain = await getCurrentDomain();
-  const shouldFilter = domain === "reloopcycle.co.uk" || domain.includes("reloopcycle.co.uk");
-  console.log("[shouldFilterByDomain] Domain:", domain, "Should filter:", shouldFilter);
+
+  // Cookie ile anons kullanıcılar için ülke modunu kontrol ederiz.
+  // - reloopcycle.co.uk: her zaman İngiltere (England)
+  // - reloopcycle.com: varsayılan İngiltere (England), butonla Worldwide <-> England togglable
+  const cookieName = "reloopcycle_country_mode";
+  type CountryMode = "england" | "worldwide";
+
+  const getCookieMode = (): CountryMode | null => {
+    const c = cookies().get(cookieName)?.value;
+    if (c === "england" || c === "worldwide") return c;
+    return null;
+  };
+
+  const isUkDomain = domain === "reloopcycle.co.uk" || domain.includes("reloopcycle.co.uk");
+  if (isUkDomain) {
+    console.log("[shouldFilterByDomain] Domain:", domain, "UK domain -> force England filter");
+    return true;
+  }
+
+  const isComDomain = domain === "reloopcycle.com" || domain.includes("reloopcycle.com");
+  if (!isComDomain) {
+    console.log("[shouldFilterByDomain] Domain:", domain, "Unknown domain -> no domain filter");
+    return false;
+  }
+
+  const mode = getCookieMode() ?? "england"; // user request: com default England
+  const shouldFilter = mode === "england";
+
+  console.log("[shouldFilterByDomain] Domain:", domain, "Mode:", mode, "Should filter (England only):", shouldFilter);
   return shouldFilter;
 }
 
 /**
  * Domain'e göre gösterilecek ülke bilgisini döndürür
  * reloopcycle.co.uk -> "England"
- * reloopcycle.com -> null (tüm dünya)
+ * reloopcycle.com -> Cookie'e göre "England" veya "Worldwide"
  */
 export async function getDomainCountryName(): Promise<string | null> {
   const domain = await getCurrentDomain();
-  if (domain === "reloopcycle.co.uk") {
-    return "England";
-  }
-  return null;
+
+  const cookieName = "reloopcycle_country_mode";
+  type CountryMode = "england" | "worldwide";
+
+  const getCookieMode = (): CountryMode | null => {
+    const c = cookies().get(cookieName)?.value;
+    if (c === "england" || c === "worldwide") return c;
+    return null;
+  };
+
+  const isUkDomain = domain === "reloopcycle.co.uk" || domain.includes("reloopcycle.co.uk");
+  if (isUkDomain) return "England";
+
+  const isComDomain = domain === "reloopcycle.com" || domain.includes("reloopcycle.com");
+  if (!isComDomain) return null;
+
+  const mode = getCookieMode() ?? "england";
+  return mode === "england" ? "England" : "Worldwide";
 }

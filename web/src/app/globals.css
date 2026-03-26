@@ -44,3 +44,48 @@ a {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* Sidebar store icon shine (left -> right) every ~3 seconds */
+@keyframes sidebarStoreIconShine {
+  0% {
+    transform: translateX(-130%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  55% {
+    opacity: 0.4;
+  }
+  70% {
+    transform: translateX(130%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(130%);
+    opacity: 0;
+  }
+}
+
+.sidebar-store-icon {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-store-icon-shine {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(16, 185, 129, 0.75),
+    transparent
+  );
+  transform: translateX(-130%);
+  opacity: 0;
+  pointer-events: none;
+  animation: sidebarStoreIconShine 3s ease-in-out infinite;
+}

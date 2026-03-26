@@ -9,6 +9,7 @@ interface HomeProps {
   searchParams: Promise<{
     regionId?: string;
     cityId?: string;
+    countryId?: string;
     categoryId?: string;
   }>;
 }
@@ -24,6 +25,7 @@ export default async function Home({ searchParams }: HomeProps) {
   
   // Gerçek Supabase verilerini çek
   const allListings = await getFeaturedListings({
+    countryId: params.countryId || null,
     regionId: params.regionId || null,
     cityId: params.cityId || null,
     categoryId: params.categoryId || null,

@@ -26,12 +26,12 @@ interface HomeListingsProps {
 
 export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null, isAuthenticated = false }: HomeListingsProps) {
   const [activeFilter, setActiveFilter] = useState("all");
-  // Default grid (with descriptions) for non-authenticated users, gallery for authenticated users
-  const [viewMode, setViewMode] = useState<'grid' | 'gallery'>(isAuthenticated ? 'gallery' : 'grid');
-  const [gridColumns, setGridColumns] = useState<2 | 3 | 4 | 5>(5); // PC'de başlangıçta 5x5
+  // Varsayılan: gallery (tüm kullanıcılar); grid isteğe bağlı
+  const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('gallery');
+  const [gridColumns, setGridColumns] = useState<2 | 3 | 4 | 5>(4); // Tablet/PC'de başlangıçta 4x4
   
-  // Mobile columns (only 2 or 3)
-  const [mobileColumns, setMobileColumns] = useState<2 | 3>(2); // Mobilde başlangıçta 2x2
+  // Mobile columns (3-4'lü isteniyor)
+  const [mobileColumns, setMobileColumns] = useState<2 | 3 | 4>(3); // Mobilde başlangıçta 3x3
   const [columnsDropdownOpen, setColumnsDropdownOpen] = useState(false);
   const columnsDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -78,36 +78,8 @@ export function HomeListings({ listings, categories = [], country = null, region
 
   return (
     <>
-      {/* Hero Section - Image as Background */}
-      {/* Mobile: Full width, no padding, image fits perfectly */}
-      <section className="relative overflow-hidden w-screen ml-[calc(-50vw+50%)] lg:hidden">
-        <div className="relative w-full">
-          <Image
-            src="/images/newapoditon.png"
-            alt="ReloopCycle - Circular Economy Marketplace"
-            width={0}
-            height={0}
-            className="w-full h-auto"
-            priority
-            sizes="100vw"
-            unoptimized
-          />
-        </div>
-      </section>
-      {/* Desktop: Container width */}
-      <section className="relative overflow-hidden hidden lg:block mx-auto max-w-6xl aspect-[3/1] min-h-[500px] px-6">
-        <Image
-          src="/images/newapoditon.png"
-          alt="ReloopCycle - Circular Economy Marketplace"
-          fill
-          className="object-contain object-left"
-          priority
-          sizes="(max-width: 1024px) 100vw, 1280px"
-        />
-      </section>
-
       <div className="pb-12">
-      <section className="space-y-4 pt-8">
+      <section className="space-y-4 pt-0">
         <ListingFilterPills 
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
@@ -163,14 +135,14 @@ export function HomeListings({ listings, categories = [], country = null, region
               </button>
               {columnsDropdownOpen && (
                 <>
-                  {/* Mobile dropdown - only 2x2 and 3x3 */}
+                  {/* Mobile dropdown - 2x2, 3x3, 4x4 */}
                   <div className="absolute right-0 top-full z-50 mt-1 w-20 rounded-lg border border-zinc-200 bg-white shadow-lg md:hidden">
                     <div className="py-1">
-                      {[2, 3].map((cols) => (
+                      {[2, 3, 4].map((cols) => (
                         <button
                           key={cols}
                           onClick={() => {
-                            setMobileColumns(cols as 2 | 3);
+                            setMobileColumns(cols as 2 | 3 | 4);
                             setColumnsDropdownOpen(false);
                           }}
                           className={cn(
@@ -236,10 +208,11 @@ export function HomeListings({ listings, categories = [], country = null, region
                 <div className={cn(
                   "grid gap-2",
                   !isAuthenticated 
-                    ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-5' 
+                    ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5'
                     : cn(
                         mobileColumns === 2 && 'grid-cols-2',
                         mobileColumns === 3 && 'grid-cols-3',
+                        mobileColumns === 4 && 'grid-cols-4',
                         gridColumns === 2 && 'md:grid-cols-2',
                         gridColumns === 3 && 'md:grid-cols-3',
                         gridColumns === 4 && 'md:grid-cols-4',
@@ -331,10 +304,11 @@ export function HomeListings({ listings, categories = [], country = null, region
                 <div className={cn(
                   "grid gap-4",
                   !isAuthenticated 
-                    ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-5' 
+                    ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5'
                     : cn(
                         mobileColumns === 2 && 'grid-cols-2',
                         mobileColumns === 3 && 'grid-cols-3',
+                        mobileColumns === 4 && 'grid-cols-4',
                         gridColumns === 2 && 'md:grid-cols-2',
                         gridColumns === 3 && 'md:grid-cols-3',
                         gridColumns === 4 && 'md:grid-cols-4',

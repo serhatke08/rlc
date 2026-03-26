@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Sparkles, ArrowRight, CheckCircle2, Box, Heart, Leaf, Users, ArrowLeftRight, Recycle } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Box, Heart, Leaf, Users, ArrowLeftRight } from "lucide-react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/listing-card";
@@ -168,7 +168,7 @@ export default async function HowToDeclutterGivingAwayPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-zinc-400" />
-                    <span><strong>Recycle/Bin:</strong> Items that are broken beyond repair or truly unusable</span>
+                    <span><strong>Dispose responsibly:</strong> Items that are broken beyond repair or truly unusable (follow your local disposal guidelines)</span>
                   </li>
                 </ul>
               </div>
