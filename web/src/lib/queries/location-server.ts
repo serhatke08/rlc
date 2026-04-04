@@ -164,18 +164,36 @@ export async function getRegionById(regionId: string): Promise<Region | null> {
 export async function getCityById(cityId: string): Promise<City | null> {
   try {
     const supabase = await createSupabaseServerClient();
+    // `cities` tablosunda `country_id` kolonu yok; ülke `regions` üzerinden.
+    // `cities_full_info` ile getCitiesByRegion / dropdown ile aynı kaynak.
     const { data, error } = await supabase
-      .from("cities")
-      .select("id, name, region_id, country_id")
-      .eq("id", cityId)
-      .single();
+      .from("cities_full_info")
+      .select("city_id, city_name, region_id, country_id")
+      .eq("city_id", cityId)
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching city:", JSON.stringify(error, null, 2));
       return null;
     }
 
-    return data as City | null;
+    if (!data) {
+      return null;
+    }
+
+    const row = data as {
+      city_id: string;
+      city_name: string;
+      region_id: string;
+      country_id: string;
+    };
+
+    return {
+      id: row.city_id,
+      name: row.city_name,
+      region_id: row.region_id,
+      country_id: row.country_id,
+    };
   } catch (err) {
     console.error("Unexpected error in getCityById:", err);
     return null;
