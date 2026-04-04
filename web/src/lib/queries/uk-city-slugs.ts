@@ -1,6 +1,6 @@
 import { cache } from "react";
 
-import { createSupabasePublicReadClient } from "@/lib/supabase/public-read";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { City } from "@/lib/types/location";
 import { isValidCitySlugFormat, slugifyCityPathSegment } from "@/lib/slug";
 
@@ -12,8 +12,9 @@ type CityRow = {
   is_major: boolean | null;
 };
 
-async function fetchUnitedKingdomCountryIds(): Promise<string[]> {
-  const supabase = createSupabasePublicReadClient();
+type SupabaseServer = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
+async function fetchUnitedKingdomCountryIds(supabase: SupabaseServer): Promise<string[]> {
   const { data, error } = await supabase
     .from("countries")
     .select("id")
@@ -29,12 +30,12 @@ async function fetchUnitedKingdomCountryIds(): Promise<string[]> {
 }
 
 async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
-  const countryIds = await fetchUnitedKingdomCountryIds();
+  const supabase = await createSupabaseServerClient();
+  const countryIds = await fetchUnitedKingdomCountryIds(supabase);
   if (countryIds.length === 0) {
     return new Map();
   }
 
-  const supabase = createSupabasePublicReadClient();
   const { data, error } = await supabase
     .from("cities_full_info")
     .select("city_id, city_name, region_id, country_id, is_major")
@@ -81,7 +82,10 @@ async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
   return bySlug;
 }
 
-/** İstek başına tek DB yükü; `unstable_cache` + cookies/Edge etkileşiminden kaçınılır. */
+/**
+ * İstek başına tek yükleme (React cache). `unstable_cache` kullanılmıyor — içinde
+ * cookie tabanlı Supabase kullanılamazdı; anon client ise prod RLS ile boş dönebiliyordu (404).
+ */
 const getUkCitySlugIndexCached = cache(async (): Promise<Map<string, City[]>> => {
   try {
     return await loadUkCitySlugIndex();
