@@ -195,6 +195,7 @@ export interface Database {
           region_id: string | null;
           order_index: number | null;
           created_at: string | null;
+          seo_description: string | null;
         };
         Insert: {
           id?: string;
@@ -204,6 +205,7 @@ export interface Database {
           region_id?: string | null;
           order_index?: number | null;
           created_at?: string | null;
+          seo_description?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["cities"]["Row"]>;
       };

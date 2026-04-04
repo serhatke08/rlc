@@ -20,5 +20,7 @@ export interface City {
   name: string;
   region_id: string;
   country_id: string;
+  /** From cities.seo_description — city landing intro */
+  seo_description?: string | null;
 }
 

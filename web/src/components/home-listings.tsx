@@ -24,11 +24,13 @@ interface HomeListingsProps {
   isAuthenticated?: boolean;
   /** Visible H1 for SEO city pages (single h1 per page). */
   pageH1?: string | null;
+  /** Optional intro under H1 (city SEO from DB or fallback). */
+  pageDescription?: string | null;
   /** SEO path prefix for city URLs: .co.uk → uk, .com → us (see resolveCityPathPrefixFromCountry). */
   cityPathPrefix?: "uk" | "us";
 }
 
-export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null, isAuthenticated = false, pageH1 = null, cityPathPrefix = "uk" }: HomeListingsProps) {
+export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null, isAuthenticated = false, pageH1 = null, pageDescription = null, cityPathPrefix = "uk" }: HomeListingsProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   // Varsayılan: gallery (tüm kullanıcılar); grid isteğe bağlı
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('gallery');
@@ -84,9 +86,16 @@ export function HomeListings({ listings, categories = [], country = null, region
     <>
       <div className="pb-12">
       {pageH1 ? (
-        <h1 className="mb-6 text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl">
-          {pageH1}
-        </h1>
+        <header className="mb-6">
+          <h1 className="mb-4 text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl">
+            {pageH1}
+          </h1>
+          {pageDescription ? (
+            <p className="max-w-3xl text-base leading-relaxed text-zinc-600 md:text-lg">
+              {pageDescription}
+            </p>
+          ) : null}
+        </header>
       ) : null}
       <section className="space-y-4 pt-0">
         <ListingFilterPills 

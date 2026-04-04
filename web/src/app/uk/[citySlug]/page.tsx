@@ -8,6 +8,7 @@ import {
   getRegionById,
 } from "@/lib/queries/location-server";
 import { getUkCityBySlug } from "@/lib/queries/uk-city-slugs";
+import { resolveCityMetaDescription, resolveCityPageIntro } from "@/lib/city-page-copy";
 import { slugifyCityPathSegment } from "@/lib/slug";
 import { HomeListings } from "@/components/home-listings";
 import { getSiteUrlFromHeaders } from "@/lib/env";
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: UkCityPageProps): Promise<Met
     title: {
       absolute: `Free items in ${display} — ReloopCycle`,
     },
-    description: `Give, get or swap free items in ${display} on ReloopCycle. Join your local community.`,
+    description: resolveCityMetaDescription(city),
     alternates: {
       canonical: `${base}${path}`,
     },
@@ -85,6 +86,7 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
   const selectedRegion = await getRegionById(city.region_id);
 
   const pageH1 = `Free & Swap Items in ${city.name}`;
+  const pageDescription = resolveCityPageIntro(city);
 
   return (
     <HomeListings
@@ -96,6 +98,7 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
       selectedCity={city}
       isAuthenticated={isAuthenticated}
       pageH1={pageH1}
+      pageDescription={pageDescription}
       cityPathPrefix="uk"
     />
   );
