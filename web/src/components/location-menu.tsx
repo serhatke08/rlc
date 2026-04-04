@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, MapPin, Loader2 } from "lucide-react";
 import type { Country, Region, City } from "@/lib/types/location";
 import { fetchRegionsByCountry, fetchCitiesByRegion, fetchUkNationCountries } from "@/lib/queries/location-client";
-import { slugifyCityPathSegment } from "@/lib/slug";
-
 interface LocationMenuProps {
   initialCountry: Country | null;
   initialRegions?: Region[];
@@ -21,7 +19,7 @@ export function LocationMenu({
   initialRegions = [],
   selectedRegion: selectedRegionProp = null,
   selectedCity: selectedCityProp = null,
-  cityPathPrefix,
+  cityPathPrefix: _cityPathPrefix,
 }: LocationMenuProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -234,18 +232,15 @@ export function LocationMenu({
     }
   };
 
-  // Şehir seçimi → /uk/{slug} veya /us/{slug} (query'de region/city id tutulmaz)
+  // Şehir seçimi → anasayfada kal, ilanları ?cityId= ile filtrele (SEO URL'ye zorla yönlendirme yok)
   const handleCitySelect = (city: City, _regionId: string) => {
     setIsOpen(false);
     const params = new URLSearchParams(searchParams.toString());
+    params.set("cityId", city.id);
     params.delete("regionId");
-    params.delete("cityId");
     params.delete("countryId");
-    const slug = slugifyCityPathSegment(city.name);
-    if (!slug) return;
     const q = params.toString();
-    const base = `/${cityPathPrefix}/${slug}`;
-    router.push(q ? `${base}?${q}` : base);
+    router.push(q ? `/?${q}` : "/");
   };
 
   // Buton metnini belirle

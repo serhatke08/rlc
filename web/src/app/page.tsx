@@ -2,12 +2,10 @@ import { getServerUser } from "@/lib/supabase/server";
 import { getFeaturedListings } from "@/lib/data/listings";
 import { getCategories } from "@/lib/queries/category-server";
 import { getCurrentUserCountry, getRegionsByCountry, getRegionById, getCityById } from "@/lib/queries/location-server";
-import { slugifyCityPathSegment } from "@/lib/slug";
 import { getSeoCityMarketFromHost } from "@/lib/domain";
-import { resolveCityPathPrefixFromCountry, resolveSeoMarketForCity } from "@/lib/seo-city-market";
+import { resolveCityPathPrefixFromCountry } from "@/lib/seo-city-market";
 import type { Region } from "@/lib/types/location";
 import { HomeListings } from "@/components/home-listings";
-import { permanentRedirect } from "next/navigation";
 
 interface HomeProps {
   searchParams: Promise<{
@@ -20,18 +18,6 @@ interface HomeProps {
 
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
-
-  if (params.cityId) {
-    const city = await getCityById(params.cityId);
-    if (city) {
-      const market = await resolveSeoMarketForCity(city);
-      const slug = slugifyCityPathSegment(city.name);
-      const sp = new URLSearchParams();
-      if (params.categoryId) sp.set("categoryId", params.categoryId);
-      const q = sp.toString();
-      permanentRedirect(q ? `/${market}/${slug}?${q}` : `/${market}/${slug}`);
-    }
-  }
 
   const user = await getServerUser();
   const isAuthenticated = !!user;
