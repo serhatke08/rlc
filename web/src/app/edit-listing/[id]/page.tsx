@@ -347,7 +347,11 @@ export default function EditListingPage() {
       }
 
       router.push(
-        listingPublicPath({ id: listingId, slug: result.slug ?? null })
+        listingPublicPath({
+          id: listingId,
+          slug: result.slug ?? null,
+          seo_path: result.seo_path ?? null,
+        })
       );
     } catch (error) {
       console.error('Error updating listing:', error);

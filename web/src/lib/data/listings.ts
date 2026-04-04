@@ -23,6 +23,7 @@ type RawListing = {
   metadata: Record<string, unknown> | null;
   created_at: string | null;
   slug: string | null;
+  seo_path: string | null;
   view_count: number | null;
   comment_count: number | null;
   favorite_count: number | null;
@@ -127,6 +128,7 @@ export async function getFeaturedListings(options?: {
         metadata,
         created_at,
         slug,
+        seo_path,
         view_count,
         comment_count,
         favorite_count,
@@ -290,6 +292,7 @@ export async function getFeaturedListings(options?: {
     return {
       id: listing.id,
       slug: listing.slug,
+      seo_path: listing.seo_path,
       title: listing.title,
       description: listing.description,
       city: listing.city?.name ?? listing.city_name ?? "Unknown",

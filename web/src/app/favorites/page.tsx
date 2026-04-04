@@ -25,6 +25,7 @@ export default async function FavoritesPage() {
       listing:listings(
         id,
         slug,
+        seo_path,
         title,
         description,
         price,
@@ -86,7 +87,7 @@ export default async function FavoritesPage() {
             return (
               <Link
                 key={fav.id}
-                href={listingPublicPath({ id: listing.id, slug: listing.slug })}
+                href={listingPublicPath({ id: listing.id, slug: listing.slug, seo_path: listing.seo_path })}
                 className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md"
               >
                 {/* Ürün Görseli */}

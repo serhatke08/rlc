@@ -1,35 +1,15 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/schema";
-import { getSiteUrlFromHeaders } from "@/lib/env";
-import { allocateUniqueListingSlug } from "@/lib/listing-slug-server";
-import { resolveCityDisplayNameForListingSlug } from "@/lib/listing-slug-resolve";
-import { listingPublicPath } from "@/lib/listing-url";
-import { computeSeoPathForExistingListing } from "@/lib/listing-seo-path-server";
 import { ListingDetailView } from "@/components/listing-detail-view";
 import { LISTING_PAGE_DETAIL_SELECT } from "@/lib/listing-detail-query";
+import { listingPublicPath } from "@/lib/listing-url";
+import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/schema";
+import { getSiteUrlFromHeaders } from "@/lib/env";
+import type { ListingMarket } from "@/lib/listing-seo-path";
 
-interface ListingPageProps {
-  params: Promise<{
-    slug: string;
-  }>;
-}
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isUuidParam(s: string): boolean {
-  return UUID_RE.test(s);
-}
-
-export async function generateMetadata({ params }: ListingPageProps): Promise<Metadata> {
-  const { slug: raw } = await params;
-  const supabase = await createSupabaseServerClient();
-  const baseUrl = await getSiteUrlFromHeaders();
-
-  const metaSelect = `
+const META_SELECT = `
     title,
     description,
     price,
@@ -43,19 +23,26 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
     category:product_categories(name)
   `;
 
-  let listingForMeta = null;
-  if (isUuidParam(raw)) {
-    const { data } = await supabase.from("listings").select(metaSelect).eq("id", raw).maybeSingle();
-    listingForMeta = data;
-  } else {
-    const { data } = await supabase.from("listings").select(metaSelect).eq("slug", raw).maybeSingle();
-    listingForMeta = data;
-  }
+export async function generateListingSeoMetadata({
+  params,
+  market,
+}: {
+  params: Promise<{ citySlug: string; intent: string; categorySlug: string; itemSlug: string }>;
+  market: ListingMarket;
+}): Promise<Metadata> {
+  const p = await params;
+  const seo_path = `${market}/${p.citySlug}/${p.intent}/${p.categorySlug}/${p.itemSlug}`;
+  const supabase = await createSupabaseServerClient();
+  const baseUrl = await getSiteUrlFromHeaders();
+
+  const { data: listingForMeta } = await supabase
+    .from("listings")
+    .select(META_SELECT)
+    .eq("seo_path", seo_path)
+    .maybeSingle();
 
   if (!listingForMeta) {
-    return {
-      title: "Listing Not Found",
-    };
+    return { title: "Listing Not Found" };
   }
 
   const listingData = listingForMeta as Record<string, unknown>;
@@ -101,67 +88,25 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
   };
 }
 
-export default async function ListingPage({ params }: ListingPageProps) {
-  const { slug: raw } = await params;
+export async function ListingSeoRoutePage({
+  params,
+  market,
+}: {
+  params: Promise<{ citySlug: string; intent: string; categorySlug: string; itemSlug: string }>;
+  market: ListingMarket;
+}) {
+  const p = await params;
+  const seo_path = `${market}/${p.citySlug}/${p.intent}/${p.categorySlug}/${p.itemSlug}`;
   const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (isUuidParam(raw)) {
-    const { data: byId, error: idErr } = await supabase
-      .from("listings")
-      .select("id, slug, seo_path, title, city_name, city_id")
-      .eq("id", raw)
-      .maybeSingle();
-
-    const short = byId as
-      | {
-          id: string;
-          slug: string | null;
-          seo_path: string | null;
-          title: string;
-          city_name: string;
-          city_id: string | null;
-        }
-      | null;
-
-    if (idErr || !short) {
-      notFound();
-    }
-
-    if (short.seo_path) {
-      permanentRedirect(`/${short.seo_path}`);
-    }
-
-    const computed = await computeSeoPathForExistingListing(short.id);
-    if (computed) {
-      await (supabase.from("listings") as any).update({ seo_path: computed }).eq("id", short.id);
-      permanentRedirect(`/${computed}`);
-    }
-
-    if (short.slug) {
-      permanentRedirect(`/listing/${short.slug}`);
-    }
-
-    const cityLabel = await resolveCityDisplayNameForListingSlug(short.city_id, short.city_name);
-    const newSlug = await allocateUniqueListingSlug(short.title, cityLabel, short.id);
-    await (supabase.from("listings") as any).update({ slug: newSlug }).eq("id", short.id);
-
-    const afterSlug = await computeSeoPathForExistingListing(short.id);
-    if (afterSlug) {
-      await (supabase.from("listings") as any).update({ seo_path: afterSlug }).eq("id", short.id);
-      permanentRedirect(`/${afterSlug}`);
-    }
-
-    permanentRedirect(`/listing/${newSlug}`);
-  }
-
   const { data: listing, error } = await supabase
     .from("listings")
     .select(LISTING_PAGE_DETAIL_SELECT)
-    .eq("slug", raw)
+    .eq("seo_path", seo_path)
     .single();
 
   if (error || !listing) {
@@ -170,11 +115,6 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
   const listingData = listing as Record<string, unknown>;
   const id = listingData.id as string;
-
-  if (listingData.seo_path) {
-    permanentRedirect(`/${listingData.seo_path as string}`);
-  }
-
   const isOwner = user ? user.id === listingData.seller_id : false;
 
   const siteUrl = await getSiteUrlFromHeaders();

@@ -2,11 +2,16 @@ import { slugifyCityPathSegment } from "@/lib/slug";
 
 const MAX_BASE_LEN = 200;
 
+/** Başlık sonuna eklenmiş timestamp vb. (10+ hane) slug'dan düşürülür */
+export function stripTrailingTimestampFromListingTitle(title: string): string {
+  return title.replace(/\s+\d{10,}\s*$/u, "").trim();
+}
+
 /**
  * Single URL segment: "{title-slug}-{city-slug}" e.g. vintage-wooden-chair-london
  */
 export function buildListingSlugBase(title: string, cityDisplayName: string): string {
-  const t = slugifyCityPathSegment(title);
+  const t = slugifyCityPathSegment(stripTrailingTimestampFromListingTitle(title));
   const c = slugifyCityPathSegment(cityDisplayName);
   /** Sadece rakamlardan oluşan “şehir” segmenti (timestamp vb.) URL’e konmasın */
   const cSafe = c && /^\d+$/.test(c) ? "" : c;

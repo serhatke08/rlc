@@ -16,6 +16,8 @@ interface Conversation {
   updated_at: string;
   listing?: {
     id: string;
+    slug?: string | null;
+    seo_path?: string | null;
     title: string;
     thumbnail_url: string | null;
     images: string[] | null;

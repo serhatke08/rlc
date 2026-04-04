@@ -7,13 +7,21 @@ import { listingPublicPath } from "@/lib/listing-url";
 interface ListingLinkProps {
   listingId: string;
   listingSlug?: string | null;
+  listingSeoPath?: string | null;
   title: string;
   thumbnailUrl?: string | null;
   images?: string[] | null;
 }
 
-export function ListingLink({ listingId, listingSlug, title, thumbnailUrl, images }: ListingLinkProps) {
-  const path = listingPublicPath({ id: listingId, slug: listingSlug });
+export function ListingLink({
+  listingId,
+  listingSlug,
+  listingSeoPath,
+  title,
+  thumbnailUrl,
+  images,
+}: ListingLinkProps) {
+  const path = listingPublicPath({ id: listingId, slug: listingSlug, seo_path: listingSeoPath });
   const handleClick = (e: React.MouseEvent) => {
     // Iframe içindeyse parent window'a git, değilse normal link
     if (window.top && window.top !== window.self) {

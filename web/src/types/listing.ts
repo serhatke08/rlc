@@ -4,8 +4,10 @@ export type ListingIntent = "give" | "swap" | "lend" | "sell" | "need" | "adopti
 
 export interface FeaturedListing {
   id: string;
-  /** SEO path segment when set; links use slug preferentially */
+  /** Legacy path segment under /listing/ when set */
   slug?: string | null;
+  /** Full hierarchical path without leading slash (e.g. uk/manchester/free/electronics/iphone-12) */
+  seo_path?: string | null;
   title: string;
   description: string;
   city: string;

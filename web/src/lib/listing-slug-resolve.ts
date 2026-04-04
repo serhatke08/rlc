@@ -4,12 +4,20 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { slugifyCityPathSegment } from "@/lib/slug";
 
 /**
- * Slug için şehir etiketi: city_id varsa her zaman DB'deki canonical isim (form yanlış/boş olsa bile).
+ * Şehir segmenti için metin: önce `listings.city_name` (kullanıcının gördüğü lokasyon),
+ * boşsa veya saçma (sadece rakam) ise `cities.name` (city_id ile).
  */
 export async function resolveCityDisplayNameForListingSlug(
   cityId: string | null | undefined,
-  formCityName: string | null | undefined,
+  cityNameFromListing: string | null | undefined,
 ): Promise<string> {
+  const raw = (cityNameFromListing || "").trim();
+  if (raw) {
+    const seg = slugifyCityPathSegment(raw);
+    if (seg && !/^\d+$/.test(seg)) {
+      return raw;
+    }
+  }
   if (cityId) {
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase.from("cities").select("name").eq("id", cityId).maybeSingle();
@@ -18,10 +26,5 @@ export async function resolveCityDisplayNameForListingSlug(
       return n;
     }
   }
-  const trimmed = (formCityName || "").trim();
-  const seg = slugifyCityPathSegment(trimmed);
-  if (seg && /^\d+$/.test(seg)) {
-    return "";
-  }
-  return trimmed;
+  return "";
 }

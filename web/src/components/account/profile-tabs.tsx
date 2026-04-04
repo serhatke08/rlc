@@ -11,6 +11,7 @@ import { DeleteListingButton } from '@/components/delete-listing-button';
 interface Listing {
   id: string;
   slug?: string | null;
+  seo_path?: string | null;
   title: string;
   description: string;
   thumbnail_url: string | null;

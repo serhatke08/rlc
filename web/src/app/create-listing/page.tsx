@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { listingPublicPath } from '@/lib/listing-url';
 import { Upload, X, Loader2 } from 'lucide-react';
 
 type Category = {
@@ -560,8 +561,13 @@ export default function CreateListingPage() {
       }
 
       if (data.id) {
-        const path = data.slug ? `/listing/${data.slug}` : `/listing/${data.id}`;
-        router.push(path);
+        router.push(
+          listingPublicPath({
+            id: data.id,
+            slug: data.slug ?? null,
+            seo_path: data.seo_path ?? null,
+          }),
+        );
       } else {
         setSubmitting(false);
       }

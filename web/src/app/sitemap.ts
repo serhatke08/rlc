@@ -104,14 +104,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createSupabaseServerClient()
   const { data: listings } = await supabase
     .from('listings')
-    .select('id, slug, updated_at')
+    .select('id, slug, seo_path, updated_at')
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(1000)
 
   const listingsData = (listings || []) as any[];
   const listingPages: MetadataRoute.Sitemap = listingsData.map((listing: any) => ({
-    url: `${baseUrl}${listingPublicPath({ id: listing.id, slug: listing.slug })}`,
+    url: `${baseUrl}${listingPublicPath({ id: listing.id, slug: listing.slug, seo_path: listing.seo_path })}`,
     lastModified: new Date(listing.updated_at || Date.now()),
     changeFrequency: 'daily' as const,
     priority: 0.7,

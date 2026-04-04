@@ -66,6 +66,7 @@ export async function generateProductSchema(listingId: string) {
     .select(`
       id,
       slug,
+      seo_path,
       title,
       description,
       price,
@@ -99,7 +100,7 @@ export async function generateProductSchema(listingId: string) {
       price: isFree ? "0" : price.toString(),
       priceCurrency: "GBP",
       availability: "https://schema.org/InStock",
-      url: `${siteUrl}${listingPublicPath({ id: listingData.id, slug: listingData.slug })}`
+      url: `${siteUrl}${listingPublicPath({ id: listingData.id, slug: listingData.slug, seo_path: listingData.seo_path })}`
     },
     condition: `https://schema.org/${listingData.condition === "new" ? "NewCondition" : "UsedCondition"}`,
     category: "Second Hand Items",

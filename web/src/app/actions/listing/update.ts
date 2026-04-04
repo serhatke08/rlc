@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { allocateUniqueListingSlug } from "@/lib/listing-slug-server";
 import { resolveCityDisplayNameForListingSlug } from "@/lib/listing-slug-resolve";
+import { allocateUniqueSeoPath } from "@/lib/listing-seo-path-server";
 import type { Database } from "@/lib/types/database";
 
 type ListingRow = Database["public"]["Tables"]["listings"]["Row"];
@@ -94,6 +95,11 @@ export async function updateListingServer(
       updates.city_name !== undefined ||
       updates.city_id !== undefined;
 
+    const shouldRefreshSeoPath =
+      shouldRefreshSlug ||
+      updates.category_id !== undefined ||
+      updates.listing_type !== undefined;
+
     if (shouldRefreshSlug) {
       const { data: fresh, error: freshErr } = await supabase
         .from("listings")
@@ -113,15 +119,48 @@ export async function updateListingServer(
       }
     }
 
+    if (shouldRefreshSeoPath) {
+      const { data: freshSeo, error: freshSeoErr } = await supabase
+        .from("listings")
+        .select("title, city_name, city_id, category_id, listing_type")
+        .eq("id", listingId)
+        .eq("seller_id", user.id)
+        .single();
+
+      if (!freshSeoErr && freshSeo) {
+        const fr = freshSeo as {
+          title: string;
+          city_name: string;
+          city_id: string | null;
+          category_id: string | null;
+          listing_type: string | null;
+        };
+        const seo_path = await allocateUniqueSeoPath({
+          cityId: fr.city_id,
+          cityName: fr.city_name,
+          categoryId: fr.category_id,
+          title: fr.title,
+          listingType: fr.listing_type,
+          excludeListingId: listingId,
+        });
+        if (seo_path) {
+          await (supabase.from("listings") as any)
+            .update({ seo_path })
+            .eq("id", listingId)
+            .eq("seller_id", user.id);
+        }
+      }
+    }
+
     const { data: outRow } = await supabase
       .from("listings")
-      .select("slug")
+      .select("slug, seo_path")
       .eq("id", listingId)
       .single();
 
-    const slugOut = (outRow as { slug: string | null } | null)?.slug ?? null;
+    const out = outRow as { slug: string | null; seo_path: string | null } | null;
 
-    return { ok: true, status: 200, slug: slugOut };
+    return { ok: true, status: 200, slug: out?.slug ?? null, seo_path: out?.seo_path ?? null };
   } catch (error: any) {
     console.error("Unexpected error in updateListingServer:", error);
     return { ok: false, status: 500, message: error?.message || "Internal server error" };

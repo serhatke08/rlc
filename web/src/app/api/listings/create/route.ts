@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { allocateUniqueListingSlug } from '@/lib/listing-slug-server';
 import { resolveCityDisplayNameForListingSlug } from '@/lib/listing-slug-resolve';
+import { allocateUniqueSeoPath } from '@/lib/listing-seo-path-server';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -110,7 +111,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: listingError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ id: listing.id, slug: (listing as { slug?: string }).slug ?? slug });
+    const createdId = (listing as { id: string }).id;
+    const seo_path = await allocateUniqueSeoPath({
+      cityId: cityId || null,
+      cityName: cityName || null,
+      categoryId: categoryId || null,
+      title: title.trim(),
+      listingType: listingType,
+      excludeListingId: createdId,
+    });
+    if (seo_path) {
+      await (supabase.from('listings') as any).update({ seo_path }).eq('id', createdId);
+    }
+
+    return NextResponse.json({
+      id: createdId,
+      slug: (listing as { slug?: string }).slug ?? slug,
+      seo_path: seo_path ?? null,
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }

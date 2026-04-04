@@ -75,7 +75,7 @@ export function MessagesChatView({ conversationId, currentUserId, onBack, initia
             user1_id,
             user2_id,
             listing_id,
-            listing:listings(id, slug, title, thumbnail_url, images, seller_id),
+            listing:listings(id, slug, seo_path, title, thumbnail_url, images, seller_id),
             user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
             user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url)
           `)
@@ -261,6 +261,7 @@ export function MessagesChatView({ conversationId, currentUserId, onBack, initia
             <ListingLink
               listingId={conversation.listing.id}
               listingSlug={conversation.listing.slug}
+              listingSeoPath={conversation.listing.seo_path}
               title={conversation.listing.title}
               thumbnailUrl={conversation.listing.thumbnail_url}
               images={conversation.listing.images}

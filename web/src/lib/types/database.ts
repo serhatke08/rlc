@@ -35,6 +35,7 @@ export interface Database {
           sold_at: string | null;
           featured_until: string | null;
           slug: string | null;
+          seo_path: string | null;
           metadata: Record<string, unknown> | null;
         };
         Insert: {
@@ -70,6 +71,7 @@ export interface Database {
           sold_at?: string | null;
           featured_until?: string | null;
           slug?: string | null;
+          seo_path?: string | null;
           metadata?: Record<string, unknown> | null;
         };
         Update: Partial<Database["public"]["Tables"]["listings"]["Row"]>;
