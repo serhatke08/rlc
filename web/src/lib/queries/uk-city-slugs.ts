@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+import { createSupabasePublicReadClient } from "@/lib/supabase/public-read";
 import type { City } from "@/lib/types/location";
 import { isValidCitySlugFormat, slugifyCityPathSegment } from "@/lib/slug";
 
@@ -12,7 +13,7 @@ type CityRow = {
 };
 
 async function fetchUnitedKingdomCountryIds(): Promise<string[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicReadClient();
   const { data, error } = await supabase
     .from("countries")
     .select("id")
@@ -33,7 +34,7 @@ async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
     return new Map();
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicReadClient();
   const { data, error } = await supabase
     .from("cities_full_info")
     .select("city_id, city_name, region_id, country_id, is_major")
@@ -80,7 +81,7 @@ async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
   return bySlug;
 }
 
-const getCachedUkCitySlugIndex = unstable_cache(loadUkCitySlugIndex, ["uk-city-slug-index-v3-no-seo-column"], {
+const getCachedUkCitySlugIndex = unstable_cache(loadUkCitySlugIndex, ["uk-city-slug-index-v4-public-read-client"], {
   revalidate: 3600,
 });
 
