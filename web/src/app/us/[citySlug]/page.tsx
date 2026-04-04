@@ -12,8 +12,11 @@ import { resolveCityMetaDescription, resolveCityPageIntro } from "@/lib/city-pag
 import { slugifyCityPathSegment } from "@/lib/slug";
 import { HomeListings } from "@/components/home-listings";
 import { getSiteUrlFromHeaders } from "@/lib/env";
+import { jsonForClientBoundary } from "@/lib/rsc-serialize";
 import { getServerUser } from "@/lib/supabase/server";
 import type { Region } from "@/lib/types/location";
+
+export const dynamic = "force-dynamic";
 
 interface UsCityPageProps {
   params: Promise<{ citySlug: string }>;
@@ -23,29 +26,37 @@ interface UsCityPageProps {
 }
 
 export async function generateMetadata({ params }: UsCityPageProps): Promise<Metadata> {
-  const { citySlug } = await params;
-  const city = await getUsCityBySlug(citySlug);
+  try {
+    const { citySlug } = await params;
+    const city = await getUsCityBySlug(citySlug);
 
-  if (!city) {
+    if (!city) {
+      return {
+        title: "Location",
+        robots: { index: false, follow: false },
+      };
+    }
+
+    const base = await getSiteUrlFromHeaders();
+    const path = `/us/${slugifyCityPathSegment(city.name)}`;
+    const display = city.name;
+
+    return {
+      title: {
+        absolute: `Free items in ${display} — ReloopCycle`,
+      },
+      description: resolveCityMetaDescription(city),
+      alternates: {
+        canonical: `${base}${path}`,
+      },
+    };
+  } catch (err) {
+    console.error("[us-city] generateMetadata failed:", err);
     return {
       title: "Location",
       robots: { index: false, follow: false },
     };
   }
-
-  const base = await getSiteUrlFromHeaders();
-  const path = `/us/${slugifyCityPathSegment(city.name)}`;
-  const display = city.name;
-
-  return {
-    title: {
-      absolute: `Free items in ${display} — ReloopCycle`,
-    },
-    description: resolveCityMetaDescription(city),
-    alternates: {
-      canonical: `${base}${path}`,
-    },
-  };
 }
 
 export default async function UsCityPage({ params, searchParams }: UsCityPageProps) {
@@ -90,12 +101,12 @@ export default async function UsCityPage({ params, searchParams }: UsCityPagePro
 
   return (
     <HomeListings
-      listings={allListings}
-      categories={categories}
-      country={country}
-      regions={initialRegions}
-      selectedRegion={selectedRegion}
-      selectedCity={city}
+      listings={jsonForClientBoundary(allListings)}
+      categories={jsonForClientBoundary(categories)}
+      country={country ? jsonForClientBoundary(country) : null}
+      regions={jsonForClientBoundary(initialRegions)}
+      selectedRegion={selectedRegion ? jsonForClientBoundary(selectedRegion) : null}
+      selectedCity={jsonForClientBoundary(city)}
       isAuthenticated={isAuthenticated}
       pageH1={pageH1}
       pageDescription={pageDescription}

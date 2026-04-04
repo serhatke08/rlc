@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { cache } from "react";
 
 import { createSupabasePublicReadClient } from "@/lib/supabase/public-read";
 import type { City } from "@/lib/types/location";
@@ -78,8 +78,13 @@ async function loadUsCitySlugIndex(): Promise<Map<string, City[]>> {
   return bySlug;
 }
 
-const getCachedUsCitySlugIndex = unstable_cache(loadUsCitySlugIndex, ["us-city-slug-index-v4-public-read-client"], {
-  revalidate: 3600,
+const getUsCitySlugIndexCached = cache(async (): Promise<Map<string, City[]>> => {
+  try {
+    return await loadUsCitySlugIndex();
+  } catch (err) {
+    console.error("[us-city-slugs] loadUsCitySlugIndex failed:", err);
+    return new Map();
+  }
 });
 
 export async function getUsCityBySlug(slug: string): Promise<City | null> {
@@ -88,7 +93,13 @@ export async function getUsCityBySlug(slug: string): Promise<City | null> {
     return null;
   }
 
-  const index = await getCachedUsCitySlugIndex();
+  let index: Map<string, City[]>;
+  try {
+    index = await getUsCitySlugIndexCached();
+  } catch (err) {
+    console.error("[us-city-slugs] getUsCitySlugIndexCached failed:", err);
+    return null;
+  }
   const list = index.get(normalized);
   if (!list?.length) {
     return null;
@@ -98,6 +109,6 @@ export async function getUsCityBySlug(slug: string): Promise<City | null> {
 }
 
 export async function listUsCityPathSegmentsForSitemap(): Promise<string[]> {
-  const index = await getCachedUsCitySlugIndex();
+  const index = await getUsCitySlugIndexCached();
   return [...index.keys()].sort((a, b) => a.localeCompare(b, "en-US"));
 }

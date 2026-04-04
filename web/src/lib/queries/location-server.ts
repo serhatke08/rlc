@@ -3,9 +3,8 @@ import type { Country, Region, City } from "@/lib/types/location";
 
 // Server-side queries (only use in Server Components)
 export async function getCurrentUserCountry(): Promise<Country | null> {
-  const supabase = await createSupabaseServerClient();
-  
   try {
+    const supabase = await createSupabaseServerClient();
     // Get current user - silently handle missing session (user not logged in)
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -62,9 +61,8 @@ export async function getCurrentUserCountry(): Promise<Country | null> {
 }
 
 export async function getRegionsByCountry(countryId: string): Promise<Region[]> {
-  const supabase = await createSupabaseServerClient();
-
   try {
+    const supabase = await createSupabaseServerClient();
     console.log("Fetching regions for country_id:", countryId);
 
     // Use regions_full_info view to get regions with city counts
@@ -102,9 +100,8 @@ export async function getRegionsByCountry(countryId: string): Promise<Region[]> 
 }
 
 export async function getCitiesByRegion(regionId: string): Promise<City[]> {
-  const supabase = await createSupabaseServerClient();
-
   try {
+    const supabase = await createSupabaseServerClient();
     console.log("Fetching cities for region_id:", regionId);
 
     // Use cities_full_info view to get cities with full info
@@ -141,9 +138,11 @@ export async function getCitiesByRegion(regionId: string): Promise<City[]> {
 }
 
 export async function getRegionById(regionId: string): Promise<Region | null> {
-  const supabase = await createSupabaseServerClient();
-
+  if (!regionId || typeof regionId !== "string") {
+    return null;
+  }
   try {
+    const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("regions")
       .select("id, name, country_id, code")
@@ -163,9 +162,8 @@ export async function getRegionById(regionId: string): Promise<Region | null> {
 }
 
 export async function getCityById(cityId: string): Promise<City | null> {
-  const supabase = await createSupabaseServerClient();
-
   try {
+    const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("cities")
       .select("id, name, region_id, country_id")
@@ -189,9 +187,8 @@ export async function getCityById(cityId: string): Promise<City | null> {
  * Domain bazlı filtreleme için kullanılır
  */
 export async function getEnglandRegion(): Promise<Region | null> {
-  const supabase = await createSupabaseServerClient();
-
   try {
+    const supabase = await createSupabaseServerClient();
     // Önce GB country'sini bul
     const { data: country, error: countryError } = await supabase
       .from("countries")

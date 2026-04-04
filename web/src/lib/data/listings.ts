@@ -44,6 +44,7 @@ export async function getFeaturedListings(options?: {
   cityId?: string | null;
   categoryId?: string | null;
 }): Promise<FeaturedListing[]> {
+  try {
   // Cache'i devre dışı bırak - her zaman fresh data çek
   const supabase = await createSupabaseServerClient();
 
@@ -319,5 +320,9 @@ export async function getFeaturedListings(options?: {
       } : null,
     };
   });
+  } catch (err) {
+    console.error("[getFeaturedListings] Unhandled error:", err);
+    return [];
+  }
 }
 

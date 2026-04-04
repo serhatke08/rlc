@@ -14,8 +14,11 @@ import { slugifyCityPathSegment } from "@/lib/slug";
 import { HomeListings } from "@/components/home-listings";
 import { getSiteUrlFromHeaders } from "@/lib/env";
 import { generateBreadcrumbSchema } from "@/lib/seo/schema";
+import { jsonForClientBoundary } from "@/lib/rsc-serialize";
 import { getServerUser } from "@/lib/supabase/server";
 import type { Region } from "@/lib/types/location";
+
+export const dynamic = "force-dynamic";
 
 interface UkCityPageProps {
   params: Promise<{ citySlug: string }>;
@@ -25,44 +28,52 @@ interface UkCityPageProps {
 }
 
 export async function generateMetadata({ params }: UkCityPageProps): Promise<Metadata> {
-  const { citySlug } = await params;
-  const city = await getUkCityBySlug(citySlug);
+  try {
+    const { citySlug } = await params;
+    const city = await getUkCityBySlug(citySlug);
 
-  if (!city) {
+    if (!city) {
+      return {
+        title: "Location",
+        robots: { index: false, follow: false },
+      };
+    }
+
+    const base = await getSiteUrlFromHeaders();
+    const path = `/uk/${slugifyCityPathSegment(city.name)}`;
+    const display = city.name;
+    const metaDesc = getUkCityMetaDescription(display);
+    const canonical = `${base}${path}`;
+
+    return {
+      title: {
+        absolute: `Free items in ${display} — ReloopCycle`,
+      },
+      description: metaDesc,
+      alternates: {
+        canonical,
+      },
+      openGraph: {
+        title: `Free items in ${display} — ReloopCycle`,
+        description: metaDesc,
+        url: canonical,
+        siteName: "ReloopCycle",
+        locale: "en_GB",
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `Free items in ${display} — ReloopCycle`,
+        description: metaDesc,
+      },
+    };
+  } catch (err) {
+    console.error("[uk-city] generateMetadata failed:", err);
     return {
       title: "Location",
       robots: { index: false, follow: false },
     };
   }
-
-  const base = await getSiteUrlFromHeaders();
-  const path = `/uk/${slugifyCityPathSegment(city.name)}`;
-  const display = city.name;
-  const metaDesc = getUkCityMetaDescription(display);
-  const canonical = `${base}${path}`;
-
-  return {
-    title: {
-      absolute: `Free items in ${display} — ReloopCycle`,
-    },
-    description: metaDesc,
-    alternates: {
-      canonical,
-    },
-    openGraph: {
-      title: `Free items in ${display} — ReloopCycle`,
-      description: metaDesc,
-      url: canonical,
-      siteName: "ReloopCycle",
-      locale: "en_GB",
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `Free items in ${display} — ReloopCycle`,
-      description: metaDesc,
-    },
-  };
 }
 
 export default async function UkCityPage({ params, searchParams }: UkCityPageProps) {
@@ -133,12 +144,12 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
       </nav>
 
       <HomeListings
-        listings={allListings}
-        categories={categories}
-        country={country}
-        regions={initialRegions}
-        selectedRegion={selectedRegion}
-        selectedCity={city}
+        listings={jsonForClientBoundary(allListings)}
+        categories={jsonForClientBoundary(categories)}
+        country={country ? jsonForClientBoundary(country) : null}
+        regions={jsonForClientBoundary(initialRegions)}
+        selectedRegion={selectedRegion ? jsonForClientBoundary(selectedRegion) : null}
+        selectedCity={jsonForClientBoundary(city)}
         isAuthenticated={isAuthenticated}
         pageH1={pageH1}
         pageDescription={pageDescription}
