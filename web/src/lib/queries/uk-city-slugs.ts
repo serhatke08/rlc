@@ -9,7 +9,6 @@ type CityRow = {
   region_id: string;
   country_id: string;
   is_major: boolean | null;
-  seo_description: string | null;
 };
 
 async function fetchUnitedKingdomCountryIds(): Promise<string[]> {
@@ -37,7 +36,7 @@ async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("cities_full_info")
-    .select("city_id, city_name, region_id, country_id, is_major, seo_description")
+    .select("city_id, city_name, region_id, country_id, is_major")
     .in("country_id", countryIds);
 
   if (error) {
@@ -61,7 +60,6 @@ async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
       name: row.city_name,
       region_id: row.region_id,
       country_id: row.country_id,
-      seo_description: row.seo_description ?? null,
     };
 
     const list = bySlug.get(slug) ?? [];
@@ -82,7 +80,7 @@ async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
   return bySlug;
 }
 
-const getCachedUkCitySlugIndex = unstable_cache(loadUkCitySlugIndex, ["uk-city-slug-index-v2"], {
+const getCachedUkCitySlugIndex = unstable_cache(loadUkCitySlugIndex, ["uk-city-slug-index-v3-no-seo-column"], {
   revalidate: 3600,
 });
 

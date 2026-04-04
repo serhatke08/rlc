@@ -91,7 +91,7 @@ export function HomeListings({ listings, categories = [], country = null, region
             {pageH1}
           </h1>
           {pageDescription ? (
-            <p className="max-w-3xl text-base leading-relaxed text-zinc-600 md:text-lg">
+            <p className="max-w-3xl text-base leading-relaxed text-zinc-700 md:text-lg">
               {pageDescription}
             </p>
           ) : null}

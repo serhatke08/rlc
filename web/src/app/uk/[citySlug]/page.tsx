@@ -9,7 +9,7 @@ import {
   getRegionById,
 } from "@/lib/queries/location-server";
 import { getUkCityBySlug } from "@/lib/queries/uk-city-slugs";
-import { resolveCityMetaDescription, resolveCityPageIntro } from "@/lib/city-page-copy";
+import { getUkCityMetaDescription, getUkCitySeoBody } from "@/lib/uk-city-seo-static";
 import { slugifyCityPathSegment } from "@/lib/slug";
 import { HomeListings } from "@/components/home-listings";
 import { getSiteUrlFromHeaders } from "@/lib/env";
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: UkCityPageProps): Promise<Met
   const base = await getSiteUrlFromHeaders();
   const path = `/uk/${slugifyCityPathSegment(city.name)}`;
   const display = city.name;
-  const metaDesc = resolveCityMetaDescription(city);
+  const metaDesc = getUkCityMetaDescription(display);
   const canonical = `${base}${path}`;
 
   return {
@@ -103,7 +103,7 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
   const selectedRegion = await getRegionById(city.region_id);
 
   const pageH1 = `Free & Swap Items in ${city.name}`;
-  const pageDescription = resolveCityPageIntro(city);
+  const pageDescription = getUkCitySeoBody(canonicalSlug, city.name);
 
   const siteUrl = await getSiteUrlFromHeaders();
   const cityPath = `/uk/${canonicalSlug}`;
