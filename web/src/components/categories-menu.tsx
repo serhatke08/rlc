@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/lib/types/category";
@@ -10,10 +10,27 @@ interface CategoriesMenuProps {
   categories: Category[];
 }
 
+function getListingBasePath(pathname: string): string {
+  if (/^\/(uk|us)\/[^/]+$/.test(pathname)) {
+    return pathname;
+  }
+  return "/";
+}
+
 export function CategoriesMenu({ categories }: CategoriesMenuProps) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const basePath = getListingBasePath(pathname || "/");
   const activeCategoryId = searchParams.get("categoryId");
   const isAllActive = !activeCategoryId;
+
+  const buildHref = (categoryId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (categoryId) params.set("categoryId", categoryId);
+    else params.delete("categoryId");
+    const q = params.toString();
+    return q ? `${basePath}?${q}` : basePath;
+  };
 
   if (categories.length === 0) {
     return null;
@@ -41,7 +58,7 @@ export function CategoriesMenu({ categories }: CategoriesMenuProps) {
     <div className="flex gap-1.5 overflow-x-auto scrollbar-hide md:gap-2">
       {/* All Button */}
       <Link
-        href="/"
+        href={buildHref(null)}
         className={cn(
           "group flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-medium transition md:gap-2 md:rounded-xl md:px-4 md:py-2 md:text-sm",
           isAllActive
@@ -60,7 +77,7 @@ export function CategoriesMenu({ categories }: CategoriesMenuProps) {
         return (
           <Link
             key={category.id}
-            href={`/?categoryId=${category.id}`}
+            href={buildHref(category.id)}
             className={cn(
               "group flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-medium transition md:gap-2 md:rounded-xl md:px-4 md:py-2 md:text-sm",
               isActive

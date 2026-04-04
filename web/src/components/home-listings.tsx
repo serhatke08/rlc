@@ -22,9 +22,13 @@ interface HomeListingsProps {
   selectedRegion?: Region | null;
   selectedCity?: City | null;
   isAuthenticated?: boolean;
+  /** Visible H1 for SEO city pages (single h1 per page). */
+  pageH1?: string | null;
+  /** SEO path prefix for city URLs: .co.uk → uk, .com → us (see resolveCityPathPrefixFromCountry). */
+  cityPathPrefix?: "uk" | "us";
 }
 
-export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null, isAuthenticated = false }: HomeListingsProps) {
+export function HomeListings({ listings, categories = [], country = null, regions = [], selectedRegion = null, selectedCity = null, isAuthenticated = false, pageH1 = null, cityPathPrefix = "uk" }: HomeListingsProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   // Varsayılan: gallery (tüm kullanıcılar); grid isteğe bağlı
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('gallery');
@@ -79,6 +83,11 @@ export function HomeListings({ listings, categories = [], country = null, region
   return (
     <>
       <div className="pb-12">
+      {pageH1 ? (
+        <h1 className="mb-6 text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl">
+          {pageH1}
+        </h1>
+      ) : null}
       <section className="space-y-4 pt-0">
         <ListingFilterPills 
           activeFilter={activeFilter}
@@ -99,6 +108,7 @@ export function HomeListings({ listings, categories = [], country = null, region
               initialRegions={regions}
               selectedRegion={selectedRegion}
               selectedCity={selectedCity}
+              cityPathPrefix={cityPathPrefix}
             />
           )}
           {/* View Mode Toggle - right side */}

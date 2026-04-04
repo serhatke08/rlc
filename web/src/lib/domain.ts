@@ -29,6 +29,8 @@ export async function getCurrentDomain(): Promise<string> {
  * Domain'e göre ülke filtreleme yapılıp yapılmayacağını belirler
  * reloopcycle.co.uk -> England'a özel (giriş yapmayan kullanıcılar için)
  * reloopcycle.com -> Cookie'e göre England (default) veya Worldwide
+ *
+ * Not: Şehir SEO URL'leri host ile ayrılır — .co.uk → /uk/…, .com → /us/… (getSeoCityMarketFromHost).
  */
 export async function shouldFilterByDomain(): Promise<boolean> {
   const domain = await getCurrentDomain();
@@ -91,4 +93,26 @@ export async function getDomainCountryName(): Promise<string | null> {
 
   const mode = (await getCookieMode()) ?? "england";
   return mode === "england" ? "England" : "Worldwide";
+}
+
+/** SEO city URLs: .co.uk → UK paths, .com → US paths; other hosts default to US. */
+export type SeoCityMarket = "uk" | "us";
+
+export async function getSeoCityMarketFromHost(): Promise<SeoCityMarket> {
+  const domain = await getCurrentDomain();
+  const isUkDomain =
+    domain === "reloopcycle.co.uk" ||
+    domain.endsWith(".reloopcycle.co.uk") ||
+    domain.includes("reloopcycle.co.uk");
+  if (isUkDomain) {
+    return "uk";
+  }
+  const isComDomain =
+    domain === "reloopcycle.com" ||
+    domain.endsWith(".reloopcycle.com") ||
+    domain.includes("reloopcycle.com");
+  if (isComDomain) {
+    return "us";
+  }
+  return "us";
 }

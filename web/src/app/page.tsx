@@ -1,9 +1,13 @@
-import { createSupabaseServerClient, getServerUser } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import { getFeaturedListings } from "@/lib/data/listings";
 import { getCategories } from "@/lib/queries/category-server";
 import { getCurrentUserCountry, getRegionsByCountry, getRegionById, getCityById } from "@/lib/queries/location-server";
+import { slugifyCityPathSegment } from "@/lib/slug";
+import { getSeoCityMarketFromHost } from "@/lib/domain";
+import { resolveCityPathPrefixFromCountry, resolveSeoMarketForCity } from "@/lib/seo-city-market";
 import type { Region } from "@/lib/types/location";
 import { HomeListings } from "@/components/home-listings";
+import { permanentRedirect } from "next/navigation";
 
 interface HomeProps {
   searchParams: Promise<{
@@ -16,10 +20,19 @@ interface HomeProps {
 
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
-  
-  const supabase = await createSupabaseServerClient();
-  
-  // Giriş kontrolü - güvenli helper kullan
+
+  if (params.cityId) {
+    const city = await getCityById(params.cityId);
+    if (city) {
+      const market = await resolveSeoMarketForCity(city);
+      const slug = slugifyCityPathSegment(city.name);
+      const sp = new URLSearchParams();
+      if (params.categoryId) sp.set("categoryId", params.categoryId);
+      const q = sp.toString();
+      permanentRedirect(q ? `/${market}/${slug}?${q}` : `/${market}/${slug}`);
+    }
+  }
+
   const user = await getServerUser();
   const isAuthenticated = !!user;
   
@@ -39,6 +52,8 @@ export default async function Home({ searchParams }: HomeProps) {
 
   // Location data'yı çek
   const country = await getCurrentUserCountry();
+  const domainMarket = await getSeoCityMarketFromHost();
+  const cityPathPrefix = resolveCityPathPrefixFromCountry(country, domainMarket);
   let initialRegions: Region[] = [];
   if (country) {
     initialRegions = await getRegionsByCountry(country.id);
@@ -66,6 +81,7 @@ export default async function Home({ searchParams }: HomeProps) {
       selectedRegion={selectedRegion}
       selectedCity={selectedCity}
       isAuthenticated={isAuthenticated}
+      cityPathPrefix={cityPathPrefix}
     />
   );
 }

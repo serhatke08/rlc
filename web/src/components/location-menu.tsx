@@ -5,19 +5,23 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, MapPin, Loader2 } from "lucide-react";
 import type { Country, Region, City } from "@/lib/types/location";
 import { fetchRegionsByCountry, fetchCitiesByRegion, fetchUkNationCountries } from "@/lib/queries/location-client";
+import { slugifyCityPathSegment } from "@/lib/slug";
 
 interface LocationMenuProps {
   initialCountry: Country | null;
   initialRegions?: Region[];
   selectedRegion?: Region | null;
   selectedCity?: City | null;
+  /** /uk/… on UK market, /us/… on US (.com) market */
+  cityPathPrefix: "uk" | "us";
 }
 
 export function LocationMenu({ 
   initialCountry, 
   initialRegions = [],
   selectedRegion: selectedRegionProp = null,
-  selectedCity: selectedCityProp = null
+  selectedCity: selectedCityProp = null,
+  cityPathPrefix,
 }: LocationMenuProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,6 +132,30 @@ export function LocationMenu({
     }
   }, [urlRegionId, selectedRegionId]);
 
+  // /uk/[city] sayfasından gelen seçim: region açık + şehir listesi yüklü olsun
+  useEffect(() => {
+    const rid = selectedCityProp?.region_id;
+    if (!rid) return;
+    setExpandedRegionId(rid);
+    setSelectedRegionId(rid);
+    let cancelled = false;
+    (async () => {
+      setLoadingCities(true);
+      try {
+        const fetchedCities = await fetchCitiesByRegion(rid);
+        if (!cancelled) setCities(fetchedCities || []);
+      } catch (e) {
+        console.error("Error loading cities for selected location:", e);
+        if (!cancelled) setCities([]);
+      } finally {
+        if (!cancelled) setLoadingCities(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCityProp?.id, selectedCityProp?.region_id]);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -206,16 +234,18 @@ export function LocationMenu({
     }
   };
 
-  // Handle city selection - URL'ye yönlendir
-  const handleCitySelect = (cityId: string, regionId: string) => {
+  // Şehir seçimi → /uk/{slug} veya /us/{slug} (query'de region/city id tutulmaz)
+  const handleCitySelect = (city: City, _regionId: string) => {
     setIsOpen(false);
-    
-    // URL'ye cityId ekle (regionId zaten var)
     const params = new URLSearchParams(searchParams.toString());
-    params.set("cityId", cityId);
-    params.set("regionId", regionId);
+    params.delete("regionId");
+    params.delete("cityId");
     params.delete("countryId");
-    router.push(`/?${params.toString()}`);
+    const slug = slugifyCityPathSegment(city.name);
+    if (!slug) return;
+    const q = params.toString();
+    const base = `/${cityPathPrefix}/${slug}`;
+    router.push(q ? `${base}?${q}` : base);
   };
 
   // Buton metnini belirle
@@ -335,7 +365,7 @@ export function LocationMenu({
                                 <button
                                   key={city.id}
                                   type="button"
-                                  onClick={() => handleCitySelect(city.id, region.id)}
+                                  onClick={() => handleCitySelect(city, region.id)}
                                   className={`w-full rounded-md px-2 py-1.5 text-left text-[10px] transition md:rounded-lg md:px-4 md:py-2 md:text-sm ${
                                     isCitySelected
                                       ? "bg-emerald-50 text-emerald-700 font-medium"

@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next'
-import { headers } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { getSiteUrl, getSiteUrlFromHeaders } from '@/lib/env'
+import { getSiteUrlFromHeaders } from '@/lib/env'
+import { listUkCityPathSegmentsForSitemap } from '@/lib/queries/uk-city-slugs'
+import { listUsCityPathSegmentsForSitemap } from '@/lib/queries/us-city-slugs'
 
 // Dynamic route - different sitemap for each domain
 export const dynamic = 'force-dynamic';
@@ -115,6 +116,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [...staticPages, ...listingPages]
+  let citySeoPages: MetadataRoute.Sitemap = [];
+  try {
+    const host = new URL(baseUrl).hostname.replace(/^www\./, '');
+    const isUkHost = host === 'reloopcycle.co.uk' || host.endsWith('.reloopcycle.co.uk');
+    const isComHost = host === 'reloopcycle.com' || host.endsWith('.reloopcycle.com');
+
+    if (isUkHost) {
+      const segments = await listUkCityPathSegmentsForSitemap();
+      citySeoPages = segments.map((segment) => ({
+        url: `${baseUrl}/uk/${segment}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.85,
+      }));
+    } else if (isComHost) {
+      const segments = await listUsCityPathSegmentsForSitemap();
+      citySeoPages = segments.map((segment) => ({
+        url: `${baseUrl}/us/${segment}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.85,
+      }));
+    }
+  } catch (e) {
+    console.error('[sitemap] City SEO URLs skipped:', e)
+  }
+
+  return [...staticPages, ...listingPages, ...citySeoPages]
 }
 
