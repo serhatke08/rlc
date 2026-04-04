@@ -7,7 +7,10 @@ import { getSiteUrlFromHeaders } from "@/lib/env";
 import { allocateUniqueListingSlug } from "@/lib/listing-slug-server";
 import { resolveCityDisplayNameForListingSlug } from "@/lib/listing-slug-resolve";
 import { listingPublicPath } from "@/lib/listing-url";
-import { computeSeoPathForExistingListing } from "@/lib/listing-seo-path-server";
+import {
+  computeSeoPathForExistingListing,
+  persistListingSeoPath,
+} from "@/lib/listing-seo-path-server";
 import { ListingDetailView } from "@/components/listing-detail-view";
 import { LISTING_PAGE_DETAIL_SELECT } from "@/lib/listing-detail-query";
 
@@ -137,8 +140,10 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
     const computed = await computeSeoPathForExistingListing(short.id);
     if (computed) {
-      await (supabase.from("listings") as any).update({ seo_path: computed }).eq("id", short.id);
-      permanentRedirect(`/${computed}`);
+      const saved = await persistListingSeoPath(short.id, computed);
+      if (saved) {
+        permanentRedirect(`/${computed}`);
+      }
     }
 
     if (short.slug) {
@@ -151,8 +156,10 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
     const afterSlug = await computeSeoPathForExistingListing(short.id);
     if (afterSlug) {
-      await (supabase.from("listings") as any).update({ seo_path: afterSlug }).eq("id", short.id);
-      permanentRedirect(`/${afterSlug}`);
+      const saved = await persistListingSeoPath(short.id, afterSlug);
+      if (saved) {
+        permanentRedirect(`/${afterSlug}`);
+      }
     }
 
     permanentRedirect(`/listing/${newSlug}`);
@@ -173,6 +180,14 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
   if (listingData.seo_path) {
     permanentRedirect(`/${listingData.seo_path as string}`);
+  }
+
+  const computedPath = await computeSeoPathForExistingListing(id);
+  if (computedPath) {
+    const saved = await persistListingSeoPath(id, computedPath);
+    if (saved) {
+      permanentRedirect(`/${computedPath}`);
+    }
   }
 
   const isOwner = user ? user.id === listingData.seller_id : false;

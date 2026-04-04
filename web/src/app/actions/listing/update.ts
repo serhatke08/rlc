@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { allocateUniqueListingSlug } from "@/lib/listing-slug-server";
 import { resolveCityDisplayNameForListingSlug } from "@/lib/listing-slug-resolve";
-import { allocateUniqueSeoPath } from "@/lib/listing-seo-path-server";
+import { allocateUniqueSeoPath, persistListingSeoPath } from "@/lib/listing-seo-path-server";
 import type { Database } from "@/lib/types/database";
 
 type ListingRow = Database["public"]["Tables"]["listings"]["Row"];
@@ -144,10 +144,13 @@ export async function updateListingServer(
           excludeListingId: listingId,
         });
         if (seo_path) {
-          await (supabase.from("listings") as any)
-            .update({ seo_path })
-            .eq("id", listingId)
-            .eq("seller_id", user.id);
+          const persisted = await persistListingSeoPath(listingId, seo_path);
+          if (!persisted) {
+            await (supabase.from("listings") as any)
+              .update({ seo_path })
+              .eq("id", listingId)
+              .eq("seller_id", user.id);
+          }
         }
       }
     }

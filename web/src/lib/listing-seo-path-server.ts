@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   countryCodeToListingMarket,
   itemSlugFromTitle,
@@ -119,4 +120,19 @@ export async function computeSeoPathForExistingListing(
     listingType: r.listing_type,
     excludeListingId: r.id,
   });
+}
+
+/**
+ * seo_path yazımı — anon ziyaretçi RLS yüzünden güncelleyemez; service role gerekir.
+ */
+export async function persistListingSeoPath(
+  listingId: string,
+  seoPath: string,
+): Promise<boolean> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return false;
+  }
+  const { error } = await (admin.from("listings") as any).update({ seo_path: seoPath }).eq("id", listingId);
+  return !error;
 }

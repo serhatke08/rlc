@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { allocateUniqueListingSlug } from '@/lib/listing-slug-server';
 import { resolveCityDisplayNameForListingSlug } from '@/lib/listing-slug-resolve';
-import { allocateUniqueSeoPath } from '@/lib/listing-seo-path-server';
+import { allocateUniqueSeoPath, persistListingSeoPath } from '@/lib/listing-seo-path-server';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -121,7 +121,10 @@ export async function POST(request: Request) {
       excludeListingId: createdId,
     });
     if (seo_path) {
-      await (supabase.from('listings') as any).update({ seo_path }).eq('id', createdId);
+      const persisted = await persistListingSeoPath(createdId, seo_path);
+      if (!persisted) {
+        await (supabase.from('listings') as any).update({ seo_path }).eq('id', createdId);
+      }
     }
 
     return NextResponse.json({
