@@ -8,7 +8,6 @@ import { ListingFilterPills } from "@/components/listings/filter-pills";
 import { ListingCard } from "@/components/listing-card";
 import { CategoriesMenu } from "@/components/categories-menu";
 import { LocationMenu } from "@/components/location-menu";
-import { InArticleAd } from "@/components/ads/google-adsense";
 import { cn } from "@/lib/utils";
 import { listingPublicPath } from "@/lib/listing-url";
 import type { FeaturedListing } from "@/types/listing";
@@ -214,8 +213,7 @@ export function HomeListings({ listings, categories = [], country = null, region
           <>
             {viewMode === 'gallery' ? (
               <>
-                {/* Gallery View - Images only
-                    For non-authenticated users: 3 items + 1 ad (4th card) */}
+                {/* Gallery: image tiles; same listing set for all visitors (SEO-crawlable). */}
                 <div className={cn(
                   "grid gap-2",
                   !isAuthenticated 
@@ -230,88 +228,45 @@ export function HomeListings({ listings, categories = [], country = null, region
                         gridColumns === 5 && 'md:grid-cols-5'
                       )
                 )}>
-                  {!isAuthenticated ? (
-                    /* Non-authenticated users: all products */
-                    <>
-                      {filteredListings.map((listing, index) => (
-                        <Link
-                          key={listing.id}
-                          href={listingPublicPath(listing)}
-                          className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 transition hover:scale-105 hover:border-emerald-300 hover:shadow-md"
-                        >
-                        {listing.coverImage ? (
-                          <Image
-                            src={listing.coverImage}
-                            alt={listing.title}
-                            fill
-                            className="object-cover transition duration-300 group-hover:scale-110"
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
-                        )}
-                        <div className="absolute left-1 top-1">
-                          <div className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold text-white shadow ${
-                            listing.listingType === 'give' ? 'bg-emerald-600' :
-                            listing.listingType === 'swap' ? 'bg-sky-600' :
-                            listing.listingType === 'sell' ? 'bg-orange-500' :
-                            listing.listingType === 'need' ? 'bg-purple-600' :
-                            'bg-cyan-600'
-                          }`}>
-                            {listing.listingType === 'give' ? 'Free' :
-                             listing.listingType === 'swap' ? 'Swap' :
-                             listing.listingType === 'sell' ? 'Sale' :
-                             listing.listingType === 'need' ? 'Need' :
-                             'Adopt'}
-                          </div>
+                  {filteredListings.map((listing) => (
+                    <Link
+                      key={listing.id}
+                      href={listingPublicPath(listing)}
+                      className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 transition hover:scale-105 hover:border-emerald-300 hover:shadow-md"
+                    >
+                      {listing.coverImage ? (
+                        <Image
+                          src={listing.coverImage}
+                          alt={listing.title}
+                          fill
+                          className="object-cover transition duration-300 group-hover:scale-110"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
+                      )}
+                      <div className="absolute left-1 top-1">
+                        <div className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold text-white shadow ${
+                          listing.listingType === 'give' ? 'bg-emerald-600' :
+                          listing.listingType === 'swap' ? 'bg-sky-600' :
+                          listing.listingType === 'sell' ? 'bg-orange-500' :
+                          listing.listingType === 'need' ? 'bg-purple-600' :
+                          'bg-cyan-600'
+                        }`}>
+                          {listing.listingType === 'give' ? 'Free' :
+                           listing.listingType === 'swap' ? 'Swap' :
+                           listing.listingType === 'sell' ? 'Sale' :
+                           listing.listingType === 'need' ? 'Need' :
+                           'Adopt'}
                         </div>
-                        </Link>
-                      ))}
-                    </>
-                  ) : (
-                    /* Authenticated users: all products */
-                    filteredListings.map((listing) => (
-                      <Link
-                        key={listing.id}
-                        href={listingPublicPath(listing)}
-                        className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 transition hover:scale-105 hover:border-emerald-300 hover:shadow-md"
-                      >
-                        {listing.coverImage ? (
-                          <Image
-                            src={listing.coverImage}
-                            alt={listing.title}
-                            fill
-                            className="object-cover transition duration-300 group-hover:scale-110"
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gradient-to-br from-emerald-100 via-emerald-50 to-white" />
-                        )}
-                        <div className="absolute left-1 top-1">
-                          <div className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold text-white shadow ${
-                            listing.listingType === 'give' ? 'bg-emerald-600' :
-                            listing.listingType === 'swap' ? 'bg-sky-600' :
-                            listing.listingType === 'sell' ? 'bg-orange-500' :
-                            listing.listingType === 'need' ? 'bg-purple-600' :
-                            'bg-cyan-600'
-                          }`}>
-                            {listing.listingType === 'give' ? 'Free' :
-                             listing.listingType === 'swap' ? 'Swap' :
-                             listing.listingType === 'sell' ? 'Sale' :
-                             listing.listingType === 'need' ? 'Need' :
-                             'Adopt'}
-                          </div>
-                        </div>
-                      </Link>
-                    ))
-                  )}
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </>
             ) : (
               <>
-                {/* Grid View - Normal cards
-                    For non-authenticated users: 3 items + 1 ad (4th card)
-                    PC view: Dynamic columns based on user selection */}
+                {/* Grid: full cards; same listing set for all visitors. */}
                 <div className={cn(
                   "grid gap-4",
                   !isAuthenticated 
@@ -326,39 +281,11 @@ export function HomeListings({ listings, categories = [], country = null, region
                         gridColumns === 5 && 'md:grid-cols-5'
                       )
                 )}>
-                  {!isAuthenticated ? (
-                    /* Non-authenticated users: all products */
-                    <>
-                      {filteredListings.map((listing) => (
-                        <ListingCard key={listing.id} listing={listing} />
-                      ))}
-                    </>
-                  ) : (
-                    /* Authenticated users: all products */
-                    filteredListings.map((listing) => (
-                      <ListingCard key={listing.id} listing={listing} />
-                    ))
-                  )}
+                  {filteredListings.map((listing) => (
+                    <ListingCard key={listing.id} listing={listing} />
+                  ))}
                 </div>
               </>
-            )}
-        
-            {/* Message for non-authenticated users */}
-            {!isAuthenticated && filteredListings.length > 0 && (
-              <div className="mt-8 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 md:p-8 text-center">
-                <h3 className="mb-2 text-lg md:text-xl font-semibold text-zinc-900">
-                  Sign in to see more
-                </h3>
-                <p className="mb-4 text-sm text-zinc-600">
-                  Discover thousands of free items, swaps, and sales by signing in to your account.
-                </p>
-                <Link
-                  href="/auth/login"
-                  className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
-                >
-                  Sign In
-                </Link>
-              </div>
             )}
           </>
         )}
