@@ -1,16 +1,6 @@
-import { cache } from "react";
-
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { City } from "@/lib/types/location";
-import { isValidCitySlugFormat, slugifyCityPathSegment } from "@/lib/slug";
-
-type CityRow = {
-  city_id: string;
-  city_name: string;
-  region_id: string;
-  country_id: string;
-  is_major: boolean | null;
-};
+import { isValidCitySlugFormat } from "@/lib/slug";
 
 type SupabaseServer = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -29,95 +19,108 @@ async function fetchUnitedKingdomCountryIds(supabase: SupabaseServer): Promise<s
   return [...new Set(rows.map((r) => r.id))];
 }
 
-async function loadUkCitySlugIndex(): Promise<Map<string, City[]>> {
-  const supabase = await createSupabaseServerClient();
-  const countryIds = await fetchUnitedKingdomCountryIds(supabase);
-  if (countryIds.length === 0) {
-    return new Map();
-  }
-
-  const { data, error } = await supabase
-    .from("cities_full_info")
-    .select("city_id, city_name, region_id, country_id, is_major")
-    .in("country_id", countryIds);
-
-  if (error) {
-    console.error("[uk-city-slugs] cities_full_info query failed:", error);
-    return new Map();
-  }
-
-  const bySlug = new Map<string, City[]>();
-  const rows = (data || []) as CityRow[];
-  const isMajorByCityId = new Map<string, boolean>();
-  for (const row of rows) {
-    isMajorByCityId.set(row.city_id, !!row.is_major);
-  }
-
-  for (const row of rows) {
-    const slug = slugifyCityPathSegment(row.city_name);
-    if (!slug) continue;
-
-    const city: City = {
-      id: row.city_id,
-      name: row.city_name,
-      region_id: row.region_id,
-      country_id: row.country_id,
-    };
-
-    const list = bySlug.get(slug) ?? [];
-    list.push(city);
-    bySlug.set(slug, list);
-  }
-
-  for (const [slug, list] of bySlug) {
-    list.sort((a, b) => {
-      const am = isMajorByCityId.get(a.id) ? 1 : 0;
-      const bm = isMajorByCityId.get(b.id) ? 1 : 0;
-      if (bm !== am) return bm - am;
-      return a.name.localeCompare(b.name, "en-GB");
-    });
-    bySlug.set(slug, list);
-  }
-
-  return bySlug;
-}
-
-/**
- * İstek başına tek yükleme (React cache). `unstable_cache` kullanılmıyor — içinde
- * cookie tabanlı Supabase kullanılamazdı; anon client ise prod RLS ile boş dönebiliyordu (404).
- */
-const getUkCitySlugIndexCached = cache(async (): Promise<Map<string, City[]>> => {
-  try {
-    return await loadUkCitySlugIndex();
-  } catch (err) {
-    console.error("[uk-city-slugs] loadUkCitySlugIndex failed:", err);
-    return new Map();
-  }
-});
-
-export async function getUkCityBySlug(slug: string): Promise<City | null> {
-  const normalized = slug.toLowerCase().trim();
+/** UK şehri: `cities` (id, name, slug, region_id) — UK bölgeleriyle kesişim. */
+export async function getUkCityBySlug(pathSlug: string): Promise<City | null> {
+  const normalized = pathSlug.toLowerCase().trim();
   if (!isValidCitySlugFormat(normalized)) {
     return null;
   }
 
-  let index: Map<string, City[]>;
   try {
-    index = await getUkCitySlugIndexCached();
-  } catch (err) {
-    console.error("[uk-city-slugs] getUkCitySlugIndexCached failed:", err);
-    return null;
-  }
-  const list = index.get(normalized);
-  if (!list?.length) {
-    return null;
-  }
+    const supabase = await createSupabaseServerClient();
+    const countryIds = await fetchUnitedKingdomCountryIds(supabase);
+    if (!countryIds.length) {
+      return null;
+    }
 
-  return list[0] ?? null;
+    const { data: regionRows, error: re } = await supabase
+      .from("regions")
+      .select("id")
+      .in("country_id", countryIds);
+
+    if (re || !regionRows?.length) {
+      return null;
+    }
+
+    const regionIds = (regionRows as { id: string }[]).map((r) => r.id);
+
+    const { data: row, error } = await supabase
+      .from("cities")
+      .select(`
+        id,
+        name,
+        slug,
+        region_id,
+        regions!inner (
+          country_id
+        )
+      `)
+      .eq("slug", normalized)
+      .in("region_id", regionIds)
+      .maybeSingle();
+
+    if (error || !row) {
+      if (error) console.error("[uk-city-slugs] cities query failed:", error);
+      return null;
+    }
+
+    const r = row as {
+      id: string;
+      name: string;
+      slug: string;
+      region_id: string | null;
+      regions: { country_id: string } | null;
+    };
+
+    if (!r.region_id || !r.regions?.country_id) {
+      return null;
+    }
+
+    return {
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      region_id: r.region_id,
+      country_id: r.regions.country_id,
+    };
+  } catch (err) {
+    console.error("[uk-city-slugs] getUkCityBySlug failed:", err);
+    return null;
+  }
 }
 
-/** Distinct path segments for sitemap (one URL per slug; ties use primary city). */
+/** Sitemap: UK bölgelerindeki şehir slug'ları (path segment). */
 export async function listUkCityPathSegmentsForSitemap(): Promise<string[]> {
-  const index = await getUkCitySlugIndexCached();
-  return [...index.keys()].sort((a, b) => a.localeCompare(b, "en-GB"));
+  try {
+    const supabase = await createSupabaseServerClient();
+    const countryIds = await fetchUnitedKingdomCountryIds(supabase);
+    if (!countryIds.length) return [];
+
+    const { data: regionRows } = await supabase
+      .from("regions")
+      .select("id")
+      .in("country_id", countryIds);
+
+    const regionIds = (regionRows as { id: string }[] | null)?.map((x) => x.id) ?? [];
+    if (!regionIds.length) return [];
+
+    const { data: cities, error } = await supabase.from("cities").select("slug").in("region_id", regionIds);
+
+    if (error) {
+      console.error("[uk-city-slugs] listUkCityPathSegmentsForSitemap failed:", error);
+      return [];
+    }
+
+    const slugs = [
+      ...new Set(
+        (cities ?? [])
+          .map((c) => (c as { slug: string }).slug)
+          .filter((s): s is string => typeof s === "string" && s.length > 0),
+      ),
+    ];
+    return slugs.sort((a, b) => a.localeCompare(b, "en-GB"));
+  } catch (err) {
+    console.error("[uk-city-slugs] listUkCityPathSegmentsForSitemap failed:", err);
+    return [];
+  }
 }

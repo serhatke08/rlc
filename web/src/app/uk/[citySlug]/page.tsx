@@ -9,8 +9,7 @@ import {
   getRegionById,
 } from "@/lib/queries/location-server";
 import { getUkCityBySlug } from "@/lib/queries/uk-city-slugs";
-import { getUkCityMetaDescription, getUkCitySeoBody } from "@/lib/uk-city-seo-static";
-import { slugifyCityPathSegment } from "@/lib/slug";
+import { getCityMetaDescriptionFirst160, getCitySeoText } from "@/lib/uk-city-seo";
 import { HomeListings } from "@/components/home-listings";
 import { getSiteUrlFromHeaders } from "@/lib/env";
 import { generateBreadcrumbSchema } from "@/lib/seo/schema";
@@ -40,22 +39,19 @@ export async function generateMetadata({ params }: UkCityPageProps): Promise<Met
     }
 
     const base = await getSiteUrlFromHeaders();
-    const path = `/uk/${slugifyCityPathSegment(city.name)}`;
-    const display = city.name;
-    const metaDesc = getUkCityMetaDescription(display);
+    const segment = city.slug ?? citySlug.toLowerCase();
+    const path = `/uk/${segment}`;
+    const title = `Free items in ${city.name} — ReloopCycle`;
+    const description = getCityMetaDescriptionFirst160(segment, city.name);
     const canonical = `${base}${path}`;
 
     return {
-      title: {
-        absolute: `Free items in ${display} — ReloopCycle`,
-      },
-      description: metaDesc,
-      alternates: {
-        canonical,
-      },
+      title: { absolute: title },
+      description,
+      alternates: { canonical },
       openGraph: {
-        title: `Free items in ${display} — ReloopCycle`,
-        description: metaDesc,
+        title,
+        description,
         url: canonical,
         siteName: "ReloopCycle",
         locale: "en_GB",
@@ -63,8 +59,8 @@ export async function generateMetadata({ params }: UkCityPageProps): Promise<Met
       },
       twitter: {
         card: "summary_large_image",
-        title: `Free items in ${display} — ReloopCycle`,
-        description: metaDesc,
+        title,
+        description,
       },
     };
   } catch (err) {
@@ -85,12 +81,12 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
     notFound();
   }
 
-  const canonicalSlug = slugifyCityPathSegment(city.name);
-  if (citySlug !== canonicalSlug) {
+  const segment = city.slug ?? citySlug.toLowerCase();
+  if (citySlug.toLowerCase() !== segment.toLowerCase()) {
     const sp = new URLSearchParams();
     if (query.categoryId) sp.set("categoryId", query.categoryId);
     const q = sp.toString();
-    permanentRedirect(q ? `/uk/${canonicalSlug}?${q}` : `/uk/${canonicalSlug}`);
+    permanentRedirect(q ? `/uk/${segment}?${q}` : `/uk/${segment}`);
   }
 
   const user = await getServerUser();
@@ -113,11 +109,10 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
 
   const selectedRegion = await getRegionById(city.region_id);
 
-  const pageH1 = `Free & Swap Items in ${city.name}`;
-  const pageDescription = getUkCitySeoBody(canonicalSlug, city.name);
+  const seoBody = getCitySeoText(segment, city.name);
 
   const siteUrl = await getSiteUrlFromHeaders();
-  const cityPath = `/uk/${canonicalSlug}`;
+  const cityPath = `/uk/${segment}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: "Home", url: siteUrl },
     { name: city.name, url: `${siteUrl}${cityPath}` },
@@ -143,6 +138,13 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
         </ol>
       </nav>
 
+      <header className="mb-6">
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl">
+          Free &amp; Swap Items in {city.name}
+        </h1>
+        <p className="max-w-3xl text-base leading-relaxed text-zinc-700 md:text-lg">{seoBody}</p>
+      </header>
+
       <HomeListings
         listings={jsonForClientBoundary(allListings)}
         categories={jsonForClientBoundary(categories)}
@@ -151,8 +153,8 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
         selectedRegion={selectedRegion ? jsonForClientBoundary(selectedRegion) : null}
         selectedCity={jsonForClientBoundary(city)}
         isAuthenticated={isAuthenticated}
-        pageH1={pageH1}
-        pageDescription={pageDescription}
+        pageH1={null}
+        pageDescription={null}
         cityPathPrefix="uk"
       />
     </>
