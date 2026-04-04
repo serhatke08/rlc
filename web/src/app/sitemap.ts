@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getSiteUrlFromHeaders } from '@/lib/env'
+import { listingPublicPath } from '@/lib/listing-url'
 import { listUkCityPathSegmentsForSitemap } from '@/lib/queries/uk-city-slugs'
 import { listUsCityPathSegmentsForSitemap } from '@/lib/queries/us-city-slugs'
 
@@ -110,7 +111,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const listingsData = (listings || []) as any[];
   const listingPages: MetadataRoute.Sitemap = listingsData.map((listing: any) => ({
-    url: `${baseUrl}/listing/${listing.id}`,
+    url: `${baseUrl}${listingPublicPath({ id: listing.id, slug: listing.slug })}`,
     lastModified: new Date(listing.updated_at || Date.now()),
     changeFrequency: 'daily' as const,
     priority: 0.7,

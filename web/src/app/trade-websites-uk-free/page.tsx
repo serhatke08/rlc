@@ -39,6 +39,7 @@ export default async function TradeWebsitesUKFreePage() {
       .from("listings")
       .select(`
         id,
+        slug,
         title,
         description,
         price,
@@ -72,6 +73,7 @@ export default async function TradeWebsitesUKFreePage() {
   }
   const listings: FeaturedListing[] = listingsData.map((listing: any) => ({
     id: listing.id,
+    slug: listing.slug ?? null,
     title: listing.title,
     description: listing.description,
     city: listing.city?.name || "UK",

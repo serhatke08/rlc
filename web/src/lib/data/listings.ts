@@ -289,6 +289,7 @@ export async function getFeaturedListings(options?: {
 
     return {
       id: listing.id,
+      slug: listing.slug,
       title: listing.title,
       description: listing.description,
       city: listing.city?.name ?? listing.city_name ?? "Unknown",

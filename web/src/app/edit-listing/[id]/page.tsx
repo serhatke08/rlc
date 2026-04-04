@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { updateListingServer } from '@/app/actions/listing/update';
+import { listingPublicPath } from '@/lib/listing-url';
 import { Upload, X, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -345,7 +346,9 @@ export default function EditListingPage() {
         throw new Error(result.message || 'Failed to update listing');
       }
 
-      router.push(`/listing/${listingId}`);
+      router.push(
+        listingPublicPath({ id: listingId, slug: result.slug ?? null })
+      );
     } catch (error) {
       console.error('Error updating listing:', error);
       alert('Error updating listing. Please try again.');

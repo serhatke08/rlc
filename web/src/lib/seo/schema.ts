@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/env";
+import { listingPublicPath } from "@/lib/listing-url";
 
 /**
  * Escape HTML special characters to prevent XSS in JSON-LD schemas
@@ -64,6 +65,7 @@ export async function generateProductSchema(listingId: string) {
     .from("listings")
     .select(`
       id,
+      slug,
       title,
       description,
       price,
@@ -97,7 +99,7 @@ export async function generateProductSchema(listingId: string) {
       price: isFree ? "0" : price.toString(),
       priceCurrency: "GBP",
       availability: "https://schema.org/InStock",
-      url: `${siteUrl}/listing/${listingData.id}`
+      url: `${siteUrl}${listingPublicPath({ id: listingData.id, slug: listingData.slug })}`
     },
     condition: `https://schema.org/${listingData.condition === "new" ? "NewCondition" : "UsedCondition"}`,
     category: "Second Hand Items",

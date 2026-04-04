@@ -31,7 +31,7 @@ export default async function MessagesDetailPage({ params }: MessagesDetailPageP
       user2_id,
       listing_id,
       updated_at,
-      listing:listings(id, title, thumbnail_url, images, seller_id),
+      listing:listings(id, slug, title, thumbnail_url, images, seller_id),
       user1:profiles!conversations_user1_id_fkey(id, username, display_name, avatar_url),
       user2:profiles!conversations_user2_id_fkey(id, username, display_name, avatar_url),
       messages(

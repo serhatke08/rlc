@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Heart, Package } from "lucide-react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { listingPublicPath } from "@/lib/listing-url";
 
 export default async function FavoritesPage() {
   const supabase = await createSupabaseServerClient();
@@ -23,6 +24,7 @@ export default async function FavoritesPage() {
       created_at,
       listing:listings(
         id,
+        slug,
         title,
         description,
         price,
@@ -84,7 +86,7 @@ export default async function FavoritesPage() {
             return (
               <Link
                 key={fav.id}
-                href={`/listing/${listing.id}`}
+                href={listingPublicPath({ id: listing.id, slug: listing.slug })}
                 className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md"
               >
                 {/* Ürün Görseli */}

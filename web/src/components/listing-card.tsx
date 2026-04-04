@@ -6,6 +6,7 @@ import { ArrowUpRight, Eye, MapPin, Heart, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { FeaturedListing } from "@/types/listing";
+import { listingPublicPath } from "@/lib/listing-url";
 
 interface ListingCardProps {
   listing: FeaturedListing;
@@ -39,7 +40,7 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   return (
     <Link 
-      href={`/listing/${listing.id}`}
+      href={listingPublicPath(listing)}
       className="block"
     >
       <article className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm shadow-zinc-100 ring-1 ring-transparent transition hover:-translate-y-1 hover:shadow-lg hover:ring-emerald-300/60 cursor-pointer">

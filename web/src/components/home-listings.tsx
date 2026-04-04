@@ -10,6 +10,7 @@ import { CategoriesMenu } from "@/components/categories-menu";
 import { LocationMenu } from "@/components/location-menu";
 import { InArticleAd } from "@/components/ads/google-adsense";
 import { cn } from "@/lib/utils";
+import { listingPublicPath } from "@/lib/listing-url";
 import type { FeaturedListing } from "@/types/listing";
 import type { Category } from "@/lib/types/category";
 import type { Country, Region, City } from "@/lib/types/location";
@@ -235,7 +236,7 @@ export function HomeListings({ listings, categories = [], country = null, region
                       {filteredListings.map((listing, index) => (
                         <Link
                           key={listing.id}
-                          href={`/listing/${listing.id}`}
+                          href={listingPublicPath(listing)}
                           className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 transition hover:scale-105 hover:border-emerald-300 hover:shadow-md"
                         >
                         {listing.coverImage ? (
@@ -272,7 +273,7 @@ export function HomeListings({ listings, categories = [], country = null, region
                     filteredListings.map((listing) => (
                       <Link
                         key={listing.id}
-                        href={`/listing/${listing.id}`}
+                        href={listingPublicPath(listing)}
                         className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 transition hover:scale-105 hover:border-emerald-300 hover:shadow-md"
                       >
                         {listing.coverImage ? (

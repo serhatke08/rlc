@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { allocateUniqueListingSlug } from "@/lib/listing-slug-server";
 import type { Database } from "@/lib/types/database";
 
 type ListingRow = Database["public"]["Tables"]["listings"]["Row"];
@@ -87,7 +88,38 @@ export async function updateListingServer(
       return { ok: false, status: 500, message: updateError.message || "Failed to update listing" };
     }
 
-    return { ok: true, status: 200 };
+    const shouldRefreshSlug =
+      updates.title !== undefined ||
+      updates.city_name !== undefined ||
+      updates.city_id !== undefined;
+
+    if (shouldRefreshSlug) {
+      const { data: fresh, error: freshErr } = await supabase
+        .from("listings")
+        .select("title, city_name")
+        .eq("id", listingId)
+        .eq("seller_id", user.id)
+        .single();
+
+      if (!freshErr && fresh) {
+        const fr = fresh as { title: string; city_name: string };
+        const newSlug = await allocateUniqueListingSlug(fr.title, fr.city_name || "", listingId);
+        await (supabase.from("listings") as any)
+          .update({ slug: newSlug })
+          .eq("id", listingId)
+          .eq("seller_id", user.id);
+      }
+    }
+
+    const { data: outRow } = await supabase
+      .from("listings")
+      .select("slug")
+      .eq("id", listingId)
+      .single();
+
+    const slugOut = (outRow as { slug: string | null } | null)?.slug ?? null;
+
+    return { ok: true, status: 200, slug: slugOut };
   } catch (error: any) {
     console.error("Unexpected error in updateListingServer:", error);
     return { ok: false, status: 500, message: error?.message || "Internal server error" };

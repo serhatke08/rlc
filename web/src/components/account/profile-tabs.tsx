@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { Package, Gift, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { listingPublicPath } from '@/lib/listing-url';
 import { EditListingButton } from '@/components/edit-listing-button';
 import { DeleteListingButton } from '@/components/delete-listing-button';
 
 interface Listing {
   id: string;
+  slug?: string | null;
   title: string;
   description: string;
   thumbnail_url: string | null;
@@ -40,7 +42,7 @@ export function ProfileTabs({ items, given, received }: ProfileTabsProps) {
       key={listing.id}
       className="group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md"
     >
-      <Link href={`/listing/${listing.id}`} className="block">
+      <Link href={listingPublicPath(listing)} className="block">
         <div className="relative aspect-square bg-zinc-100">
           {listing.thumbnail_url || listing.images?.[0] ? (
             <img

@@ -2,26 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { listingPublicPath } from "@/lib/listing-url";
 
 interface ListingLinkProps {
   listingId: string;
+  listingSlug?: string | null;
   title: string;
   thumbnailUrl?: string | null;
   images?: string[] | null;
 }
 
-export function ListingLink({ listingId, title, thumbnailUrl, images }: ListingLinkProps) {
+export function ListingLink({ listingId, listingSlug, title, thumbnailUrl, images }: ListingLinkProps) {
+  const path = listingPublicPath({ id: listingId, slug: listingSlug });
   const handleClick = (e: React.MouseEvent) => {
     // Iframe içindeyse parent window'a git, değilse normal link
     if (window.top && window.top !== window.self) {
       e.preventDefault();
-      window.top.location.href = `/listing/${listingId}`;
+      window.top.location.href = path;
     }
   };
 
   return (
     <Link 
-      href={`/listing/${listingId}`}
+      href={path}
       onClick={handleClick}
       className="flex items-center gap-2 hover:opacity-80 transition flex-1 min-w-0"
     >

@@ -560,7 +560,8 @@ export default function CreateListingPage() {
       }
 
       if (data.id) {
-        router.push(`/listing/${data.id}`);
+        const path = data.slug ? `/listing/${data.slug}` : `/listing/${data.id}`;
+        router.push(path);
       } else {
         setSubmitting(false);
       }

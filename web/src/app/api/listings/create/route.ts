@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { allocateUniqueListingSlug } from '@/lib/listing-slug-server';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -72,6 +73,9 @@ export async function POST(request: Request) {
       uploadedUrls.push(publicUrl);
     }
 
+    const cityDisplay = (cityName || '').trim();
+    const slug = await allocateUniqueListingSlug(title.trim(), cityDisplay);
+
     // Create listing
     const { data: listing, error: listingError } = await (supabase
       .from('listings') as any)
@@ -93,6 +97,7 @@ export async function POST(request: Request) {
         price: price.toString(),
         currency: 'GBP',
         status: 'active',
+        slug,
       })
       .select()
       .single();
@@ -101,7 +106,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: listingError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ id: listing.id });
+    return NextResponse.json({ id: listing.id, slug: (listing as { slug?: string }).slug ?? slug });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }

@@ -4,6 +4,8 @@ export type ListingIntent = "give" | "swap" | "lend" | "sell" | "need" | "adopti
 
 export interface FeaturedListing {
   id: string;
+  /** SEO path segment when set; links use slug preferentially */
+  slug?: string | null;
   title: string;
   description: string;
   city: string;
