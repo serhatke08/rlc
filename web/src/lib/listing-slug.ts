@@ -8,10 +8,12 @@ const MAX_BASE_LEN = 200;
 export function buildListingSlugBase(title: string, cityDisplayName: string): string {
   const t = slugifyCityPathSegment(title);
   const c = slugifyCityPathSegment(cityDisplayName);
-  if (!t && !c) return "listing";
-  if (!t) return c.slice(0, MAX_BASE_LEN);
-  if (!c) return t.slice(0, MAX_BASE_LEN);
-  const combined = `${t}-${c}`;
+  /** Sadece rakamlardan oluşan “şehir” segmenti (timestamp vb.) URL’e konmasın */
+  const cSafe = c && /^\d+$/.test(c) ? "" : c;
+  if (!t && !cSafe) return "listing";
+  if (!t) return cSafe.slice(0, MAX_BASE_LEN);
+  if (!cSafe) return t.slice(0, MAX_BASE_LEN);
+  const combined = `${t}-${cSafe}`;
   return combined.length <= MAX_BASE_LEN ? combined : combined.slice(0, MAX_BASE_LEN);
 }
 

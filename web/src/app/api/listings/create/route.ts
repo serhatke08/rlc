@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { allocateUniqueListingSlug } from '@/lib/listing-slug-server';
+import { resolveCityDisplayNameForListingSlug } from '@/lib/listing-slug-resolve';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -73,7 +74,10 @@ export async function POST(request: Request) {
       uploadedUrls.push(publicUrl);
     }
 
-    const cityDisplay = (cityName || '').trim();
+    const cityDisplay = await resolveCityDisplayNameForListingSlug(
+      cityId || null,
+      cityName || '',
+    );
     const slug = await allocateUniqueListingSlug(title.trim(), cityDisplay);
 
     // Create listing

@@ -20,6 +20,7 @@ import { ListingViewTracker } from "@/components/listing-view-tracker";
 import { ListingFavoriteButton } from "@/components/listing-favorite-button";
 import { getSiteUrlFromHeaders } from "@/lib/env";
 import { allocateUniqueListingSlug } from "@/lib/listing-slug-server";
+import { resolveCityDisplayNameForListingSlug } from "@/lib/listing-slug-resolve";
 import { listingPublicPath } from "@/lib/listing-url";
 
 interface ListingPageProps {
@@ -120,12 +121,12 @@ export default async function ListingPage({ params }: ListingPageProps) {
   if (isUuidParam(raw)) {
     const { data: byId, error: idErr } = await supabase
       .from("listings")
-      .select("id, slug, title, city_name")
+      .select("id, slug, title, city_name, city_id")
       .eq("id", raw)
       .maybeSingle();
 
     const short = byId as
-      | { id: string; slug: string | null; title: string; city_name: string }
+      | { id: string; slug: string | null; title: string; city_name: string; city_id: string | null }
       | null;
 
     if (idErr || !short) {
@@ -136,11 +137,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
       permanentRedirect(`/listing/${short.slug}`);
     }
 
-    const newSlug = await allocateUniqueListingSlug(
-      short.title,
-      short.city_name || "",
-      short.id,
-    );
+    const cityLabel = await resolveCityDisplayNameForListingSlug(short.city_id, short.city_name);
+    const newSlug = await allocateUniqueListingSlug(short.title, cityLabel, short.id);
     await (supabase.from("listings") as any).update({ slug: newSlug }).eq("id", short.id);
     permanentRedirect(`/listing/${newSlug}`);
   }

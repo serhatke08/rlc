@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { allocateUniqueListingSlug } from "@/lib/listing-slug-server";
+import { resolveCityDisplayNameForListingSlug } from "@/lib/listing-slug-resolve";
 import type { Database } from "@/lib/types/database";
 
 type ListingRow = Database["public"]["Tables"]["listings"]["Row"];
@@ -96,14 +97,15 @@ export async function updateListingServer(
     if (shouldRefreshSlug) {
       const { data: fresh, error: freshErr } = await supabase
         .from("listings")
-        .select("title, city_name")
+        .select("title, city_name, city_id")
         .eq("id", listingId)
         .eq("seller_id", user.id)
         .single();
 
       if (!freshErr && fresh) {
-        const fr = fresh as { title: string; city_name: string };
-        const newSlug = await allocateUniqueListingSlug(fr.title, fr.city_name || "", listingId);
+        const fr = fresh as { title: string; city_name: string; city_id: string | null };
+        const cityLabel = await resolveCityDisplayNameForListingSlug(fr.city_id, fr.city_name);
+        const newSlug = await allocateUniqueListingSlug(fr.title, cityLabel, listingId);
         await (supabase.from("listings") as any)
           .update({ slug: newSlug })
           .eq("id", listingId)
