@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getFeaturedListings } from "@/lib/data/listings";
 import { getCategories } from "@/lib/queries/category-server";
@@ -12,6 +13,7 @@ import { resolveCityMetaDescription, resolveCityPageIntro } from "@/lib/city-pag
 import { slugifyCityPathSegment } from "@/lib/slug";
 import { HomeListings } from "@/components/home-listings";
 import { getSiteUrlFromHeaders } from "@/lib/env";
+import { generateBreadcrumbSchema } from "@/lib/seo/schema";
 import { getServerUser } from "@/lib/supabase/server";
 import type { Region } from "@/lib/types/location";
 
@@ -36,14 +38,29 @@ export async function generateMetadata({ params }: UkCityPageProps): Promise<Met
   const base = await getSiteUrlFromHeaders();
   const path = `/uk/${slugifyCityPathSegment(city.name)}`;
   const display = city.name;
+  const metaDesc = resolveCityMetaDescription(city);
+  const canonical = `${base}${path}`;
 
   return {
     title: {
       absolute: `Free items in ${display} — ReloopCycle`,
     },
-    description: resolveCityMetaDescription(city),
+    description: metaDesc,
     alternates: {
-      canonical: `${base}${path}`,
+      canonical,
+    },
+    openGraph: {
+      title: `Free items in ${display} — ReloopCycle`,
+      description: metaDesc,
+      url: canonical,
+      siteName: "ReloopCycle",
+      locale: "en_GB",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Free items in ${display} — ReloopCycle`,
+      description: metaDesc,
     },
   };
 }
@@ -88,18 +105,45 @@ export default async function UkCityPage({ params, searchParams }: UkCityPagePro
   const pageH1 = `Free & Swap Items in ${city.name}`;
   const pageDescription = resolveCityPageIntro(city);
 
+  const siteUrl = await getSiteUrlFromHeaders();
+  const cityPath = `/uk/${canonicalSlug}`;
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", url: siteUrl },
+    { name: city.name, url: `${siteUrl}${cityPath}` },
+  ]);
+
   return (
-    <HomeListings
-      listings={allListings}
-      categories={categories}
-      country={country}
-      regions={initialRegions}
-      selectedRegion={selectedRegion}
-      selectedCity={city}
-      isAuthenticated={isAuthenticated}
-      pageH1={pageH1}
-      pageDescription={pageDescription}
-      cityPathPrefix="uk"
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-zinc-600">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="text-emerald-700 hover:underline">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden className="text-zinc-400">
+            /
+          </li>
+          <li className="font-medium text-zinc-900">{city.name}</li>
+        </ol>
+      </nav>
+
+      <HomeListings
+        listings={allListings}
+        categories={categories}
+        country={country}
+        regions={initialRegions}
+        selectedRegion={selectedRegion}
+        selectedCity={city}
+        isAuthenticated={isAuthenticated}
+        pageH1={pageH1}
+        pageDescription={pageDescription}
+        cityPathPrefix="uk"
+      />
+    </>
   );
 }
