@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 function LoginForm() {
@@ -18,6 +19,7 @@ function LoginForm() {
   // Get redirect URL from query params
   const redirectUrl = searchParams.get("redirect") || "/account";
   const message = searchParams.get("message");
+  const oauthError = searchParams.get("error");
 
   // Eğer kullanıcı zaten giriş yapmışsa account sayfasına yönlendir
   useEffect(() => {
@@ -131,6 +133,13 @@ function LoginForm() {
 
   return (
     <div className="space-y-6">
+      {oauthError ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+          <p className="text-sm font-semibold text-rose-900">Could not complete sign-in</p>
+          <p className="mt-1 text-sm text-rose-700">{oauthError}</p>
+        </div>
+      ) : null}
+
       {message === "check-email" && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <p className="text-sm font-semibold text-emerald-900">Please check your email</p>
@@ -143,6 +152,17 @@ function LoginForm() {
         <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
         <h1 className="text-2xl font-semibold text-zinc-900">Sign in to your account</h1>
         <p className="text-sm text-zinc-500">Continue to the free sharing community.</p>
+      </div>
+
+      <GoogleSignInButton redirectPath={redirectUrl} />
+
+      <div className="relative py-2">
+        <div className="absolute inset-0 flex items-center" aria-hidden>
+          <span className="w-full border-t border-zinc-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase tracking-wide text-zinc-400">
+          <span className="bg-white px-3">or email</span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

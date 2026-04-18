@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 interface Country {
@@ -238,6 +239,17 @@ export default function RegisterPage() {
             <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
             <h1 className="text-2xl font-semibold text-zinc-900">Join the Community</h1>
             <p className="text-sm text-zinc-500">Create your account for free sharing and swapping.</p>
+          </div>
+
+          <GoogleSignInButton redirectPath="/account" variant="gradient" />
+
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center" aria-hidden>
+              <span className="w-full border-t border-zinc-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase tracking-wide text-zinc-400">
+              <span className="bg-white px-3">or register with email</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
