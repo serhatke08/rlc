@@ -140,18 +140,24 @@ export function NotificationBell() {
 
   const markAsRead = async (notificationId: string) => {
     const supabase = createSupabaseBrowserClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any)
-      .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq('id', notificationId);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
 
-    if (!error) {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+    const readAt = new Date().toISOString();
+    const { error } = await (supabase.from("notifications") as any)
+      .update({ is_read: true, read_at: readAt })
+      .eq("id", notificationId)
+      .eq("user_id", session.user.id);
+
+    if (error) {
+      console.error("[notifications] markAsRead failed:", error.message);
+      return;
     }
+
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, is_read: true, read_at: readAt } : n)),
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
   const markAllAsRead = async () => {
@@ -159,17 +165,21 @@ export function NotificationBell() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any)
-      .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq('user_id', session.user.id)
-      .eq('is_read', false);
+    const readAt = new Date().toISOString();
 
-    if (!error) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      setUnreadCount(0);
+    // Okunmamış: false veya NULL (PostgREST'te .eq(false) NULL satırları seçmez)
+    const { error } = await (supabase.from("notifications") as any)
+      .update({ is_read: true, read_at: readAt })
+      .eq("user_id", session.user.id)
+      .or("is_read.eq.false,is_read.is.null");
+
+    if (error) {
+      console.error("[notifications] markAllAsRead failed:", error.message, error);
+      return;
     }
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true, read_at: readAt })));
+    setUnreadCount(0);
   };
 
   // Her zaman render et - site-header zaten user kontrolü yapıyor

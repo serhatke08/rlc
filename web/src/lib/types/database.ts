@@ -1,3 +1,15 @@
+type NotificationsRow = {
+  id: string;
+  user_id: string;
+  type: "message" | "listing_update" | "system";
+  title: string;
+  message: string;
+  link: string | null;
+  is_read: boolean | null;
+  created_at: string | null;
+  read_at: string | null;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -9,6 +21,7 @@ export interface Database {
           seller_id: string;
           category_id: string | null;
           subcategory_id: string | null;
+          listing_type: string | null;
           price: string;
           currency: string | null;
           condition: "new" | "like_new" | "used" | "for_parts";
@@ -45,6 +58,7 @@ export interface Database {
           seller_id: string;
           category_id?: string | null;
           subcategory_id?: string | null;
+          listing_type?: string | null;
           price: string;
           currency?: string | null;
           condition: "new" | "like_new" | "used" | "for_parts";
@@ -208,17 +222,7 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["cities"]["Row"]>;
       };
       notifications: {
-        Row: {
-          id: string;
-          user_id: string;
-          type: "message" | "listing_update" | "system";
-          title: string;
-          message: string;
-          link: string | null;
-          is_read: boolean;
-          created_at: string | null;
-          read_at: string | null;
-        };
+        Row: NotificationsRow;
         Insert: {
           id?: string;
           user_id: string;
@@ -226,11 +230,11 @@ export interface Database {
           title: string;
           message: string;
           link?: string | null;
-          is_read?: boolean;
+          is_read?: boolean | null;
           created_at?: string | null;
           read_at?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["notifications"]["Row"]>;
+        Update: Partial<NotificationsRow>;
       };
       item_transactions: {
         Row: {

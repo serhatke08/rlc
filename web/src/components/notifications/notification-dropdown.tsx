@@ -60,7 +60,12 @@ export function NotificationDropdown({
         <div className="flex items-center gap-2">
           {notifications.filter((n) => !n.is_read).length > 0 && (
             <button
-              onClick={onMarkAllAsRead}
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkAllAsRead();
+              }}
               className="rounded-lg p-1.5 text-xs text-zinc-600 transition hover:bg-zinc-100"
               title="Tümünü okundu işaretle"
             >
