@@ -4,6 +4,21 @@ import { createServerClient } from "@supabase/ssr";
 import { getEnv, hasSupabaseCredentials } from "@/lib/env";
 import type { Database } from "@/lib/types/database";
 
+/** Bozuk refresh / JWT — çerezleri temizle (bir sonraki istek temiz). */
+export function shouldClearStaleAuthCookies(err: { message?: string } | null | undefined): boolean {
+  const msg = (err?.message ?? "").toLowerCase();
+  return msg.includes("refresh token") || msg.includes("invalid jwt");
+}
+
+/** Beklenen anon / eksik oturum — loglama. */
+export function isExpectedAuthSessionNoise(
+  err: { message?: string; name?: string; status?: number } | null | undefined,
+): boolean {
+  if (!err) return false;
+  if (err.name === "AuthSessionMissingError" || err.status === 400) return true;
+  return shouldClearStaleAuthCookies(err);
+}
+
 export async function createSupabaseServerClient() {
   if (!hasSupabaseCredentials()) {
     throw new Error("Supabase ortam değişkenleri tanımlı değil.");
@@ -40,20 +55,27 @@ export async function createSupabaseServerClient() {
 export async function getServerUser() {
   try {
     const supabase = await createSupabaseServerClient();
-    
-    // Önce session kontrolü yap - refresh token gerektirmez
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    // Session yoksa veya hata varsa direkt null döndür
-    if (sessionError || !session || !session.user) {
+
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      if (shouldClearStaleAuthCookies(sessionError)) {
+        await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+      } else if (!isExpectedAuthSessionNoise(sessionError)) {
+        console.error("[getServerUser] getSession error:", sessionError.message);
+      }
       return null;
     }
-    
-    // Session geçerliyse, user'ı session'dan al (getUser() çağırmaya gerek yok)
+
+    if (!session?.user) {
+      return null;
+    }
+
     return session.user;
-  } catch (error: any) {
-    // Herhangi bir hata durumunda sessizce null döndür
-    // Refresh token, network veya diğer hataları ignore et
+  } catch {
     return null;
   }
 }

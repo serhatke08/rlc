@@ -1,22 +1,31 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createSupabaseServerClient,
+  isExpectedAuthSessionNoise,
+  shouldClearStaleAuthCookies,
+} from "@/lib/supabase/server";
 import type { Country, Region, City } from "@/lib/types/location";
 
 // Server-side queries (only use in Server Components)
 export async function getCurrentUserCountry(): Promise<Country | null> {
   try {
     const supabase = await createSupabaseServerClient();
-    // Get current user - silently handle missing session (user not logged in)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    // AuthSessionMissingError is expected when user is not logged in - don't log as error
-    if (userError) {
-      // Only log if it's not a session missing error (which is normal for anonymous users)
-      if (userError.name !== "AuthSessionMissingError" && userError.status !== 400) {
-        console.error("Error getting user:", JSON.stringify(userError, null, 2));
+    // getUser() sunucuda JWT doğrulaması / refresh dener; bozuk çerezde AuthApiError üretir.
+    // getSession() yalnızca çerezdeki oturumu okur; bozuk refresh için getServerUser ile uyumlu davranış.
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      if (shouldClearStaleAuthCookies(sessionError)) {
+        await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+      } else if (!isExpectedAuthSessionNoise(sessionError)) {
+        console.error("Error getting session:", JSON.stringify(sessionError, null, 2));
       }
       return null;
     }
 
+    const user = session?.user;
     if (!user) {
       return null;
     }
