@@ -3,9 +3,11 @@ import type { Metadata } from "next";
 import { DeleteAccountForm } from "./delete-account-form";
 
 export const metadata: Metadata = {
-  title: "Delete İkel - Second Hand items account | Webnotic",
+  title: {
+    absolute: "Delete İkel - Second Hand items account | Webnotic",
+  },
   description:
-    "Official account deletion page for İkel - Second Hand items (com.reloopcycle.app), published by Webnotic. Permanently delete the İkel / ReloopCycle account and associated data.",
+    "Official account deletion page for İkel - Second Hand items (com.reloopcycle.app), published by Webnotic. Permanently delete the İkel account and associated data.",
   robots: {
     index: true,
     follow: true,
@@ -25,7 +27,7 @@ export default function DeleteAccountPage() {
         <p className="text-sm text-zinc-600">
           This is the official account deletion page for the Android app{" "}
           <strong>İkel - Second Hand items</strong> (<code>com.reloopcycle.app</code>),
-          developed by <strong>Webnotic</strong>. The same account is used on ReloopCycle
+          developed by <strong>Webnotic</strong>. The same account is used on İkel
           (reloopcycle.co.uk).
         </p>
       </header>

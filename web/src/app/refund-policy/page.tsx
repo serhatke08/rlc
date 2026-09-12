@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Refund Policy | ReloopCycle",
-  description: "ReloopCycle Refund Policy. Learn about our refund terms for credits and subscriptions.",
+  title: "Refund Policy",
+  description: "İkel Refund Policy. Learn about our refund terms for credits and subscriptions.",
   keywords: ["refund policy", "money back", "returns"],
   robots: {
     index: false,
@@ -20,7 +20,7 @@ export default function RefundPolicyPage() {
         <article className="prose prose-zinc max-w-none">
           <h2>1. Overview</h2>
           <p>
-            At ReloopCycle, we strive to provide the best possible service. This refund policy outlines 
+            At İkel, we strive to provide the best possible service. This refund policy outlines 
             the circumstances under which refunds may be issued for our services.
           </p>
 

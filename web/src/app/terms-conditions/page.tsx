@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | ReloopCycle",
-  description: "ReloopCycle Terms and Conditions. Read our terms of service for using the platform.",
+  title: "Terms & Conditions",
+  description: "İkel Terms and Conditions. Read our terms of service for using the platform.",
   keywords: ["terms and conditions", "terms of service", "user agreement"],
   robots: {
     index: false,
@@ -20,7 +20,7 @@ export default function TermsConditionsPage() {
         <article className="prose prose-zinc max-w-none">
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing and using ReloopCycle, you accept and agree to be bound by these Terms and Conditions. 
+            By accessing and using İkel, you accept and agree to be bound by these Terms and Conditions. 
             If you do not agree, please do not use our platform.
           </p>
 
@@ -55,26 +55,26 @@ export default function TermsConditionsPage() {
 
           <h2>5. Transactions</h2>
           <p>
-            ReloopCycle facilitates connections between users but is not party to actual transactions. 
+            İkel facilitates connections between users but is not party to actual transactions. 
             We are not responsible for the quality, safety, or legality of items listed, or the ability 
             of users to complete transactions.
           </p>
 
           <h2>6. Payments and Fees</h2>
           <p>
-            Basic use of ReloopCycle is free. Premium features and subscriptions are available for purchase. 
+            Basic use of İkel is free. Premium features and subscriptions are available for purchase. 
             All fees are non-refundable unless otherwise stated in our Refund Policy.
           </p>
 
           <h2>7. Intellectual Property</h2>
           <p>
-            All content on ReloopCycle, including text, graphics, logos, and software, is our property 
+            All content on İkel, including text, graphics, logos, and software, is our property 
             or licensed to us and is protected by copyright and other intellectual property laws.
           </p>
 
           <h2>8. Limitation of Liability</h2>
           <p>
-            ReloopCycle is provided "as is" without warranties. We are not liable for any indirect, 
+            İkel is provided "as is" without warranties. We are not liable for any indirect, 
             incidental, or consequential damages arising from your use of the platform.
           </p>
 

@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: UsCityPageProps): Promise<Met
 
     return {
       title: {
-        absolute: `Free items in ${display} — ReloopCycle`,
+        absolute: `Free items in ${display} — İkel`,
       },
       description: resolveCityMetaDescription(city),
       alternates: {

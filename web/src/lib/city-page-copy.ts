@@ -2,7 +2,7 @@ import type { City } from "@/lib/types/location";
 
 /** Intro paragraph under H1 on /us/[city] — copy is static (no DB SEO column). */
 export function resolveCityPageIntro(city: City): string {
-  return `Find free items, swaps and sales in ${city.name} on ReloopCycle. Join your local community today.`;
+  return `Find free items, swaps and sales in ${city.name} on İkel. Join your local community today.`;
 }
 
 /** Meta description (~160 chars) */

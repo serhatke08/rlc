@@ -7,7 +7,7 @@ import { ListingCard } from "@/components/listing-card";
 import type { FeaturedListing } from "@/types/listing";
 
 export const metadata: Metadata = {
-  title: "Free Stuff Near Me UK | ReloopCycle",
+  title: "Free Stuff Near Me UK",
   description: "Find free stuff near you in the UK. Browse furniture, electronics, clothes, and more. Join the circular economy and give items a second life.",
   keywords: [
     "free stuff near me",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "circular economy",
   ],
   openGraph: {
-    title: "Free Stuff Near Me UK | ReloopCycle",
+    title: "Free Stuff Near Me UK",
     description: "Discover free items in your local area. Save money and the planet.",
     type: "website",
   },
@@ -227,7 +227,7 @@ export default async function FreeStuffPage() {
           <article className="prose prose-zinc max-w-none">
             <h2>Find Free Stuff Near You in the UK</h2>
             <p>
-              ReloopCycle makes it easy to find free items in your local area across the United Kingdom. 
+              İkel makes it easy to find free items in your local area across the United Kingdom. 
               Whether you're looking for furniture, electronics, clothes, or household items, our platform 
               connects you with people giving away quality items for free.
             </p>

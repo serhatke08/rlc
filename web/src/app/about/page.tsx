@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Recycle, Users, Globe, Heart } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About ReloopCycle | UK's Circular Economy Marketplace",
-  description: "Learn about ReloopCycle - the UK's leading platform for giving, swapping, and reusing items. Join our mission to reduce waste and build sustainable communities.",
-  keywords: ["about reloopcycle", "circular economy", "sustainable marketplace", "UK reuse platform"],
+  title: "About",
+  description: "Learn about İkel - the UK's leading platform for giving, swapping, and reusing items. Join our mission to reduce waste and build sustainable communities.",
+  keywords: ["about ikel", "circular economy", "sustainable marketplace", "UK reuse platform"],
 };
 
 export default function AboutPage() {
@@ -15,7 +15,7 @@ export default function AboutPage() {
       <section className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-4 py-16">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-6 text-4xl font-bold text-zinc-900 lg:text-6xl">
-            About ReloopCycle
+            About İkel
           </h1>
           <p className="text-lg text-zinc-600 lg:text-xl">
             We're building the UK's most trusted circular economy marketplace. 
@@ -30,7 +30,7 @@ export default function AboutPage() {
           <h2 className="mb-6 text-3xl font-bold text-zinc-900">Our Story</h2>
           <div className="space-y-4 text-zinc-600">
             <p>
-              ReloopCycle was founded on a simple belief: every item deserves a second life. 
+              İkel was founded on a simple belief: every item deserves a second life. 
               In a world where millions of tonnes of perfectly usable items end up in landfill 
               each year, we saw an opportunity to make a difference.
             </p>

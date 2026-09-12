@@ -4,7 +4,7 @@ import { Gift, Heart, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Give Away Items UK | Free Stuff Donation Platform",
-  description: "Give away your unwanted items for free in the UK. Help others while reducing waste. Post furniture, electronics, clothes, and more on ReloopCycle.",
+  description: "Give away your unwanted items for free in the UK. Help others while reducing waste. Post furniture, electronics, clothes, and more on İkel.",
   keywords: [
     "give away items UK",
     "donate items",
@@ -100,7 +100,7 @@ export default function GiveAwayPage() {
           <article className="prose prose-zinc max-w-none">
             <h2>Give Away Your Unwanted Items for Free</h2>
             <p>
-              ReloopCycle makes it simple to give away items you no longer need across the UK. 
+              İkel makes it simple to give away items you no longer need across the UK. 
               Whether it's furniture, electronics, clothes, or household goods, our platform connects 
               you with people who will appreciate and use your items.
             </p>
@@ -117,7 +117,7 @@ export default function GiveAwayPage() {
             
             <h3>It's Completely Free</h3>
             <p>
-              There's no cost to post items on ReloopCycle. Simply create a listing, add photos, 
+              There's no cost to post items on İkel. Simply create a listing, add photos, 
               and wait for interested people to contact you. It's that easy!
             </p>
           </article>

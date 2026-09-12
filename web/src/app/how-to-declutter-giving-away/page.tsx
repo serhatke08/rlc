@@ -7,7 +7,7 @@ import { ListingCard } from "@/components/listing-card";
 import type { FeaturedListing } from "@/types/listing";
 
 export const metadata: Metadata = {
-  title: "How to Declutter by Giving Things Away - UK Guide 2024 | ReloopCycle",
+  title: "How to Declutter by Giving Things Away - UK Guide 2024",
   description: "Learn how to declutter your home by giving items away. Step-by-step guide to sorting, organizing, and giving away unwanted items in the UK while helping others.",
   keywords: [
     "how to declutter by giving away",
@@ -238,7 +238,7 @@ export default async function HowToDeclutterGivingAwayPage() {
                 </div>
                 <p className="text-zinc-600">
                   Create listings for items you want to give away. Take good photos, write clear descriptions, 
-                  and be honest about condition. Use platforms like ReloopCycle to reach people in your local 
+                  and be honest about condition. Use platforms like İkel to reach people in your local 
                   area who need these items.
                 </p>
               </div>
@@ -344,7 +344,7 @@ export default async function HowToDeclutterGivingAwayPage() {
             <h2 className="mb-4 text-2xl font-bold text-zinc-900">Ready to Start Decluttering?</h2>
             <p className="mb-6 text-zinc-600">
               Give your unwanted items a second life while creating a cleaner, more organized home. 
-              Start listing items for free on ReloopCycle today.
+              Start listing items for free on İkel today.
             </p>
             <Link
               href="/create-listing"

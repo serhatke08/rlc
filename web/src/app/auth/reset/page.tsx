@@ -31,7 +31,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+        <p className="text-xs font-semibold tracking-[0.3em] text-emerald-600">İkel</p>
         <h1 className="text-2xl font-semibold text-zinc-900">Create your new password</h1>
         <p className="text-sm text-zinc-500">
           You're here thanks to the link in your email. Set your new password.

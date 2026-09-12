@@ -7,8 +7,8 @@ import { ListingCard } from "@/components/listing-card";
 import type { FeaturedListing } from "@/types/listing";
 
 export const metadata: Metadata = {
-  title: "Trade Websites UK Free | Free Trading Platform | ReloopCycle",
-  description: "Discover the best free trade websites in the UK. Trade, swap, and exchange items for free. Find free electronics, furniture, and more on ReloopCycle's free trading platform.",
+  title: "Trade Websites UK Free | Free Trading Platform",
+  description: "Discover the best free trade websites in the UK. Trade, swap, and exchange items for free. Find free electronics, furniture, and more on İkel's free trading platform.",
   keywords: [
     "trade websites uk free",
     "free electronics near me",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     "circular economy UK",
   ],
   openGraph: {
-    title: "Trade Websites UK Free | ReloopCycle",
+    title: "Trade Websites UK Free",
     description: "Join the UK's best free trading platform. Trade, swap, and reuse items for free.",
     type: "website",
   },
@@ -107,7 +107,7 @@ export default async function TradeWebsitesUKFreePage() {
           
           <p className="mb-8 text-lg text-zinc-600 lg:text-xl">
             Discover the best free trade websites in the UK. Trade, swap, and exchange items 
-            for free on ReloopCycle. Find free electronics, furniture, and more without spending a penny.
+            for free on İkel. Find free electronics, furniture, and more without spending a penny.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3">
@@ -219,7 +219,7 @@ export default async function TradeWebsitesUKFreePage() {
           <article className="prose prose-zinc max-w-none">
             <h2>Best Free Trade Websites in the UK</h2>
             <p>
-              ReloopCycle is one of the leading free trade websites in the UK, offering a platform 
+              İkel is one of the leading free trade websites in the UK, offering a platform 
               where you can trade, swap, and exchange items completely free of charge. Whether you're 
               looking for free electronics near me, freecycle furniture, or a free reuse marketplace, 
               we connect you with people in your local area.
@@ -248,7 +248,7 @@ export default async function TradeWebsitesUKFreePage() {
             
             <h3>How It Differs from Other Trade Websites</h3>
             <p>
-              Unlike other trade websites that charge fees or require subscriptions, ReloopCycle is 
+              Unlike other trade websites that charge fees or require subscriptions, İkel is 
               completely free. You can list items, browse listings, and connect with other users without 
               any cost. Our platform focuses on the circular economy, helping reduce waste while 
               connecting communities across the UK.

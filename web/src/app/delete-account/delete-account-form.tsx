@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
+
+import { BrandLogo } from "@/components/brand-logo";
 
 type Step = "credentials" | "confirm" | "done";
 
@@ -84,13 +85,7 @@ export function DeleteAccountForm() {
     <div className="rounded-2xl border border-zinc-200 bg-white shadow-lg">
       <div className="border-b border-zinc-100 bg-zinc-50 px-6 py-5">
         <div className="flex items-center gap-4">
-          <Image
-            src="/yenilogo.png"
-            alt="İkel - Second Hand items by Webnotic"
-            width={140}
-            height={48}
-            className="h-10 w-auto object-contain"
-          />
+          <BrandLogo href={null} size="md" className="rounded-xl" />
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
               Webnotic · İkel
@@ -109,7 +104,7 @@ export function DeleteAccountForm() {
           </p>
           <p className="font-medium text-zinc-700">What is deleted</p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>İkel / ReloopCycle profile and personal information</li>
+            <li>İkel profile and personal information</li>
             <li>Listings, messages, conversations, favourites, and follows</li>
             <li>Account login for com.reloopcycle.app</li>
           </ul>
@@ -206,7 +201,7 @@ export function DeleteAccountForm() {
               </div>
               <p className="text-sm text-red-800">
                 This permanently deletes the İkel - Second Hand items account (com.reloopcycle.app)
-                published by Webnotic, including ReloopCycle website data for the same account.
+                published by Webnotic, including İkel website data for the same account.
               </p>
             </div>
 

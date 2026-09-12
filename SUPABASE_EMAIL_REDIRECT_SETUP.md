@@ -48,7 +48,7 @@ Thanks for signing up! Please confirm your email address by clicking the link be
 If you didn't sign up, you can safely ignore this email.
 
 Thanks,
-ReloopCycle Team
+İkel Team
 ```
 
 **ÖNEMLİ:** `{{ .ConfirmationURL }}` otomatik olarak:
@@ -69,7 +69,7 @@ Email template'inizi özelleştirebilirsiniz:
 
 **Örnek Özelleştirilmiş Template:**
 ```
-Welcome to ReloopCycle!
+Welcome to İkel!
 
 Hi {{ .Email }},
 
@@ -85,7 +85,7 @@ Or copy and paste this link into your browser:
 If you didn't create an account, you can safely ignore this email.
 
 Best regards,
-The ReloopCycle Team
+The İkel Team
 ```
 
 ### 6. Test Email Gönderimi

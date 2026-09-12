@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "FAQ | Frequently Asked Questions - ReloopCycle",
-  description: "Find answers to common questions about ReloopCycle. Learn how to buy, sell, swap, and give away items on our platform.",
-  keywords: ["faq", "help", "questions", "how to use reloopcycle"],
+  title: "FAQ",
+  description: "Find answers to common questions about İkel. Learn how to buy, sell, swap, and give away items on our platform.",
+  keywords: ["faq", "help", "questions", "how to use ikel"],
   robots: {
     index: false,
     follow: false,
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function FAQPage() {
   const faqs = [
     {
-      question: "Is ReloopCycle free to use?",
+      question: "Is İkel free to use?",
       answer: "Yes! Creating an account and posting up to 5 listings is completely free. We also offer premium plans with additional features.",
     },
     {
@@ -62,7 +62,7 @@ export default function FAQPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-zinc-600">
-            Everything you need to know about ReloopCycle
+            Everything you need to know about İkel
           </p>
         </div>
       </section>

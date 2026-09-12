@@ -4,7 +4,7 @@ import { Recycle, Leaf, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Reuse Items Platform UK | Circular Economy Marketplace",
-  description: "Buy, sell, swap, and give away pre-loved items in the UK. Join the circular economy movement and reduce waste with ReloopCycle.",
+  description: "Buy, sell, swap, and give away pre-loved items in the UK. Join the circular economy movement and reduce waste with İkel.",
   keywords: [
     "reuse platform UK",
     "circular economy",
@@ -139,7 +139,7 @@ export default function ReusePlatformPage() {
           <article className="prose prose-zinc max-w-none">
             <h2>Join the UK's Leading Reuse Platform</h2>
             <p>
-              ReloopCycle is more than just a marketplace - it's a movement towards sustainable consumption. 
+              İkel is more than just a marketplace - it's a movement towards sustainable consumption. 
               Our platform makes it easy to find, share, and trade pre-loved items across the United Kingdom.
             </p>
             

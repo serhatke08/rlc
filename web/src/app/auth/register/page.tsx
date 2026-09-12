@@ -201,7 +201,7 @@ export default function RegisterPage() {
       {emailSent ? (
         <div className="space-y-6">
           <div className="space-y-2 text-center">
-            <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+            <p className="text-xs font-semibold tracking-[0.3em] text-emerald-600">İkel</p>
             <h1 className="text-2xl font-semibold text-zinc-900">Check Your Email</h1>
           </div>
 
@@ -241,7 +241,7 @@ export default function RegisterPage() {
       ) : (
         <>
           <div className="space-y-2 text-center">
-            <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+            <p className="text-xs font-semibold tracking-[0.3em] text-emerald-600">İkel</p>
             <h1 className="text-2xl font-semibold text-zinc-900">Join the Community</h1>
             <p className="text-sm text-zinc-500">Create your account for free sharing and swapping.</p>
           </div>

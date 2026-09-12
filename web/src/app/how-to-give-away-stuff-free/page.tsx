@@ -7,7 +7,7 @@ import { ListingCard } from "@/components/listing-card";
 import type { FeaturedListing } from "@/types/listing";
 
 export const metadata: Metadata = {
-  title: "How to Give Away Stuff for Free - Complete Guide UK 2024 | ReloopCycle",
+  title: "How to Give Away Stuff for Free - Complete Guide UK 2024",
   description: "Complete guide on how to give away items for free in the UK. Learn the best ways to donate furniture, electronics, clothes, and more. Join the circular economy and help reduce waste.",
   keywords: [
     "how to give away stuff for free",
@@ -182,7 +182,7 @@ export default async function HowToGiveAwayFreePage() {
                 <ul className="space-y-2 text-zinc-600">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
-                    <span><strong>ReloopCycle:</strong> Free platform focused on the circular economy, great for furniture and household items</span>
+                    <span><strong>İkel:</strong> Free platform focused on the circular economy, great for furniture and household items</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />

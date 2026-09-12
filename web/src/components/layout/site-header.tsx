@@ -1,7 +1,6 @@
 'use client';
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useUI } from "@/components/providers/ui-provider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { BrandLogo } from "@/components/brand-logo";
 
 const gradientButton =
   "bg-gradient-to-r from-[#9c6cfe] via-[#6c9ffc] to-[#0ad2dd] text-white shadow-lg shadow-[#9c6cfe]/30";
@@ -202,7 +202,7 @@ export function SiteHeader() {
       {/* Desktop layout */}
       <div className="mx-auto hidden w-full max-w-6xl flex-col gap-4 px-6 py-4 lg:flex">
         <div className="relative flex items-center justify-center">
-          <Logo size="lg" />
+          <BrandLogo size="lg" priority />
           {domainCountry && (
             <div className="absolute left-0 flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700">
               <span className="text-zinc-500">📍</span>
@@ -245,7 +245,7 @@ export function SiteHeader() {
           <Menu className="h-5 w-5" />
         </button>
         <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
-          <Logo />
+          <BrandLogo size="md" priority />
           {domainCountry && (
             <div className="flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-600">
               <span>📍</span>
@@ -270,21 +270,6 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  );
-}
-
-function Logo({ size = "md" }: { size?: "md" | "lg" }) {
-  return (
-    <Link href="/" className="flex items-center">
-      <Image
-        src="/yenilogo.png"
-        alt="ReloopCycle Logo"
-        width={size === "lg" ? 180 : 140}
-        height={size === "lg" ? 60 : 50}
-        className="h-auto w-auto object-contain"
-        priority
-      />
-    </Link>
   );
 }
 

@@ -12,7 +12,7 @@
  */
 
 export function getDomainIcon(hostname: string): string {
-  // Domain-based icon mapping - All ReloopCycle domains
+  // Domain-based icon mapping - All İkel domains
   const domainIcons: Record<string, string> = {
     'reloopcycle.co.uk': '/icon.png',
     'reloopcycle.com': '/icon.png',
@@ -28,7 +28,7 @@ export function getDomainIcon(hostname: string): string {
 }
 
 export function getDomainFavicon(hostname: string): string {
-  // Domain-based favicon mapping - All ReloopCycle domains
+  // Domain-based favicon mapping - All İkel domains
   // We use .ico format (required for Google)
   // In Next.js App Router, app/favicon.ico is automatically served as /favicon.ico
   const domainFavicons: Record<string, string> = {

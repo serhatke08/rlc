@@ -124,7 +124,7 @@ function LoginForm() {
     return (
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+          <p className="text-xs font-semibold tracking-[0.3em] text-emerald-600">İkel</p>
           <h1 className="text-2xl font-semibold text-zinc-900">Checking authentication...</h1>
         </div>
       </div>
@@ -149,7 +149,7 @@ function LoginForm() {
         </div>
       )}
       <div className="space-y-2 text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+        <p className="text-xs font-semibold tracking-[0.3em] text-emerald-600">İkel</p>
         <h1 className="text-2xl font-semibold text-zinc-900">Sign in to your account</h1>
         <p className="text-sm text-zinc-500">Continue to the free sharing community.</p>
       </div>
@@ -219,7 +219,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">ReloopCycle</p>
+          <p className="text-xs font-semibold tracking-[0.3em] text-emerald-600">İkel</p>
           <h1 className="text-2xl font-semibold text-zinc-900">Loading...</h1>
         </div>
       </div>

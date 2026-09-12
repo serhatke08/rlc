@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact Us | ReloopCycle Support",
-  description: "Get in touch with ReloopCycle. We're here to help with questions about our circular economy marketplace.",
-  keywords: ["contact reloopcycle", "customer support", "help", "get in touch"],
+  title: "Contact Us",
+  description: "Get in touch with İkel. We're here to help with questions about our circular economy marketplace.",
+  keywords: ["contact ikel", "customer support", "help", "get in touch"],
   robots: {
     index: false,
     follow: false,

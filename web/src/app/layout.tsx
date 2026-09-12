@@ -5,6 +5,7 @@ import { UIProvider } from "@/components/providers/ui-provider";
 import { LayoutWrapper } from "@/components/layout/layout-wrapper";
 import { generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo/schema";
 import { getSiteUrl } from "@/lib/env";
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { getDomainIcon, getDomainFavicon, getHostnameFromSiteUrl } from "@/lib/domain-icons";
 import { AdSenseScript } from "@/components/ads/adsense-script";
 
@@ -66,33 +67,33 @@ function getIconsForDomain() {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "ReloopCycle | Give, Swap, Reuse - UK Circular Economy Marketplace",
-    template: "%s | ReloopCycle",
+    default: `${APP_NAME} | ${APP_TAGLINE}`,
+    template: `%s | ${APP_NAME}`,
   },
   description:
-    "UK's leading circular economy marketplace. Give, swap, and reuse items locally. Reduce waste and build sustainable communities.",
+    "Give, swap, and reuse items locally. Reduce waste and build sustainable communities.",
   keywords: [
-    "free stuff UK",
+    "free stuff",
     "swap items online",
     "circular economy",
     "reuse platform",
     "zero waste",
-    "UK marketplace",
     "second hand items",
+    "ikel",
   ],
   openGraph: {
-    title: "ReloopCycle | Give, Swap, Reuse",
+    title: `${APP_NAME} | ${APP_TAGLINE}`,
     description:
-      "UK's leading circular economy marketplace. Connect with neighbors to give, swap, and reuse items locally.",
+      "Give, swap, and reuse items locally. Connect with neighbors to reduce waste.",
     url: siteUrl,
-    siteName: "ReloopCycle",
+    siteName: APP_NAME,
     locale: "en_GB",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ReloopCycle | Give, Swap, Reuse",
-    description: "UK's circular economy marketplace powered by Next.js and Supabase.",
+    title: `${APP_NAME} | ${APP_TAGLINE}`,
+    description: "Give, swap, and reuse items locally.",
   },
   icons: getIconsForDomain(),
 };

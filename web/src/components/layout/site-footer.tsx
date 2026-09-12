@@ -1,6 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 
+import { BrandLogo } from "@/components/brand-logo";
+import { APP_NAME } from "@/lib/brand";
 import { LANDING_PAGES } from "@/data/homepage";
 
 export function SiteFooter() {
@@ -10,16 +11,10 @@ export function SiteFooter() {
         {/* Top Section: Brand - Full Width */}
         <div className="mb-8 text-center">
           <div className="mb-4 flex justify-center">
-            <Image
-              src="/yenilogo.png"
-              alt="ReloopCycle Logo"
-              width={200}
-              height={70}
-              className="h-auto w-auto object-contain"
-            />
+            <BrandLogo size="lg" className="rounded-2xl" />
           </div>
-          <p className="mb-2 text-sm">Give, Swap, Reuse. Join the circular economy movement in the UK.</p>
-          <p className="text-xs text-zinc-500">© {new Date().getFullYear()} ReloopCycle</p>
+          <p className="mb-2 text-sm">Give, Swap, Reuse. Join the circular economy movement.</p>
+          <p className="text-xs text-zinc-500">© {new Date().getFullYear()} {APP_NAME}</p>
         </div>
 
         {/* Bottom Section: Links in Grid */}

@@ -65,7 +65,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "ReloopCycle account deleted.",
+      message: "İkel account deleted.",
     });
   } finally {
     await result.authClient.auth.signOut().catch(() => {});

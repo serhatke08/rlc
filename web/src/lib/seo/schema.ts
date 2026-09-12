@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/env";
+import { APP_NAME, APP_LOGO_PATH } from "@/lib/brand";
 import { listingPublicPath } from "@/lib/listing-url";
 
 /**
@@ -21,10 +22,10 @@ export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "ReloopCycle",
+    name: APP_NAME,
     url: siteUrl,
-    logo: `${siteUrl}/logo.png`,
-    description: "UK's leading circular economy marketplace for giving, swapping, and reusing items",
+    logo: `${siteUrl}${APP_LOGO_PATH}`,
+    description: "Circular economy marketplace for giving, swapping, and reusing items",
     sameAs: [
       // Add social media links when available
     ],
@@ -44,7 +45,7 @@ export function generateWebsiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "ReloopCycle",
+    name: APP_NAME,
     url: siteUrl,
     potentialAction: {
       "@type": "SearchAction",
@@ -106,7 +107,7 @@ export async function generateProductSchema(listingId: string) {
     category: "Second Hand Items",
     brand: {
       "@type": "Brand",
-      name: "ReloopCycle"
+      name: APP_NAME
     },
     seller: {
       "@type": "Person",

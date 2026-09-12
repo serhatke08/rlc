@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | ReloopCycle",
-  description: "ReloopCycle Privacy Policy. Learn how we collect, use, and protect your personal information.",
+  title: "Privacy Policy",
+  description: "İkel Privacy Policy. Learn how we collect, use, and protect your personal information.",
   keywords: ["privacy policy", "data protection", "GDPR"],
   robots: {
     index: false,
@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
         <article className="prose prose-zinc max-w-none">
           <h2>1. Introduction</h2>
           <p>
-            Welcome to ReloopCycle. We respect your privacy and are committed to protecting your personal data. 
+            Welcome to İkel. We respect your privacy and are committed to protecting your personal data. 
             This privacy policy will inform you about how we look after your personal data when you visit our 
             platform and tell you about your privacy rights.
           </p>

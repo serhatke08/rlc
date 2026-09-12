@@ -7,7 +7,7 @@ import { ListingCard } from "@/components/listing-card";
 import type { FeaturedListing } from "@/types/listing";
 
 export const metadata: Metadata = {
-  title: "Beginner's Guide to Zero Waste Living - UK Guide 2024 | ReloopCycle",
+  title: "Beginner's Guide to Zero Waste Living - UK Guide 2024",
   description: "Complete beginner's guide to zero waste living in the UK. Learn how to reduce waste, reuse items, and live more sustainably. Practical tips and advice for starting your zero waste journey.",
   keywords: [
     "beginner guide zero waste",
@@ -119,7 +119,7 @@ export default async function BeginnerGuideZeroWastePage() {
             <p className="mb-4 text-lg text-zinc-600">
               Zero waste living is about keeping items in use and avoiding unnecessary waste. It is not about
               producing absolutely zero waste (which is nearly impossible), but about making conscious choices
-              to reduce and reuse—by repairing, sharing, and using platforms like ReloopCycle to give away, swap,
+              to reduce and reuse—by repairing, sharing, and using platforms like İkel to give away, swap,
               and even sell pre-loved items within your community.
             </p>
             <div className="rounded-xl border-2 border-green-200 bg-green-50 p-6">
@@ -184,7 +184,7 @@ export default async function BeginnerGuideZeroWastePage() {
                   <h3 className="text-xl font-semibold text-zinc-900">Buy Second-Hand First</h3>
                 </div>
                 <p className="text-zinc-600">
-                  When you do need something new, check second-hand options first. Platforms like ReloopCycle 
+                  When you do need something new, check second-hand options first. Platforms like İkel 
                   are perfect for finding quality items that others no longer need. This extends the life of 
                   products and reduces demand for new manufacturing.
                 </p>
@@ -292,7 +292,7 @@ export default async function BeginnerGuideZeroWastePage() {
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-6 w-6 flex-shrink-0 text-green-600" />
-                <span><strong>Support community reuse:</strong> Use ReloopCycle to give away for free, swap, sell pre-loved items, and connect with others who want to reuse.</span>
+                <span><strong>Support community reuse:</strong> Use İkel to give away for free, swap, sell pre-loved items, and connect with others who want to reuse.</span>
               </li>
             </ul>
           </div>

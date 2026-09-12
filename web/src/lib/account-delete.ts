@@ -13,7 +13,7 @@ const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX = 8;
 const INVALID_CREDENTIALS = "Invalid username or password.";
 const GOOGLE_ONLY =
-  "This ReloopCycle account uses Google sign-in and has no password. Sign in with Google at reloopcycle.co.uk, then delete the account from Account settings.";
+  "This İkel account uses Google sign-in and has no password. Sign in with Google at reloopcycle.co.uk, then delete the account from Account settings.";
 
 type RateBucket = { count: number; resetAt: number };
 const rateBuckets = new Map<string, RateBucket>();
@@ -162,7 +162,7 @@ async function resolveEmailForIdentifier(identifier: string): Promise<ResolvedId
     return {
       ok: false,
       status: 400,
-      error: "Use the email address for this ReloopCycle account.",
+      error: "Use the email address for this İkel account.",
     };
   }
 
@@ -506,7 +506,7 @@ export async function deleteAuthenticatedAccount(
     return {
       ok: false,
       status: 500,
-      error: "Failed to delete the ReloopCycle account. Please try again.",
+      error: "Failed to delete the İkel account. Please try again.",
     };
   }
 
@@ -520,7 +520,7 @@ export async function deleteAuthenticatedAccount(
       return {
         ok: false,
         status: 500,
-        error: "Failed to delete the ReloopCycle account. Please try again.",
+        error: "Failed to delete the İkel account. Please try again.",
       };
     }
   } else {

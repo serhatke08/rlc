@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: UkCityPageProps): Promise<Met
     const base = await getSiteUrlFromHeaders();
     const segment = city.slug ?? citySlug.toLowerCase();
     const path = `/uk/${segment}`;
-    const title = `Free items in ${city.name} — ReloopCycle`;
+    const title = `Free items in ${city.name} — İkel`;
     const description = getCityMetaDescriptionFirst160(segment, city.name);
     const canonical = `${base}${path}`;
 
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: UkCityPageProps): Promise<Met
         title,
         description,
         url: canonical,
-        siteName: "ReloopCycle",
+        siteName: "İkel",
         locale: "en_GB",
         type: "website",
       },

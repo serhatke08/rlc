@@ -101,7 +101,7 @@ export default function SwapItemsPage() {
             <h2>Trade and Exchange Items Online in the UK</h2>
             <p>
               Swapping items is a great way to refresh your belongings without spending money. 
-              ReloopCycle connects people across the UK who want to trade items fairly and sustainably.
+              İkel connects people across the UK who want to trade items fairly and sustainably.
             </p>
             
             <h3>Popular Items to Swap</h3>

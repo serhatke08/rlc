@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   await result.authClient.auth.signOut().catch(() => {});
 
   return NextResponse.json({
-    app: "ReloopCycle",
+    app: "İkel",
     username: result.account.username,
     displayName: result.account.displayName,
     emailMasked: result.account.emailMasked,

@@ -7,7 +7,7 @@ import { ListingCard } from "@/components/listing-card";
 import type { FeaturedListing } from "@/types/listing";
 
 export const metadata: Metadata = {
-  title: "How to Give Away Large Items - Furniture & Appliances UK Guide | ReloopCycle",
+  title: "How to Give Away Large Items - Furniture & Appliances UK Guide",
   description: "Complete guide on giving away large items like furniture, appliances, and bulky goods in the UK. Learn how to move, photograph, and list heavy items for free collection.",
   keywords: [
     "how to give away large items",
@@ -345,7 +345,7 @@ export default async function HowToGiveAwayLargeItemsPage() {
           <div className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-8 text-center">
             <h2 className="mb-4 text-2xl font-bold text-zinc-900">Have Large Items to Give Away?</h2>
             <p className="mb-6 text-zinc-600">
-              List your furniture, appliances, or other large items on ReloopCycle and help them find a new home.
+              List your furniture, appliances, or other large items on İkel and help them find a new home.
             </p>
             <Link
               href="/create-listing"

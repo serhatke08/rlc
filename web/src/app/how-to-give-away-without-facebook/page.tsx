@@ -7,8 +7,8 @@ import { ListingCard } from "@/components/listing-card";
 import type { FeaturedListing } from "@/types/listing";
 
 export const metadata: Metadata = {
-  title: "How to Give Away Items Without Using Facebook - UK Guide 2024 | ReloopCycle",
-  description: "Discover the best platforms to give away items for free in the UK without Facebook. Learn about privacy-focused alternatives like ReloopCycle, Freecycle, and more.",
+  title: "How to Give Away Items Without Using Facebook - UK Guide 2024",
+  description: "Discover the best platforms to give away items for free in the UK without Facebook. Learn about privacy-focused alternatives like İkel, Freecycle, and more.",
   keywords: [
     "how to give away without facebook",
     "give away items no facebook",
@@ -145,14 +145,14 @@ export default async function HowToGiveAwayWithoutFacebookPage() {
             <h2 className="mb-6 text-3xl font-bold text-zinc-900">Best Alternatives to Facebook</h2>
             
             <div className="space-y-6">
-              {/* ReloopCycle */}
+              {/* İkel */}
               <div className="rounded-xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6">
                 <div className="mb-4 flex items-center gap-3">
                   <div className="rounded-lg bg-emerald-600 p-2">
                     <Leaf className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-zinc-900">ReloopCycle</h3>
+                    <h3 className="text-xl font-bold text-zinc-900">İkel</h3>
                     <p className="text-sm text-zinc-600">Circular economy marketplace focused on reuse</p>
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export default async function HowToGiveAwayWithoutFacebookPage() {
                   href="/create-listing"
                   className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
                 >
-                  List on ReloopCycle
+                  List on İkel
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -283,7 +283,7 @@ export default async function HowToGiveAwayWithoutFacebookPage() {
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
                   <tr>
-                    <td className="px-6 py-4 font-semibold text-zinc-900">ReloopCycle</td>
+                    <td className="px-6 py-4 font-semibold text-zinc-900">İkel</td>
                     <td className="px-6 py-4 text-zinc-600">
                       <CheckCircle2 className="inline h-5 w-5 text-emerald-600" />
                     </td>
@@ -330,7 +330,7 @@ export default async function HowToGiveAwayWithoutFacebookPage() {
           {/* Example Listings */}
           {listings.length > 0 && (
             <div className="mb-12">
-              <h2 className="mb-6 text-3xl font-bold text-zinc-900">Items Available on ReloopCycle</h2>
+              <h2 className="mb-6 text-3xl font-bold text-zinc-900">Items Available on İkel</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {listings.slice(0, 6).map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
@@ -343,7 +343,7 @@ export default async function HowToGiveAwayWithoutFacebookPage() {
           <div className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-8 text-center">
             <h2 className="mb-4 text-2xl font-bold text-zinc-900">Ready to Give Away Items Privately?</h2>
             <p className="mb-6 text-zinc-600">
-              Join ReloopCycle - a privacy-focused platform that doesn't require Facebook or share your personal data.
+              Join İkel - a privacy-focused platform that doesn't require Facebook or share your personal data.
             </p>
             <Link
               href="/create-listing"

@@ -4,7 +4,7 @@ import { Leaf, Users, Sprout, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Zero Waste Community UK | Sustainable Living Platform",
-  description: "ReloopCycle is built for the community: give away for free, swap, and even sell pre-loved items. You can also post rehoming/adoption listings to help pets find new homes.",
+  description: "İkel is built for the community: give away for free, swap, and even sell pre-loved items. You can also post rehoming/adoption listings to help pets find new homes.",
   keywords: [
     "zero waste UK",
     "zero waste community",
@@ -169,7 +169,7 @@ export default function ZeroWastePage() {
           <article className="prose prose-zinc max-w-none">
             <h2>Join the UK’s Reuse & Rehoming Community</h2>
             <p>
-              ReloopCycle is a community built for people who want to reuse and help others. You can give items away for free,
+              İkel is a community built for people who want to reuse and help others. You can give items away for free,
               swap with neighbors, or sell pre-loved items. And you can also share rehoming/adoption listings to help pets
               find a new home.
             </p>
