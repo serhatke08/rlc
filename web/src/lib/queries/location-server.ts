@@ -69,6 +69,27 @@ export async function getCurrentUserCountry(): Promise<Country | null> {
   }
 }
 
+export async function getCountryByCode(code: string): Promise<Country | null> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("countries")
+      .select("id, name, code, flag_emoji")
+      .eq("code", code)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[getCountryByCode]", code, error.message);
+      return null;
+    }
+
+    return (data as Country | null) ?? null;
+  } catch (err) {
+    console.error("Unexpected error in getCountryByCode:", err);
+    return null;
+  }
+}
+
 export async function getRegionsByCountry(countryId: string): Promise<Region[]> {
   try {
     const supabase = await createSupabaseServerClient();

@@ -27,62 +27,21 @@ export function SiteHeader() {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [domainCountry, setDomainCountry] = useState<string | null>(null);
-  const [countryMode, setCountryMode] = useState<"england" | "worldwide">("england");
-  const [canChangeCountry, setCanChangeCountry] = useState(false);
 
   // Mesajlar sayfasında search bar gösterme
   const isMessagesPage = pathname === '/messages' || pathname?.startsWith('/messages/');
 
-  // Domain bazlı ülke göstergesi
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname.replace(/^www\./, '');
-
-      const cookieName = "reloopcycle_country_mode";
-      const readCookie = (name: string) => {
-        const parts = document.cookie.split(";").map((p) => p.trim());
-        const match = parts.find((p) => p.startsWith(`${name}=`));
-        if (!match) return null;
-        return decodeURIComponent(match.split("=").slice(1).join("="));
-      };
-
-      const cookieMode = readCookie(cookieName);
-      const effectiveMode =
-        hostname === "reloopcycle.co.uk"
-          ? "england"
-          : hostname === "reloopcycle.com"
-            ? cookieMode === "worldwide"
-              ? "worldwide"
-              : "england"
-            : null;
-
-      if (!effectiveMode) {
-        setDomainCountry(null);
-        setCanChangeCountry(false);
-        setCountryMode("england");
-        return;
-      }
-
-      setCountryMode(effectiveMode);
-      setDomainCountry(effectiveMode === "england" ? "United Kingdom" : "Worldwide");
-      setCanChangeCountry(hostname === "reloopcycle.com");
+    if (typeof window === "undefined") return;
+    const hostname = window.location.hostname.replace(/^www\./, "");
+    if (hostname === "reloopcycle.co.uk" || hostname.endsWith(".reloopcycle.co.uk")) {
+      setDomainCountry("United Kingdom");
+      return;
+    }
+    if (hostname === "reloopcycle.com" || hostname.endsWith(".reloopcycle.com")) {
+      setDomainCountry("Turkey");
     }
   }, []);
-
-  const handleToggleCountryMode = () => {
-    // reloopcycle.co.uk: buton yok, ama güvenlik için yine de engelle
-    if (!canChangeCountry) return;
-
-    const cookieName = "reloopcycle_country_mode";
-    const nextMode: "england" | "worldwide" = countryMode === "england" ? "worldwide" : "england";
-
-    // 30 gün sakla
-    const maxAgeSeconds = 60 * 60 * 24 * 30;
-    document.cookie = `${cookieName}=${nextMode}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
-
-    // UI/Server reload ile filtreyi hemen güncelle
-    window.location.reload();
-  };
 
   useEffect(() => {
     let mounted = true;
@@ -251,16 +210,6 @@ export function SiteHeader() {
             </div>
           )}
           <div className="absolute right-0 flex items-center gap-3 text-sm font-semibold">
-            {canChangeCountry && (
-              <button
-                type="button"
-                onClick={handleToggleCountryMode}
-                className="rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:border-emerald-200 hover:bg-emerald-50"
-                aria-label="Change country"
-              >
-                {countryMode === "england" ? "Worldwide" : "United Kingdom"}
-              </button>
-            )}
             {loading ? (
               <div className="h-10 w-20 animate-pulse rounded-2xl bg-zinc-200" />
             ) : user ? (
@@ -305,16 +254,6 @@ export function SiteHeader() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {canChangeCountry && (
-            <button
-              type="button"
-              onClick={handleToggleCountryMode}
-              className="inline-flex h-10 items-center rounded-2xl border border-zinc-200 bg-white px-2 text-[10px] font-semibold text-zinc-700 transition hover:bg-zinc-50"
-              aria-label="Change country"
-            >
-              {countryMode === "england" ? "Worldwide" : "United Kingdom"}
-            </button>
-          )}
           {user && <NotificationBell />}
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-2xl bg-zinc-200" />

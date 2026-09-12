@@ -1,8 +1,8 @@
 import { getServerUser } from "@/lib/supabase/server";
 import { getFeaturedListings } from "@/lib/data/listings";
 import { getCategories } from "@/lib/queries/category-server";
-import { getCurrentUserCountry, getRegionsByCountry, getRegionById, getCityById } from "@/lib/queries/location-server";
-import { getSeoCityMarketFromHost } from "@/lib/domain";
+import { getCurrentUserCountry, getRegionsByCountry, getRegionById, getCityById, getCountryByCode } from "@/lib/queries/location-server";
+import { getDomainCountryCode, getSeoCityMarketFromHost } from "@/lib/domain";
 import { resolveCityPathPrefixFromCountry } from "@/lib/seo-city-market";
 import type { Region } from "@/lib/types/location";
 import { HomeListings } from "@/components/home-listings";
@@ -37,7 +37,13 @@ export default async function Home({ searchParams }: HomeProps) {
   const categories = await getCategories();
 
   // Location data'yı çek
-  const country = await getCurrentUserCountry();
+  let country = await getCurrentUserCountry();
+  if (!country) {
+    const domainCode = await getDomainCountryCode();
+    if (domainCode) {
+      country = await getCountryByCode(domainCode);
+    }
+  }
   const domainMarket = await getSeoCityMarketFromHost();
   const cityPathPrefix = resolveCityPathPrefixFromCountry(country, domainMarket);
   let initialRegions: Region[] = [];

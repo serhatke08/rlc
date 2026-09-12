@@ -53,10 +53,15 @@ export default function RegisterPage() {
         }, []);
         
         setCountries(uniqueCountries);
-        // Varsayılan olarak United Kingdom'ı seç
-        const uk = uniqueCountries.find((c) => c.code === "GB");
-        if (uk) {
-          setForm((prev) => ({ ...prev, countryId: uk.id }));
+        const hostname =
+          typeof window !== "undefined" ? window.location.hostname.replace(/^www\./, "") : "";
+        const defaultCode =
+          hostname === "reloopcycle.com" || hostname.endsWith(".reloopcycle.com") ? "TR" : "GB";
+        const defaultCountry =
+          uniqueCountries.find((c) => c.code === defaultCode) ||
+          uniqueCountries.find((c) => c.code === "GB");
+        if (defaultCountry) {
+          setForm((prev) => ({ ...prev, countryId: defaultCountry.id }));
         }
       }
       setLoadingCountries(false);

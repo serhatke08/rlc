@@ -1,11 +1,17 @@
-import { getCurrentUserCountry, getRegionsByCountry } from "@/lib/queries/location-server";
+import { getCountryByCode, getCurrentUserCountry, getRegionsByCountry } from "@/lib/queries/location-server";
 import type { Region } from "@/lib/types/location";
 import { LocationMenu } from "@/components/location-menu";
-import { getSeoCityMarketFromHost } from "@/lib/domain";
+import { getDomainCountryCode, getSeoCityMarketFromHost } from "@/lib/domain";
 import { resolveCityPathPrefixFromCountry } from "@/lib/seo-city-market";
 
 export async function LocationMenuWrapper() {
-  const country = await getCurrentUserCountry();
+  let country = await getCurrentUserCountry();
+  if (!country) {
+    const domainCode = await getDomainCountryCode();
+    if (domainCode) {
+      country = await getCountryByCode(domainCode);
+    }
+  }
 
   let initialRegions: Region[] = [];
   if (country) {
@@ -27,4 +33,3 @@ export async function LocationMenuWrapper() {
     />
   );
 }
-

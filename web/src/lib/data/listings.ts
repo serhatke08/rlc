@@ -1,8 +1,8 @@
 import "server-only";
 
 import { createSupabaseServerClient, getServerUser } from "@/lib/supabase/server";
-import { shouldFilterByDomain } from "@/lib/domain";
-import { getEnglandRegion } from "@/lib/queries/location-server";
+import { getDomainCountryCode, shouldFilterByDomain } from "@/lib/domain";
+import { getCountryByCode } from "@/lib/queries/location-server";
 import type {
   FeaturedListing,
   ListingCondition,
@@ -50,7 +50,7 @@ export async function getFeaturedListings(options?: {
 
   // Domain bazlı filtreleme kontrolü - SADECE GİRİŞ YAPMAMIŞ KULLANICILAR İÇİN
   const shouldFilterByDomainCountry = await shouldFilterByDomain();
-  let englandCountryId: string | null = null;
+  let domainCountryId: string | null = null;
   
   // Önce kullanıcı kontrolü yap - eğer giriş yapmışsa domain filtresi uygulanmaz
   let userCountryId: string | null = null;
@@ -74,36 +74,23 @@ export async function getFeaturedListings(options?: {
     // Kullanıcı giriş yapmamış - bu normal
   }
   
-  // Sadece giriş yapmamış kullanıcılar için domain filtresi uygula
-  // England region'ının country_id'sini bul (GB olmalı)
   if (shouldFilterByDomainCountry && !userCountryId) {
-    const englandRegion = await getEnglandRegion();
-    if (englandRegion && englandRegion.country_id) {
-      englandCountryId = englandRegion.country_id;
-      console.log("[getFeaturedListings] Domain filter: England country_id:", englandCountryId, "(anonymous user on reloopcycle.co.uk)");
-    } else {
-      // Fallback: GB country'sini direkt bul
-      const { data: gbCountry, error: gbError } = await supabase
-        .from("countries")
-        .select("id")
-        .eq("code", "GB")
-        .single();
-      
-      if (!gbError && gbCountry) {
-        const gbData = gbCountry as { id: string } | null;
-        if (gbData?.id) {
-          englandCountryId = gbData.id;
-          console.log("[getFeaturedListings] Domain filter: Using GB country_id as fallback:", englandCountryId);
-        }
-      } else {
-        console.warn("[getFeaturedListings] England country_id not found! Domain filter will not be applied.");
+    const domainCode = await getDomainCountryCode();
+    if (domainCode) {
+      const domainCountry = await getCountryByCode(domainCode);
+      domainCountryId = domainCountry?.id ?? null;
+      if (!domainCountryId) {
+        console.warn(
+          "[getFeaturedListings] Domain country not found for code:",
+          domainCode,
+        );
       }
     }
   }
   
   console.log("[getFeaturedListings] Filter check:", {
     shouldFilterByDomainCountry,
-    englandCountryId,
+    domainCountryId,
     userCountryId,
     isAnonymous: !userCountryId,
     hasCityFilter: !!(options?.cityId && options.cityId.trim() !== '' && options.cityId !== 'null' && options.cityId !== 'undefined'),
@@ -173,21 +160,17 @@ export async function getFeaturedListings(options?: {
     query = query.eq("region_id", options.regionId);
     console.log("[getFeaturedListings] Filtering by region_id:", options.regionId);
   }
-  // Domain bazlı filtreleme: reloopcycle.co.uk -> England country_id (SADECE giriş yapmayan kullanıcılar için, anasayfa için)
-  // Bu filtre sadece region/city filtresi yoksa ve kullanıcı giriş yapmamışsa uygulanır
-  // listings tablosundaki country_id'si England'ın country_id'si ile eşleşen ürünleri göster
-  else if (shouldFilterByDomainCountry && englandCountryId && !userCountryId) {
-    query = query.eq("country_id", englandCountryId);
-    console.log("[getFeaturedListings] ✅ Applying domain filter: England country_id only (anonymous user on reloopcycle.co.uk), country_id:", englandCountryId);
+  // Domain market: .co.uk → GB, .com → TR (anonymous homepage)
+  else if (shouldFilterByDomainCountry && domainCountryId && !userCountryId) {
+    query = query.eq("country_id", domainCountryId);
   }
   // Kullanıcının ülkesine göre filtrele (giriş yapmış kullanıcılar için, region/city filtresi yoksa)
   else if (userCountryId) {
     query = query.eq("country_id", userCountryId);
     console.log("[getFeaturedListings] Filtering by user country_id:", userCountryId);
   }
-  // reloopcycle.com için hiçbir filtre yok (tüm dünya gösterilir) - SADECE giriş yapmamış kullanıcılar için
   else if (!userCountryId) {
-    console.log("[getFeaturedListings] ✅ No filter applied - showing all listings (reloopcycle.com - anonymous user)");
+    console.log("[getFeaturedListings] No domain country filter for this host");
   }
   // Giriş yapmış kullanıcı için varsayılan olarak ülkesine göre filtrele (eğer yukarıdaki koşullar sağlanmadıysa)
   else {
