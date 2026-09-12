@@ -14,6 +14,7 @@ import { ListingReportButton } from "@/components/listing-report-button";
 import { ListingBlockButton } from "@/components/listing-block-button";
 import { ListingViewTracker } from "@/components/listing-view-tracker";
 import { ListingFavoriteButton } from "@/components/listing-favorite-button";
+import { formatOfferPrice } from "@/lib/currency";
 
 type SellerRow = {
   avatar_url?: string | null;
@@ -89,6 +90,14 @@ export function ListingDetailView(props: {
 
           <div className="mb-6">
             <h1 className="mb-3 text-2xl font-bold text-zinc-900">{String(listingData.title)}</h1>
+            <p className="mb-3 text-2xl font-bold text-emerald-700">
+              {formatOfferPrice({
+                price: listingData.price as string | number | null,
+                currency: listingData.currency as string | null,
+                listingType: listingData.listing_type as string | null,
+                countryCode: (listingData.country as { code?: string } | null)?.code,
+              })}
+            </p>
             <p className="whitespace-pre-line text-zinc-700">{String(listingData.description)}</p>
           </div>
 

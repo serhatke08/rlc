@@ -28,6 +28,8 @@ type RawListing = {
   comment_count: number | null;
   favorite_count: number | null;
   listing_type: string | null;
+  price: string;
+  currency: string | null;
   category_id: string | null;
   subcategory_id: string | null;
   country: { name: string; code: string; flag_emoji: string | null } | null;
@@ -270,7 +272,7 @@ export async function getFeaturedListings(options?: {
     return "sell"; // Ücretli
   };
 
-  return (filteredData as (RawListing & { price: string })[]).map<FeaturedListing>((listing) => {
+  return (filteredData as RawListing[]).map<FeaturedListing>((listing) => {
     const metadata = listing.metadata ?? {};
 
     return {
@@ -288,6 +290,8 @@ export async function getFeaturedListings(options?: {
       condition: listing.condition,
       status: lifecycleMap[listing.status ?? "active"] ?? "available",
       listingType: getListingType(listing.listing_type, metadata, listing.price),
+      price: listing.price,
+      currency: listing.currency ?? undefined,
       coverImage: listing.thumbnail_url ?? listing.images?.[0] ?? null,
       tags: (metadata["tags"] as string[]) ?? [],
       createdAt: listing.created_at ?? new Date().toISOString(),

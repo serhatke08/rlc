@@ -5,6 +5,7 @@ import { Heart, Package } from "lucide-react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { listingPublicPath } from "@/lib/listing-url";
+import { formatOfferPrice } from "@/lib/currency";
 
 export default async function FavoritesPage() {
   const supabase = await createSupabaseServerClient();
@@ -120,15 +121,11 @@ export default async function FavoritesPage() {
                     {listing.city?.name || listing.city_name}
                   </p>
                   <p className="mt-2 text-lg font-bold text-emerald-600">
-                    {listing.listing_type === 'free' || listing.price === "0" || listing.price === 0 
-                      ? "Free" 
-                      : listing.listing_type === 'exchange' 
-                        ? "Swap" 
-                        : listing.listing_type === 'need'
-                          ? "I Need"
-                          : listing.listing_type === 'ownership'
-                            ? "Adoption"
-                            : `£${listing.price}`}
+                    {formatOfferPrice({
+                      price: listing.price,
+                      currency: listing.currency,
+                      listingType: listing.listing_type,
+                    })}
                   </p>
                 </div>
               </Link>

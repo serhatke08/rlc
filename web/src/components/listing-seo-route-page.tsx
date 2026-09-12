@@ -8,11 +8,14 @@ import { listingPublicPath } from "@/lib/listing-url";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/schema";
 import { getSiteUrlFromHeaders } from "@/lib/env";
 import type { ListingMarket } from "@/lib/listing-seo-path";
+import { formatOfferPrice } from "@/lib/currency";
 
 const META_SELECT = `
     title,
     description,
     price,
+    currency,
+    listing_type,
     thumbnail_url,
     images,
     slug,
@@ -20,6 +23,7 @@ const META_SELECT = `
     id,
     city:cities(name),
     region:regions(name),
+    country:countries(code),
     category:product_categories(name)
   `;
 
@@ -47,8 +51,12 @@ export async function generateListingSeoMetadata({
 
   const listingData = listingForMeta as Record<string, unknown>;
   const imageUrl = listingData.thumbnail_url || (listingData.images as string[])?.[0];
-  const priceText =
-    listingData.price === "0" || listingData.price === "0.00" ? "Free" : `£${listingData.price}`;
+  const priceText = formatOfferPrice({
+    price: listingData.price as string | null,
+    currency: listingData.currency as string | null,
+    listingType: listingData.listing_type as string | null,
+    countryCode: (listingData.country as { code?: string } | undefined)?.code,
+  });
   const city = listingData.city as { name?: string } | undefined;
   const location = city?.name || "UK";
   const publicPath = listingPublicPath({

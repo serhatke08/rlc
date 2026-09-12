@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { allocateUniqueListingSlug } from '@/lib/listing-slug-server';
 import { resolveCityDisplayNameForListingSlug } from '@/lib/listing-slug-resolve';
 import { allocateUniqueSeoPath, persistListingSeoPath } from '@/lib/listing-seo-path-server';
+import { currencyForCountryCode } from '@/lib/currency';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -29,6 +30,22 @@ export async function POST(request: Request) {
     const cityName = formData.get('cityName') as string;
     const districtName = formData.get('districtName') as string;
     const countryId = formData.get('countryId') as string;
+    if (!countryId) {
+      return NextResponse.json({ error: 'Country is required' }, { status: 400 });
+    }
+
+    const { data: countryRow, error: countryError } = await supabase
+      .from('countries')
+      .select('code')
+      .eq('id', countryId)
+      .maybeSingle();
+
+    const countryCode = (countryRow as { code?: string } | null)?.code;
+    if (countryError || !countryCode) {
+      return NextResponse.json({ error: 'Invalid country' }, { status: 400 });
+    }
+
+    const listingCurrency = currencyForCountryCode(countryCode);
 
     // Get photos
     const photos: File[] = [];
@@ -100,7 +117,7 @@ export async function POST(request: Request) {
         images: uploadedUrls,
         thumbnail_url: uploadedUrls[0],
         price: price.toString(),
-        currency: 'GBP',
+        currency: listingCurrency.code,
         status: 'active',
         slug,
       })

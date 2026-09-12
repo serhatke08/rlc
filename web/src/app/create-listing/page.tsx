@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { listingPublicPath } from '@/lib/listing-url';
 import { Upload, X, Loader2 } from 'lucide-react';
+import { currencyForCountryCode } from '@/lib/currency';
 
 type Category = {
   id: string;
@@ -42,9 +43,9 @@ type Country = {
 };
 
 const LISTING_TYPES = [
+  { value: 'sale', label: 'Sale' },
   { value: 'free', label: 'Free' },
   { value: 'exchange', label: 'Swap' },
-  { value: 'sale', label: 'Sale' },
   { value: 'need', label: 'I Need' },
   { value: 'ownership', label: 'Adoption' },
 ];
@@ -65,7 +66,7 @@ export default function CreateListingPage() {
   const [subcategoryId, setSubcategoryId] = useState<string>('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [listingType, setListingType] = useState<string>('');
+  const [listingType, setListingType] = useState<string>('sale');
   const [condition, setCondition] = useState<string>('used');
   const [price, setPrice] = useState<string>('');
   const [countryId, setCountryId] = useState<string>('');
@@ -87,6 +88,9 @@ export default function CreateListingPage() {
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+
+  const selectedCountry = countries.find((country) => country.id === countryId);
+  const listingCurrency = currencyForCountryCode(selectedCountry?.code);
 
   // Load initial data
   useEffect(() => {
@@ -689,37 +693,6 @@ export default function CreateListingPage() {
           </div>
         </div>
 
-        {/* Price - Only show for Sale */}
-        {listingType === 'sale' && (
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-zinc-900">
-              Price (GBP) *
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">£</span>
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Only allow positive numbers with up to 2 decimal places
-                  if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
-                    setPrice(value);
-                  }
-                }}
-                placeholder="0.00"
-                required
-                min="0"
-                step="0.01"
-                className="w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-              />
-            </div>
-            <p className="mt-1 text-xs text-zinc-500">
-              Enter the price in British Pounds (GBP)
-            </p>
-          </div>
-        )}
-
         {/* Condition */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-zinc-900">
@@ -759,6 +732,39 @@ export default function CreateListingPage() {
             ))}
           </select>
         </div>
+
+        {listingType === 'sale' && (
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-zinc-900">
+              Price ({listingCurrency.label}) *
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">
+                {listingCurrency.symbol}
+              </span>
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                    setPrice(value);
+                  }
+                }}
+                placeholder="0.00"
+                required
+                min="0"
+                step="0.01"
+                className="w-full rounded-xl border border-zinc-200 bg-white pl-10 pr-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">
+              {countryId
+                ? `Price is in ${listingCurrency.label} for the selected country.`
+                : 'Select a country to set the currency.'}
+            </p>
+          </div>
+        )}
 
         {/* Region */}
         <div>

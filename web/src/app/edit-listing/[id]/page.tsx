@@ -31,9 +31,9 @@ type City = {
 };
 
 const LISTING_TYPES = [
+  { value: 'sale', label: 'Sale' },
   { value: 'free', label: 'Free' },
   { value: 'exchange', label: 'Swap' },
-  { value: 'sale', label: 'Sale' },
   { value: 'need', label: 'I Need' },
   { value: 'ownership', label: 'Adoption' },
 ];

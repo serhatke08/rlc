@@ -13,6 +13,7 @@ import {
 } from "@/lib/listing-seo-path-server";
 import { ListingDetailView } from "@/components/listing-detail-view";
 import { LISTING_PAGE_DETAIL_SELECT } from "@/lib/listing-detail-query";
+import { formatOfferPrice } from "@/lib/currency";
 
 interface ListingPageProps {
   params: Promise<{
@@ -36,6 +37,8 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
     title,
     description,
     price,
+    currency,
+    listing_type,
     thumbnail_url,
     images,
     slug,
@@ -43,6 +46,7 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
     id,
     city:cities(name),
     region:regions(name),
+    country:countries(code),
     category:product_categories(name)
   `;
 
@@ -63,8 +67,12 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
 
   const listingData = listingForMeta as Record<string, unknown>;
   const imageUrl = listingData.thumbnail_url || (listingData.images as string[])?.[0];
-  const priceText =
-    listingData.price === "0" || listingData.price === "0.00" ? "Free" : `£${listingData.price}`;
+  const priceText = formatOfferPrice({
+    price: listingData.price as string | null,
+    currency: listingData.currency as string | null,
+    listingType: listingData.listing_type as string | null,
+    countryCode: (listingData.country as { code?: string } | undefined)?.code,
+  });
   const city = listingData.city as { name?: string } | undefined;
   const location = city?.name || "UK";
   const publicPath = listingPublicPath({

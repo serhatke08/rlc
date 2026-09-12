@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/env";
 import { APP_NAME, APP_LOGO_PATH } from "@/lib/brand";
 import { listingPublicPath } from "@/lib/listing-url";
+import { currencyForCountryCode } from "@/lib/currency";
 
 /**
  * Escape HTML special characters to prevent XSS in JSON-LD schemas
@@ -71,13 +72,14 @@ export async function generateProductSchema(listingId: string) {
       title,
       description,
       price,
+      currency,
       condition,
       images,
       thumbnail_url,
       created_at,
       city:cities(name),
       region:regions(name),
-      country:countries(name),
+      country:countries(name, code),
       seller:profiles(username, display_name)
     `)
     .eq("id", listingId)
@@ -89,6 +91,9 @@ export async function generateProductSchema(listingId: string) {
   const imageUrl = listingData.thumbnail_url || listingData.images?.[0];
   const price = parseFloat(listingData.price || "0");
   const isFree = price === 0;
+  const priceCurrency =
+    listingData.currency ||
+    currencyForCountryCode(listingData.country?.code).code;
 
   return {
     "@context": "https://schema.org",
@@ -99,7 +104,7 @@ export async function generateProductSchema(listingId: string) {
     offers: {
       "@type": "Offer",
       price: isFree ? "0" : price.toString(),
-      priceCurrency: "GBP",
+      priceCurrency,
       availability: "https://schema.org/InStock",
       url: `${siteUrl}${listingPublicPath({ id: listingData.id, slug: listingData.slug, seo_path: listingData.seo_path })}`
     },
