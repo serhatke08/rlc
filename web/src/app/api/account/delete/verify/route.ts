@@ -3,11 +3,9 @@ import { NextResponse } from "next/server";
 import {
   authenticateForAccountDeletion,
   consumeDeletionRateLimit,
-  deleteAuthenticatedAccount,
   deletionClientIp,
   parseDeletionCredentials,
 } from "@/lib/account-delete";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const ip = deletionClientIp(request);
@@ -42,32 +40,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  try {
-    const deleted = await deleteAuthenticatedAccount(
-      result.authClient,
-      result.account.userId,
-    );
-    if (!deleted.ok) {
-      return NextResponse.json({ error: deleted.error }, { status: deleted.status });
-    }
+  await result.authClient.auth.signOut().catch(() => {});
 
-    try {
-      const cookieClient = await createSupabaseServerClient();
-      const {
-        data: { user },
-      } = await cookieClient.auth.getUser();
-      if (user?.id === result.account.userId) {
-        await cookieClient.auth.signOut();
-      }
-    } catch {
-      // Cookie session cleanup is best-effort after the account is already gone.
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "ReloopCycle account deleted.",
-    });
-  } finally {
-    await result.authClient.auth.signOut().catch(() => {});
-  }
+  return NextResponse.json({
+    app: "ReloopCycle",
+    username: result.account.username,
+    displayName: result.account.displayName,
+    emailMasked: result.account.emailMasked,
+  });
 }
