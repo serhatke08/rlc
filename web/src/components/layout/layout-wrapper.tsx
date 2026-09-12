@@ -19,6 +19,15 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   // Subscription sayfasında pricing/credit kartları footer'da da görünüyor.
   // İstendiği gibi subscription içeriğini temiz tutmak için footer'ı gizliyoruz.
   const isSubscriptionPage = pathname === '/subscription';
+  const isDeleteAccountPage = pathname === '/delete-account';
+
+  if (isDeleteAccountPage) {
+    return (
+      <div className="min-h-screen bg-zinc-50">
+        {children}
+      </div>
+    );
+  }
   
   if (isChatPage) {
     return <>{children}</>;
