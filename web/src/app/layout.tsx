@@ -8,6 +8,7 @@ import { getSiteUrl } from "@/lib/env";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { getDomainIcon, getDomainFavicon, getHostnameFromSiteUrl } from "@/lib/domain-icons";
 import { AdSenseScript } from "@/components/ads/adsense-script";
+import { Analytics } from "@vercel/analytics/next";
 
 import "./globals.css";
 
@@ -131,6 +132,7 @@ export default function RootLayout({
             {children}
           </LayoutWrapper>
         </UIProvider>
+        <Analytics />
       </body>
     </html>
   );
